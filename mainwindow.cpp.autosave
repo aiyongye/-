@@ -466,6 +466,7 @@ void MainWindow::recordQueryButtonFun(){
     **/
 
 }
+
 void MainWindow::initializeControls()
 {
     timer = new QTimer();

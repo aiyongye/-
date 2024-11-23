@@ -30,6 +30,10 @@
 #include <QModbusReply> //客户端访问服务器后得到的回复（如客户端读服务器数据时包含数据信息）
 #include <QModbusTcpClient>
 #include <QThread>
+#include <QChartView> // 确保包含 QChartView
+#include <QString>    // 如果用到了 QString
+#include <QTimer>
+#include <QElapsedTimer>
 
 QT_CHARTS_USE_NAMESPACE // 如果使用Qt Charts模块
 namespace Ui {
@@ -51,17 +55,31 @@ public:
 
     void toReadReady();
 public:
-
+QDateEdit *yaZhuangData;
+QComboBox *xuanGuaName;
+QComboBox *jianChaName;
+QComboBox *caoZuoName;
+QLineEdit *yazhuang1;
+QTimer *timer; //时间节奏和plc频率一致
+QElapsedTimer *elapsedTimer;
+QVector<QPointF> data1; // 用于存储压装力值和时间
+QPushButton *recordQueryButton; // 记录查询
+QPushButton *startReBtn1;
+QPushButton *startReBtn2;
 private slots:
 #if 1
     void startRefun1();
     void startRefun2();
     void dealTimerFun(QTimer *timer);
     void recordQueryButtonFun();
+    void initializeControls();
 #endif
 private:
     Ui::MainWindow *ui;
+public:
+
 };
 
 #endif // MAINWINDOW_H
+
 

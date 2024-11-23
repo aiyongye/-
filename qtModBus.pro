@@ -26,8 +26,12 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp
+        mainwindow.cpp \
+    sqliteaction.cpp \
+    modbusconn.cpp
 
-HEADERS  += mainwindow.h
+HEADERS  += mainwindow.h \
+    sqliteaction.h \
+    modbusconn.h
 
 FORMS    += mainwindow.ui
