@@ -1,6 +1,0 @@
-#include "modbusconn.h"
-#include "mainwindow.h"
-ModbusConn::ModbusConn()
-{
-
-}

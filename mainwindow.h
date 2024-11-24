@@ -69,14 +69,13 @@ QPushButton *startReBtn2;
 private slots:
 #if 1
     void startRefun1();
-    void startRefun2();
-    void dealTimerFun(QTimer *timer);
     void recordQueryButtonFun();
     void initializeControls();
 #endif
 private:
     Ui::MainWindow *ui;
 public:
+    int a;
 
 };
 
