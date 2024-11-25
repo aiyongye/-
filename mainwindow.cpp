@@ -1,8 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "sqliteaction.h"
 
-
-
+QPushButton *createJiLu;
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -12,11 +12,96 @@ MainWindow::MainWindow(QWidget *parent) :
             setWindowTitle("悬挂件压装力测试系统");
             resize(1200, 800);
 #if 1
+
     MainWindow::initializeControls();
 MainWindow::a = 0;
+// 创建控件
+QComboBox *xuanGuaName = new QComboBox(this);     // 悬挂件名称
+QLineEdit *xiuZhengLine = new QLineEdit(this);    // 修正系数输入框
+QPushButton *xiuZhengBtn = new QPushButton("修正曲线", this);  // 修正按钮
+QLabel *xiuZhengLabel = new QLabel("修正系数：", this);
+
+QDateEdit *yaZhuangData = new QDateEdit(this);    // 压装日期选择器
+yaZhuangData->setDate(QDate::currentDate());
+
+QSpinBox *saoMiaoData = new QSpinBox(this);       // 扫描时间
+QPushButton *saveBtn = new QPushButton("保存", this);  // 保存按钮
+
+QComboBox *caoZuoName = new QComboBox(this);      // 操作者下拉框
+QLineEdit *tuBianSet = new QLineEdit(this);       // 突变跨度设置
+QPushButton *saveTuBianBtn = new QPushButton("保存", this);  // 保存突变按钮
+
+QComboBox *jianChaName = new QComboBox(this);     // 检查者下拉框
+QLineEdit *zhanKaiLine = new QLineEdit("0", this);  // 展开值
+QPushButton *zhanKaiBtn = new QPushButton("展开", this);  // 展开按钮
+// 左侧控件组
+QLineEdit *jieDianSignLine1 = new QLineEdit(this);
+QPushButton *daYinChartBtn1 = new QPushButton("打印图表", this);
+QLineEdit *yaZhuang1 = new QLineEdit(this);
+// 左侧第二行
+QLineEdit *yaZhuangSaultLine1 = new QLineEdit(this);
+QLineEdit *yaZhuangStdLine1 = new QLineEdit(this);
+// 右侧控件组（与左侧对称）
+QLineEdit *jieDianSignLine2 = new QLineEdit(this);
+QPushButton *daYinChartBtn2 = new QPushButton("打印图表", this);
+QLineEdit *yaZhuang2 = new QLineEdit(this);
+// 右侧第二行
+QLineEdit *yaZhuangSaultLine2 = new QLineEdit(this);
+QLineEdit *yaZhuangStdLine2 = new QLineEdit(this);
+
+
     connect(startReBtn1, QPushButton::clicked, this, startRefun1);
     timer->start(1000);
     elapsedTimer->start();
+
+    createJiLu = new QPushButton("创建", this);  // 创建记录按钮
+    // 点击创建连接数据库
+    connect(createJiLu, QPushButton::clicked,this, [=]{
+            qDebug() << "创建记录" << endl;
+        MainWindow::dataBaseConn = SqliteAction::getDatabaseConnection("../qtModBus/D1.db");
+        bool result1 = SqliteAction::ensureTableInDatabase(dataBaseConn, "../qtModBus/D1.db", "mainListTb");
+        if(result1)
+            qDebug() << "Table创建成功!!!"<< endl;
+        QList<QVariant> values;
+
+        // 将各个控件的数据存入 QList<QVariant>
+        values.append(xuanGuaName->currentText());       // 选挂名称
+        values.append(yaZhuangData->text());             // 压装日期
+        values.append(caoZuoName->currentText());        // 操作人
+        values.append(jianChaName->currentText());       // 检查人
+
+        // 第一组压装数据
+        values.append(jieDianSignLine1->text());         // 接点编号1
+        values.append(yaZhuang1->text());                // 压装值1
+        values.append(yaZhuangSaultLine1->text());       // 压装结果1
+        values.append(yaZhuangStdLine1->text());         // 压装标准1
+
+        // 第二组压装数据
+        values.append(jieDianSignLine2->text());         // 接点编号2
+        values.append(yaZhuang2->text());                // 压装值2
+        values.append(yaZhuangSaultLine2->text());       // 压装结果2
+        values.append(yaZhuangStdLine2->text());         // 压装标准2
+//qDebug() << xuanGuaName->currentText() << yaZhuangData->text() << caoZuoName->currentText() <<
+//         jianChaName->currentText()<<jieDianSignLine1->text() << yaZhuang1->text() <<yaZhuangSaultLine1->text()
+//         <<yaZhuangStdLine1->text()<<yaZhuangStdLine1->text() <<jieDianSignLine2->text() <<yaZhuang2->text() <<
+//        yaZhuangSaultLine2->text() << yaZhuangStdLine2->text()<< endl;
+        // 遍历并输出存储的数据，方便调试
+        qDebug() << "Stored Values:";
+        for (const QVariant &value : values) {
+            qDebug() << value;
+        }
+
+        QList<QString> columns = {
+            "xuanName", "press_date", "operator", "inspector",
+            "serial_number1", "pressData1", "press_result1", "force_standard1",
+            "serial_number2", "pressData2", "press_result2", "force_standard2"
+        };
+
+        bool result2 = SqliteAction::insertIntoTable(dataBaseConn, "../qtModBus/D1.db", "mainListTb", columns, values);
+
+        if(result2)
+            qDebug() << "数据插入成功!!!"<< endl;
+    });
 #endif
 
 #if 1
@@ -110,26 +195,8 @@ workModeBox->setStyleSheet("QGroupBox { background-color: #ecf0f1; border: 2px s
 QGroupBox *recordCreationBox = new QGroupBox("创建记录", this);
 QGridLayout *recordLayout = new QGridLayout(recordCreationBox);
 
-// 创建控件
-QComboBox *xuanGuaName = new QComboBox(this);     // 悬挂件名称
-QLineEdit *xiuZhengLine = new QLineEdit(this);    // 修正系数输入框
-QPushButton *xiuZhengBtn = new QPushButton("修正曲线", this);  // 修正按钮
-QLabel *xiuZhengLabel = new QLabel("修正系数：", this);
 
-QDateEdit *yaZhuangData = new QDateEdit(this);    // 压装日期选择器
-yaZhuangData->setDate(QDate::currentDate());
 
-QSpinBox *saoMiaoData = new QSpinBox(this);       // 扫描时间
-QPushButton *saveBtn = new QPushButton("保存", this);  // 保存按钮
-
-QComboBox *caoZuoName = new QComboBox(this);      // 操作者下拉框
-QLineEdit *tuBianSet = new QLineEdit(this);       // 突变跨度设置
-QPushButton *saveTuBianBtn = new QPushButton("保存", this);  // 保存突变按钮
-
-QComboBox *jianChaName = new QComboBox(this);     // 检查者下拉框
-QLineEdit *zhanKaiLine = new QLineEdit("0", this);  // 展开值
-QPushButton *zhanKaiBtn = new QPushButton("展开", this);  // 展开按钮
-QPushButton *createJiLu = new QPushButton("创建", this);  // 创建记录按钮
 
 // 填充数据到下拉框
 std::vector<QString> xuanGuaItems = {"选项1", "选项2", "选项3", "选项4"};
@@ -302,7 +369,7 @@ chartView2->chart()->setAxisY(axisY2, series2);
 //  --------测试--------------
 // 初始化 data1（全局或类内成员）
 data1.resize(1);  // 确保 data1 至少有一个点
-#if 1
+#if 0
 // 定时器槽函数
 connect(timer, &QTimer::timeout, this, [=] {
     int elapsedTime = elapsedTimer->elapsed();
@@ -365,10 +432,7 @@ QString lineEditStyle = "QLineEdit { border: 1px solid #7f8c8d; border-radius: 5
 QString buttonStyle = "QPushButton { background-color: #2ecc71; color: white; border-radius: 5px; padding: 8px; font-size: 14px; } QPushButton:hover { background-color: #27ae60; }";
 QString labelStyle = "QLabel { font-size: 14px; font-weight: bold; color: #2c3e50; }";
 
-// 左侧控件组
-QLineEdit *jieDianSignLine1 = new QLineEdit(this);
-QPushButton *daYinChartBtn1 = new QPushButton("打印图表", this);
-QLineEdit *yaZhuang1 = new QLineEdit(this);
+
 
 jieDianSignLine1->setStyleSheet(lineEditStyle);
 daYinChartBtn1->setStyleSheet(buttonStyle);
@@ -388,9 +452,8 @@ for (int i = 0; i < controlLayout->count(); ++i) {
     }
 }
 
-// 左侧第二行
-QLineEdit *yaZhuangSaultLine1 = new QLineEdit(this);
-QLineEdit *yaZhuangStdLine1 = new QLineEdit(this);
+
+
 yaZhuangSaultLine1->setStyleSheet(lineEditStyle);
 yaZhuangStdLine1->setStyleSheet(lineEditStyle);
 
@@ -399,10 +462,7 @@ controlLayout->addWidget(yaZhuangSaultLine1, 1, 1);
 controlLayout->addWidget(new QLabel("压装力标准：", this), 1, 2);
 controlLayout->addWidget(yaZhuangStdLine1, 1, 3);
 
-// 右侧控件组（与左侧对称）
-QLineEdit *jieDianSignLine2 = new QLineEdit(this);
-QPushButton *daYinChartBtn2 = new QPushButton("打印图表", this);
-QLineEdit *yaZhuang2 = new QLineEdit(this);
+
 
 jieDianSignLine2->setStyleSheet(lineEditStyle);
 daYinChartBtn2->setStyleSheet(buttonStyle);
@@ -414,9 +474,7 @@ controlLayout->addWidget(new QLabel("压装力值：", this), 0, 7);
 controlLayout->addWidget(yaZhuang2, 0, 8);
 controlLayout->addWidget(daYinChartBtn2, 0, 9);
 
-// 右侧第二行
-QLineEdit *yaZhuangSaultLine2 = new QLineEdit(this);
-QLineEdit *yaZhuangStdLine2 = new QLineEdit(this);
+
 yaZhuangSaultLine2->setStyleSheet(lineEditStyle);
 yaZhuangStdLine2->setStyleSheet(lineEditStyle);
 
@@ -457,6 +515,11 @@ statusBar->setStyleSheet("QStatusBar { background-color: #34495e; color: white; 
 
 MainWindow::~MainWindow()
 {
+    // 在销毁窗口时关闭数据库连接
+       if (dataBaseConn.isOpen()) {
+           dataBaseConn.close();
+           qDebug() << "Database connection closed!!!.";
+       }
     delete ui;
 }
 

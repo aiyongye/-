@@ -7,7 +7,7 @@
 QT       += core gui
 QT   += serialbus serialport
 QT += charts
-
+QT += sql
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = qtModBus
@@ -28,10 +28,13 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += main.cpp\
         mainwindow.cpp \
     sqliteaction.cpp \
-    modbusconn.cpp
+    modbusconn.cpp \
+    hstorylist.cpp
 
 HEADERS  += mainwindow.h \
     sqliteaction.h \
-    modbusconn.h
+    modbusconn.h \
+    hstorylist.h
 
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+    hstorylist.ui

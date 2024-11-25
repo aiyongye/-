@@ -34,6 +34,9 @@
 #include <QString>    // 如果用到了 QString
 #include <QTimer>
 #include <QElapsedTimer>
+#include <QSqlDatabase>
+#include <QSqlError>
+#include <QSqlQuery>
 
 QT_CHARTS_USE_NAMESPACE // 如果使用Qt Charts模块
 namespace Ui {
@@ -66,6 +69,7 @@ QVector<QPointF> data1; // 用于存储压装力值和时间
 QPushButton *recordQueryButton; // 记录查询
 QPushButton *startReBtn1;
 QPushButton *startReBtn2;
+QSqlDatabase dataBaseConn; //DB连接
 private slots:
 #if 1
     void startRefun1();
