@@ -49,13 +49,21 @@ QLineEdit *yaZhuang2 = new QLineEdit(this);
 QLineEdit *yaZhuangSaultLine2 = new QLineEdit(this);
 QLineEdit *yaZhuangStdLine2 = new QLineEdit(this);
 
+// 创建按钮并设置大小策略
+QPushButton *loginButton = new QPushButton("登录", this);
+QPushButton *logoutButton = new QPushButton("注销", this);
+QPushButton *standardButton = new QPushButton("悬挂件/压装力标准值和范围", this);
+recordQueryButton = new QPushButton("记录查询", this);
+QPushButton *dataMaintenanceButton = new QPushButton("数据维护", this);
+QPushButton *exitButton = new QPushButton("退出", this);
+
 
     connect(startReBtn1, QPushButton::clicked, this, startRefun1);
     timer->start(1000);
     elapsedTimer->start();
 
     createJiLu = new QPushButton("创建", this);  // 创建记录按钮
-    // 点击创建连接数据库
+    // 点击创建连接数据库，将主记录信息插入数据库
     connect(createJiLu, QPushButton::clicked,this, [=]{
             qDebug() << "创建记录" << endl;
         MainWindow::dataBaseConn = SqliteAction::getDatabaseConnection("../qtModBus/D1.db");
@@ -90,7 +98,6 @@ QLineEdit *yaZhuangStdLine2 = new QLineEdit(this);
         for (const QVariant &value : values) {
             qDebug() << value;
         }
-
         QList<QString> columns = {
             "xuanName", "press_date", "operator", "inspector",
             "serial_number1", "pressData1", "press_result1", "force_standard1",
@@ -102,7 +109,40 @@ QLineEdit *yaZhuangStdLine2 = new QLineEdit(this);
         if(result2)
             qDebug() << "数据插入成功!!!"<< endl;
     });
+    // 假设这是按钮的连接代码（点击按钮后触发）
+    connect(recordQueryButton, &QPushButton::clicked, this, [=] {
+        qDebug() << "即将跳转历史页面......";
+        MainWindow::w1.close();
+        // 执行查询：例如查询历史记录
+        QList<QList<QVariant>> historyData = SqliteAction::queryTable(dataBaseConn, "../qtModBus/D1.db", "mainListTb");
+
+        // 设定 QTableWidget 的列数和行数
+        QTableWidget *tableWidget = MainWindow::w1.findChild<QTableWidget*>("tableWidget2");
+        if (!tableWidget) {
+            qDebug() << "未找到名为 'tableWidget' 的控件!";
+            return;
+        }
+       int rowCount = historyData.size();
+        if (rowCount > 0) {
+            int columnCount = historyData[0].size();
+            tableWidget->setRowCount(rowCount);
+            tableWidget->setColumnCount(columnCount);
+
+            // 填充表格数据
+            for (int i = 0; i < rowCount; ++i) {
+                const QList<QVariant> &row = historyData[i];
+                for (int j = 0; j < columnCount; ++j) {
+                    tableWidget->setItem(i, j, new QTableWidgetItem(row[j].toString()));
+                }
+            }
+        }
+
+        // 在新窗体中显示查询结果
+        MainWindow::w1.show();
+    });
+
 #endif
+
 
 #if 1
 // 创建菜单栏
@@ -131,13 +171,6 @@ QGridLayout *mainLayout = new QGridLayout(centralWidget);
 QHBoxLayout *topButtonLayout = new QHBoxLayout();
 topButtonLayout->addStretch(1); // Add some space at the beginning to push the buttons rightward
 
-// 创建按钮并设置大小策略
-QPushButton *loginButton = new QPushButton("登录", this);
-QPushButton *logoutButton = new QPushButton("注销", this);
-QPushButton *standardButton = new QPushButton("悬挂件/压装力标准值和范围", this);
-recordQueryButton = new QPushButton("记录查询", this);
-QPushButton *dataMaintenanceButton = new QPushButton("数据维护", this);
-QPushButton *exitButton = new QPushButton("退出", this);
 
 // 设置按钮大小策略
 loginButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
@@ -521,6 +554,7 @@ MainWindow::~MainWindow()
            qDebug() << "Database connection closed!!!.";
        }
     delete ui;
+    MainWindow::w1.close();
 }
 
 QChartView* MainWindow::createChartView(const QString &title, QValueAxis *axisX, QValueAxis *axisY) {

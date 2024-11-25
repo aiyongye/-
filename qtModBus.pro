@@ -29,12 +29,17 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     sqliteaction.cpp \
     modbusconn.cpp \
-    hstorylist.cpp
+    hstorylist.cpp \
+    hoveredrowitemdelegate.cpp
 
 HEADERS  += mainwindow.h \
     sqliteaction.h \
     modbusconn.h \
-    hstorylist.h
+    hstorylist.h \
+    hoveredrowitemdelegate.h
 
 FORMS    += mainwindow.ui \
     hstorylist.ui
+
+RESOURCES += \
+    res.qrc

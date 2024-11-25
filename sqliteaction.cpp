@@ -1,5 +1,4 @@
 #include "sqliteaction.h"
-
 SqliteAction::SqliteAction()
 {
 
@@ -155,3 +154,38 @@ bool SqliteAction::insertIntoTable(QSqlDatabase &db, const QString &dbName, cons
     return query.exec();
 }
 
+// 将从库中拿到的信息存入QList<QVariantList>
+QList<QList<QVariant>> SqliteAction::queryTable(QSqlDatabase &db, const QString &dbName, const QString &tableName,
+                                              const QStringList &columns,
+                                              const QString &condition) {
+    QList<QList<QVariant>> results;
+
+    // 检查数据库连接是否有效
+    if (!db.isOpen() || db.databaseName() != dbName) return results;
+
+    QSqlQuery query(db);
+
+    // 构造 SQL 查询语句
+    QString columnStr = columns.join(", ");
+    QString selectSQL = QString("SELECT %1 FROM %2").arg(columnStr).arg(tableName);
+    if (!condition.isEmpty()) {
+        selectSQL += QString(" WHERE %1").arg(condition);
+    }
+
+    // 执行查询
+    if (!query.exec(selectSQL)) {
+        qDebug() << "查询失败:" << query.lastError();
+        return results;
+    }
+
+    // 遍历查询结果
+    while (query.next()) {
+        QList<QVariant> row;
+        for (int i = 0; i < query.record().count(); ++i) {
+            row.append(query.value(i));  // 添加每列的数据
+        }
+        results.append(row);  // 添加每行数据
+    }
+
+    return results;
+}

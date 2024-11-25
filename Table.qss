@@ -1,0 +1,59 @@
+QWidget{
+    background: #fff;
+}
+
+.QLabel[type="h3"] {
+    font-size: 22px;
+    font-weight: 500;
+    color: #1f2f3d;
+}
+
+.QLabel{
+    font-size: 14px;
+    color: #5e6d82;
+    line-height: 1.5em;
+}
+
+#widget,#widget_2{
+    border: 1px solid #ebeef5;
+    border-radius: 4px;
+}
+
+.QTableWidget{
+    font-size: 14px;
+    color: #606266;
+    border: none;
+}
+
+.QTableWidget QHeaderView::section
+{   /*表头有文字内容的区域 */
+    border:none;
+    border-bottom: 1px solid #ebeef5;
+    background-color: #fff;
+    color: #909399;
+    font-size: 14px;
+    padding-left: 10px;
+    padding-right: 10px;
+    font-weight 700;
+}
+
+
+.QTableWidget::item  {
+     /* 每行高在c++设置，这里设置不生效 */
+    padding-left: 10px;
+    padding-right: 10px;
+    border-bottom: 1px solid #ebeef5;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+}
+
+.QTableWidget::item:selected {
+   background-color: #409eff;
+   color: #fff;
+}
+
+/* 使整行在hover时变色的关键部分 color: #fff;*/
+.QTableWidget::item:hover {
+    background-color: #F5F7FA;
+}
