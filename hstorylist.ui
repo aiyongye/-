@@ -25,18 +25,22 @@
         <property name="styleSheet">
          <string notr="true">font: 20pt &quot;Arial&quot;;</string>
         </property>
-        <layout class="QVBoxLayout" name="verticalLayout_3">
-         <item alignment="Qt::AlignHCenter">
-          <widget class="QLabel" name="label_4">
-           <property name="text">
-            <string>主记录列表</string>
-           </property>
-           <property name="type" stdset="0">
-            <string>h3</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
+        <widget class="QLabel" name="label_4">
+         <property name="geometry">
+          <rect>
+           <x>343</x>
+           <y>6</y>
+           <width>100</width>
+           <height>23</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>主记录列表</string>
+         </property>
+         <property name="type" stdset="0">
+          <string>h3</string>
+         </property>
+        </widget>
        </widget>
       </item>
       <item>
