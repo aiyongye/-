@@ -202,14 +202,18 @@ verticalLayout->addWidget(standardButton,0,2);
 verticalLayout->addWidget(recordQueryButton,0,3);
 verticalLayout->addWidget(dataMaintenanceButton,0,4);
 verticalLayout->addWidget(exitButton,0,5);
+QLabel *qieHuan = new QLabel("主设备:0\n副设备:0\nF5切换:主设备\n数据来源:仪表",this);
 
+verticalLayout->addWidget(zhanKaiLine, 0, 7);
+verticalLayout->addWidget(zhanKaiBtn, 0, 8);
+verticalLayout->addWidget(qieHuan, 0, 9);
 // 添加布局到主布局
-mainLayout->addLayout(verticalLayout, 0, 0, 1, 2);
+mainLayout->addLayout(verticalLayout, 0, 0, 1, 10);
 topButtonLayout->addStretch(1); // Add space after buttons
 
 // 添加工作模式分组
 QGroupBox *workModeBox = new QGroupBox("工作方式", this);
-QVBoxLayout *workModeLayout = new QVBoxLayout(workModeBox);
+QHBoxLayout *workModeLayout = new QHBoxLayout(workModeBox);  // Changed to QHBoxLayout
 QRadioButton *putTongMode = new QRadioButton("普通模式", this);
 QRadioButton *weiHuMode = new QRadioButton("维护模式", this);
 workModeLayout->addWidget(putTongMode);
@@ -218,6 +222,18 @@ putTongMode->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 weiHuMode->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 mainLayout->addWidget(workModeBox, 1, 0);
 
+mainLayout->addWidget(xiuZhengLabel, 1, 1);
+mainLayout->addWidget(xiuZhengLine, 1, 2);
+mainLayout->addWidget(xiuZhengBtn, 1, 3);
+mainLayout->addWidget(new QLabel("扫描时间：", this), 1, 4);
+mainLayout->addWidget(saoMiaoData, 1, 5);
+mainLayout->addWidget(new QLabel("单位0.1秒", this), 1, 6);
+mainLayout->addWidget(saveBtn, 1, 7);
+mainLayout->addWidget(new QLabel("突变跨度设置：", this), 1, 8);
+mainLayout->addWidget(tuBianSet, 1, 9);
+mainLayout->addWidget(saveTuBianBtn, 1, 10);
+
+
 // 设置工作模式分组样式
 workModeBox->setStyleSheet("QGroupBox { background-color: #ecf0f1; border: 2px solid #bdc3c7; border-radius: 8px; padding: 10px; font-size: 14px; }"
                            "QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top center; padding: 0 10px; background-color: #95a5a6; color: white; font-weight: bold; }"
@@ -225,7 +241,7 @@ workModeBox->setStyleSheet("QGroupBox { background-color: #ecf0f1; border: 2px s
                            "QRadioButton::indicator { width: 15px; height: 15px; }");
 #if 1
 // 添加创建记录区
-QGroupBox *recordCreationBox = new QGroupBox("创建记录", this);
+QGroupBox *recordCreationBox = new QGroupBox("创建区", this);
 QGridLayout *recordLayout = new QGridLayout(recordCreationBox);
 
 
@@ -244,54 +260,28 @@ jianChaName->addItems(QStringList::fromVector(QVector<QString>::fromStdVector(ji
 // 添加控件到布局
 recordLayout->addWidget(new QLabel("悬挂件名称：", this), 0, 0);
 recordLayout->addWidget(xuanGuaName, 0, 1);
-recordLayout->addWidget(xiuZhengLabel, 0, 2);
-recordLayout->addWidget(xiuZhengLine, 0, 3);
-recordLayout->addWidget(xiuZhengBtn, 0, 4);
-
-recordLayout->addWidget(new QLabel("压装日期：", this), 1, 0);
-recordLayout->addWidget(yaZhuangData, 1, 1);
-recordLayout->addWidget(new QLabel("扫描时间：", this), 1, 2);
-recordLayout->addWidget(saoMiaoData, 1, 3);
-recordLayout->addWidget(saveBtn, 1, 4);
-
-recordLayout->addWidget(new QLabel("操作者：", this), 2, 0);
-recordLayout->addWidget(caoZuoName, 2, 1);
-recordLayout->addWidget(new QLabel("突变跨度设置：", this), 2, 2);
-recordLayout->addWidget(tuBianSet, 2, 3);
-recordLayout->addWidget(saveTuBianBtn, 2, 4);
-
-recordLayout->addWidget(new QLabel("检查者：", this), 3, 0);
-recordLayout->addWidget(jianChaName, 3, 1);
-recordLayout->addWidget(createJiLu, 3, 2);
-recordLayout->addWidget(zhanKaiLine, 3, 3);
-recordLayout->addWidget(zhanKaiBtn, 3, 4);
-
-// 添加空白间隔，设置所有行的第二列和第三列之间的间距
-for (int row = 0; row < 4; ++row) {
-    QSpacerItem *spacerItem = new QSpacerItem(30, 10, QSizePolicy::Fixed, QSizePolicy::Minimum);
-    recordLayout->addItem(spacerItem, row, 2); // 插入每一行的第二列和第三列之间
-}
-
-// 设置控件尺寸策略
-//xuanGuaName->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-//xiuZhengLine->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-//yaZhuangData->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-//saoMiaoData->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-//jianChaName->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-//zhanKaiLine->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-//caoZuoName->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+recordLayout->addWidget(new QLabel("压装日期：", this), 0, 2);
+recordLayout->addWidget(yaZhuangData, 0, 3);
+recordLayout->addWidget(new QLabel("操作者：", this), 0, 4);
+recordLayout->addWidget(caoZuoName, 0, 5);
+recordLayout->addWidget(new QLabel("检查者：", this), 0, 6);
+recordLayout->addWidget(jianChaName, 0, 7);
+recordLayout->addWidget(createJiLu, 0, 8);
 
 
-// 设置列宽
-recordLayout->setColumnMinimumWidth(2, 30); // 确保间距生效
-recordCreationBox->setStyleSheet("");
+//recordLayout->addWidget(xiuZhengLabel, 1, 0);
+//recordLayout->addWidget(xiuZhengLine, 1, 1);
+//recordLayout->addWidget(xiuZhengBtn, 1, 2);
 
+//recordLayout->addWidget(new QLabel("扫描时间：", this), 1, 3);
+//recordLayout->addWidget(saoMiaoData, 1, 4);
+//recordLayout->addWidget(saveBtn, 1, 5);
+//recordLayout->addWidget(new QLabel("突变跨度设置：", this), 1, 6);
+//recordLayout->addWidget(tuBianSet, 1, 7);
+//recordLayout->addWidget(saveTuBianBtn, 1, 8);
 
-// 强制刷新布局
-recordLayout->invalidate();
-recordCreationBox->update();
-
-
+//recordLayout->addWidget(zhanKaiLine, 1, 9);
+//recordLayout->addWidget(zhanKaiBtn, 1, 10);
 
 // 设置布局间距和外边距
 recordLayout->setSpacing(13);
@@ -320,44 +310,46 @@ tuBianSet->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 saveTuBianBtn->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 jianChaName->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 zhanKaiLine->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-zhanKaiBtn->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+zhanKaiBtn->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 createJiLu->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 
 // 添加到主布局
-mainLayout->addWidget(recordCreationBox, 1, 1);
+mainLayout->addWidget(recordCreationBox, 2, 0, 1, 11);
+//mainLayout->addWidget(recordCreationBox, 1, 1);
 #endif
 
 
 
 //------------------------------------------------------
 // 添加数据区
-QGroupBox *dataBox = new QGroupBox("数据区域", this);
+//QGroupBox *dataBox = new QGroupBox("数据区域", this);
 QCheckBox *shuJuBox= new QCheckBox("数据点", this);
 QPushButton *jieShu1 = new QPushButton("结束", this);
 QPushButton *jieShu2 = new QPushButton("结束", this);
-QPushButton *daYinAll = new QPushButton("打印", this);
-QVBoxLayout *dataLayout = new QVBoxLayout(dataBox);
-dataLayout->addWidget(shuJuBox);
-dataLayout->addWidget(startReBtn1);
-dataLayout->addWidget(jieShu1);
-dataLayout->addWidget(startReBtn2);
-dataLayout->addWidget(jieShu2);
-dataLayout->addWidget(daYinAll);
+//QPushButton *daYinAll = new QPushButton("打印", this);
+//QVBoxLayout *dataLayout = new QVBoxLayout(dataBox);
+//dataLayout->addWidget(shuJuBox);
+//dataLayout->addWidget(startReBtn1);
+//dataLayout->addWidget(jieShu1);
+//dataLayout->addWidget(startReBtn2);
+//dataLayout->addWidget(jieShu2);
+//dataLayout->addWidget(daYinAll);
 shuJuBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-startReBtn1->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-jieShu1->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-startReBtn2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-jieShu2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-daYinAll->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-dataLayout->setSpacing(13);
+//startReBtn1->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+//jieShu1->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+//startReBtn2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+//jieShu2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+//daYinAll->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+//dataLayout->setSpacing(13);
 //dataLayout->setContentsMargins(15, 15, 15, 15);
-mainLayout->addWidget(dataBox, 2, 0);
+//mainLayout->addWidget(dataBox, 3, 0);
 
 // 设置数据区样式
-dataBox->setStyleSheet("QGroupBox { background-color: #ecf0f1; border: 2px solid #bdc3c7; border-radius: 8px; padding: 10px; }"
-                       "QCheckBox { font-size: 12px; }"
-                       "QPushButton { background-color: #3498db; color: white; border-radius: 5px; padding: 8px 15px; font-size: 12px; }");
+//dataBox->setStyleSheet("QGroupBox { background-color: #ecf0f1; border: 2px solid #bdc3c7; border-radius: 8px; padding: 10px; }"
+//                       "QCheckBox { font-size: 12px; }"
+//                       "QPushButton { background-color: #3498db; color: white; border-radius: 5px; padding: 8px 15px; font-size: 12px; }");
 
+#if 1
 // 图表区域
 QGroupBox *chartBox = new QGroupBox("图表区域", this);
 QGridLayout *chartLayout = new QGridLayout(chartBox);
@@ -373,12 +365,35 @@ chartView1 = createChartView("压力曲线1", axisX1, axisY1);
 chartView2 = createChartView("压力曲线2", axisX2, axisY2);
 
 // 设置图表的大小策略，以确保它们在布局中正确显示
-chartView1->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-chartView2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+//chartView1->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+//chartView2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+// Add widgets to the grid layout (Row 0: Controls)
+chartLayout->addWidget(shuJuBox, 0, 0);          // Column 0: 数据点 selection box
+chartLayout->addWidget(startReBtn1, 0, 1);       // Column 1: Start Receive Button 1
+chartLayout->addWidget(jieShu1, 0, 2);           // Column 2: Stop Button 1
+chartLayout->addWidget(startReBtn2, 0, 3);       // Column 3: Start Receive Button 2
+chartLayout->addWidget(jieShu2, 0, 4);           // Column 4: Stop Button 2
 
-// 将图表添加到布局中
-chartLayout->addWidget(chartView1, 0, 0);
-chartLayout->addWidget(chartView2, 0, 1);
+// Add widgets to the grid layout (Row 1: Charts)
+chartLayout->addWidget(chartView1, 1, 0, 1, 3);  // Chart 1: Spans 2 columns (Column 0-1)
+chartLayout->addWidget(chartView2, 1, 3, 1, 3);  // Chart 2: Spans 3 columns (Column 2-4)
+
+// Set stretch factors for better layout control
+chartLayout->setColumnStretch(0, 1);             // Column 0: Normal stretch
+chartLayout->setColumnStretch(1, 1);             // Column 1: Normal stretch
+chartLayout->setColumnStretch(2, 1);             // Column 2: Normal stretch
+chartLayout->setColumnStretch(3, 1);             // Column 3: Normal stretch
+chartLayout->setColumnStretch(4, 1);             // Column 4: Normal stretch
+chartLayout->setColumnStretch(5, 1);             // Column 5: Normal stretch
+chartLayout->setRowStretch(0, 1);                // Row 0: Less height (controls area)
+chartLayout->setRowStretch(1, 5);                // Row 1: More height (charts area)
+
+// Optional: Add spacing for better aesthetics
+//chartLayout->setHorizontalSpacing(15);           // Space between columns
+//chartLayout->setVerticalSpacing(10);             // Space between rows
+
+// Optional: Set stretch factors for better layout control
+
 
 /**操作通过plc获取压装力值绘制到曲线上**/
 QSplineSeries *series1 = new QSplineSeries();
@@ -392,10 +407,6 @@ chartView1->chart()->setAxisY(axisY1, series1);
 
 chartView2->chart()->setAxisX(axisX2, series2);
 chartView2->chart()->setAxisY(axisY2, series2);
-//                data1 = { {1, 20}, {2, 50}, {3, 80}, {4, 100},
-//                         {5, 20}, {6, 50}, {7, 80}, {8, 100},
-//                         {9, 20}, {10, 50}, {11, 80}, {12, 100},
-//                         {13, 20}, {14, 50}, {15, 80}, {16, 100}};
 
 //// 创建定时器 前二十秒读取到的值存入data1中并且同时在ui上显示
 //MainWindow::insertDataToSeries(series1, series2, data1);
@@ -426,15 +437,18 @@ connect(timer, &QTimer::timeout, this, [=] {
 });
 #endif
 
+#endif
+
 // 将图表区域添加到主布局中
-mainLayout->addWidget(chartBox, 2, 1);
+mainLayout->addWidget(chartBox, 3, 0,1,11);
 // === 设置拉伸因子 === //
 mainLayout->setRowStretch(0, 2); // 顶部按钮区占高度的 1 份
-mainLayout->setRowStretch(1, 6); // “创建记录”区和功能区域占高度的 2 份
-mainLayout->setRowStretch(2, 16); // 数据和图表区域占高度的 4 份
-mainLayout->setRowStretch(3, 3); // 底部控制区占高度的 2 份
-mainLayout->setColumnStretch(0, 1); // 左侧功能区占宽度的 1 份
-mainLayout->setColumnStretch(1, 12); // 右侧区域（记录和图表）占宽度的 3 份
+//mainLayout->setRowStretch(1, 2); // “创建记录”区和功能区域占高度的 2 份
+mainLayout->setRowStretch(2, 2); // “创建记录”区和功能区域占高度的 2 份
+mainLayout->setRowStretch(3, 16); // 数据和图表区域占高度的 4 份
+mainLayout->setRowStretch(4, 3); // 底部控制区占高度的 2 份
+//mainLayout->setColumnStretch(0, 1); // 左侧功能区占宽度的 1 份
+//mainLayout->setColumnStretch(1, 12); // 右侧区域（记录和图表）占宽度的 3 份
 
 // 设置主布局的边距和控件间距
 mainLayout->setContentsMargins(5, 5, 5, 5); // 设置上下左右的边距
@@ -447,13 +461,16 @@ chartBox->setStyleSheet("QGroupBox { background-color: #ecf0f1; border: 2px soli
 // 确保图表区域占据正确的空间
 chartBox->setLayout(chartLayout);
 
-// 将图表添加到布局中
-chartLayout->addWidget(chartView1, 0, 0);
-chartLayout->addWidget(chartView2, 0, 1);
+//// 将图表添加到布局中
+//chartLayout->addWidget(chartView1, 0, 0);
+//chartLayout->addWidget(chartView2, 0, 1);
 
 // 设置图表区域样式
 chartBox->setStyleSheet("QGroupBox { background-color: #ecf0f1; border: 2px solid #bdc3c7; border-radius: 8px; padding: 10px; }"
                         "QChartView { border: 1px solid #bdc3c7; border-radius: 8px; }");
+
+
+
 #if 1
 // 添加控制区
 QGroupBox *controlBox = new QGroupBox("控制区", this);
@@ -495,8 +512,6 @@ controlLayout->addWidget(yaZhuangSaultLine1, 1, 1);
 controlLayout->addWidget(new QLabel("压装力标准：", this), 1, 2);
 controlLayout->addWidget(yaZhuangStdLine1, 1, 3);
 
-
-
 jieDianSignLine2->setStyleSheet(lineEditStyle);
 daYinChartBtn2->setStyleSheet(buttonStyle);
 yaZhuang2->setStyleSheet(lineEditStyle);
@@ -516,6 +531,13 @@ controlLayout->addWidget(yaZhuangSaultLine2, 1, 6);
 controlLayout->addWidget(new QLabel("压装力标准：", this), 1, 7);
 controlLayout->addWidget(yaZhuangStdLine2, 1, 8);
 
+QPushButton *wanCheng = new QPushButton("完成并保存曲线", this);
+QPushButton *daYinChart2 = new QPushButton("打印图表2", this);
+QPushButton *zhiJieExit = new QPushButton("直接退出", this);
+controlLayout->addWidget(wanCheng, 2, 0);
+controlLayout->addWidget(daYinChart2, 2, 2);
+controlLayout->addWidget(zhiJieExit, 2, 4);
+
 // 设置大小策略
 jieDianSignLine1->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 yaZhuang1->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
@@ -528,9 +550,12 @@ yaZhuangStdLine1->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 yaZhuangSaultLine2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 yaZhuangStdLine2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
+//wanCheng->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+//daYinChart2->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+//zhiJieExit->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 
 // 将控制区添加到主布局
-mainLayout->addWidget(controlBox, 3, 0, 1, 2);
+mainLayout->addWidget(controlBox, 4, 0, 1, 11);
 #endif
 
 
