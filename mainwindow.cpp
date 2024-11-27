@@ -4,6 +4,8 @@
 
 QPushButton *createJiLu;
 QString buttonStyle;
+    QList<QPair<QDateTime, int>> valueContainer;  // 用于存储每个时间点对应的 a 值
+    QTimer *timerChart01;
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -78,7 +80,14 @@ QString groupBoxStyle = R"(
         padding: 5px; /* 内部留白 */
     }
 )";
-
+ axisX1 = new QDateTimeAxis();
+ axisY1 = new QValueAxis();
+ axisX2 = new QDateTimeAxis();
+ axisY2 = new QValueAxis();
+timerChart01 = nullptr; // 确保定时器只创建一次
+ // 创建两个图表并初始化
+  chartView1 = new QChartView();
+  chartView2 = new QChartView();
 // 创建控件
 QComboBox *xuanGuaName = new QComboBox(this);     // 悬挂件名称
 QLineEdit *xiuZhengLine = new QLineEdit(this);    // 修正系数输入框
@@ -93,6 +102,7 @@ QPushButton *saveBtn = new QPushButton("保存", this);  // 保存按钮
 
 QComboBox *caoZuoName = new QComboBox(this);      // 操作者下拉框
 QLineEdit *tuBianSet = new QLineEdit(this);       // 突变跨度设置
+tuBianSet->setText("80");
 QPushButton *saveTuBianBtn = new QPushButton("保存", this);  // 保存突变按钮
 
 QComboBox *jianChaName = new QComboBox(this);     // 检查者下拉框
@@ -122,11 +132,36 @@ QPushButton *exitButton = new QPushButton("退出", this);
 QLineEdit *zhanKaiLine = new QLineEdit("0", this);  // 展开值
 QPushButton *zhanKaiBtn = new QPushButton("展开", this);  // 展开按钮
 QLabel *qieHuan = new QLabel("主设备:0\n副设备:0\nF5切换:主设备\n数据来源:仪表",this);
-
-    connect(startReBtn1, QPushButton::clicked, this, startRefun1);
+QChart *chart = new QChart();
+/**操作通过plc获取压装力值绘制到曲线上**/
+ series1 = new QLineSeries();
+ series2 = new QLineSeries();
     timer->start(1000);
     elapsedTimer->start();
+    #if 1
+    // 定时器槽函数 用于处理实时显示plc的值
+    connect(timer, &QTimer::timeout, this, [=] {
+        startRefun1();
+        zhanKaiLine->setText(QString::number(a)); // 将 int 转换为 QString
 
+        //定义一个容器将a的值存入容器只保存60个值 每满60 将旧数据删除一个再添加一个
+        //按照成对保存 a的值 还有存入容器的当前时间时间格式年月日时分秒
+        // 获取当前时间（年月日时分秒格式）
+       QDateTime currentTime = QDateTime::currentDateTime();
+
+       // 将当前时间和 a 的值一起存入容器
+       valueContainer.append(qMakePair(currentTime, a));
+
+       // 如果容器的大小超过 60，删除最旧的一个数据点
+       if (valueContainer.size() > 60) {
+           valueContainer.removeFirst();
+       }
+
+    });
+
+
+
+    #endif
     createJiLu = new QPushButton("创建", this);  // 创建记录按钮
     // 点击创建连接数据库，将主记录信息插入数据库
     connect(createJiLu, QPushButton::clicked,this, [=]{
@@ -425,18 +460,40 @@ tuBianSetLabel->setStyleSheet(labelStyle);
 QGroupBox *chartBox = new QGroupBox("图表区域", this);
 QGridLayout *chartLayout = new QGridLayout(chartBox);
 
-// 创建两个图表并初始化
-QChartView *chartView1 = new QChartView();
-QChartView *chartView2 = new QChartView();
-QValueAxis *axisX1 = new QValueAxis();
-QValueAxis *axisY1 = new QValueAxis();
-QValueAxis *axisX2 = new QValueAxis();
-QValueAxis *axisY2 = new QValueAxis();
-chartView1 = createChartView("压力曲线1", axisX1, axisY1);
-chartView2 = createChartView("压力曲线2", axisX2, axisY2);
+    chartView1 = createChartView("压力曲线1", axisX1, axisY1);
+    chartView2 = createChartView("压力曲线2", axisX2, axisY2);
+
+    //////////////////////////////////////////
+//  MainWindow::startDataInsertion( axisX1, series1);
+
+connect(startReBtn1, &QPushButton::clicked, this, [=]() {
+    // 这里进行判断 和突变值进行比较 如果大于突变值则将大于突变值的值和突变值前三个数
+    // 在图表中显示
+//    MainWindow::startDataInsertion(axisX1, series1);
+    timerChart01->start(1000);
+
+    //清除表结构
+    // 假设你的 QChart 对象是 chart
+
+    // 清空所有数据系列
+    chart->removeAllSeries();
+
+    // 清空所有坐标轴
+//    chart->axes(Qt::Horizontal).clear();  // 清空 X 轴
+//    chart->axes(Qt::Vertical).clear();    // 清空 Y 轴
+
+});
+connect(jieShu1, &QPushButton::clicked, this, [=]() {
+    // 这里进行判断 和突变值进行比较 如果大于突变值则将大于突变值的值和突变值前三个数
+    // 在图表中显示
+//    MainWindow::startDataInsertion(axisX1, series1);
+    timerChart01->stop();
+});
+//    MainWindow::chartInit01();
 
 chartView1->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 chartView2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
 // 设置图表的大小策略，以确保它们在布局中正确显示
 chartLayout->addWidget(shuJuBox, 0, 0);          // Column 0: 数据点 selection box
 chartLayout->addWidget(startReBtn1, 0, 1);       // Column 1: Start Receive Button 1
@@ -447,6 +504,7 @@ chartLayout->addWidget(jieShu2, 0, 4);           // Column 4: Stop Button 2
 // Add widgets to the grid layout (Row 1: Charts)
 chartLayout->addWidget(chartView1, 1, 0, 1, 3);  // Chart 1: Spans 2 columns (Column 0-1)
 chartLayout->addWidget(chartView2, 1, 3, 1, 3);  // Chart 2: Spans 3 columns (Column 2-4)
+
 
 // Set stretch factors for better layout control
 chartLayout->setColumnStretch(0, 1);             // Column 0: Normal stretch
@@ -459,47 +517,14 @@ chartLayout->setRowStretch(0, 1);                // Row 0: Less height (controls
 chartLayout->setRowStretch(1, 5);                // Row 1: More height (charts area)
 
 
-/**操作通过plc获取压装力值绘制到曲线上**/
-QSplineSeries *series1 = new QSplineSeries();
-QSplineSeries *series2 = new QSplineSeries();
+
 
 chartView1->chart()->addSeries(series1);
 chartView2->chart()->addSeries(series2);
-// 设置轴
-chartView1->chart()->setAxisX(axisX1, series1);
-chartView1->chart()->setAxisY(axisY1, series1);
 
-chartView2->chart()->setAxisX(axisX2, series2);
-chartView2->chart()->setAxisY(axisY2, series2);
 
 //// 创建定时器 前二十秒读取到的值存入data1中并且同时在ui上显示
-//MainWindow::insertDataToSeries(series1, series2, data1);
-//  --------测试--------------
-// 初始化 data1（全局或类内成员）
-data1.resize(1);  // 确保 data1 至少有一个点
-#if 0
-// 定时器槽函数
-connect(timer, &QTimer::timeout, this, [=] {
-    int elapsedTime = elapsedTimer->elapsed();
-    int elapsedSeconds = elapsedTime / 1000;
 
-    qDebug() << "Elapsed time (s):" << elapsedSeconds;
-
-    startRefun1();
-
-    // 更新 data1 的第一个点
-    if (data1.size() > 0) {
-        data1[0].setX(elapsedSeconds);
-        data1[0].setY(MainWindow::a);
-    } else {
-        qDebug() << "data1 is empty, resizing...";
-        data1.resize(1);
-        data1[0] = QPointF(0, 0);
-    }
-
-    MainWindow::insertDataToSeries(series1, series2, data1);
-});
-#endif
 
 #endif
 
@@ -634,42 +659,91 @@ MainWindow::~MainWindow()
     delete ui;
     MainWindow::w1.close();
 }
+// 创建图表
+QChartView* MainWindow::createChartView(const QString &title, QDateTimeAxis *axisX, QValueAxis *axisY) {
+    QChart *chart = new QChart();
+    chart->setTitle(title);
 
-QChartView* MainWindow::createChartView(const QString &title, QValueAxis *axisX, QValueAxis *axisY) {
-     QChart *chart = new QChart();
-     chart->setTitle(title);
+    // 创建曲线数据系列
+    QLineSeries *series = new QLineSeries();
+    qint64 currentTime = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    series->append(currentTime, 0);  // 使用当前时间作为初始数据点
 
-     QSplineSeries *series = new QSplineSeries();
-     series->append(0, 0);
+    chart->addSeries(series);
+    chart->createDefaultAxes();  // 创建默认坐标轴
 
-     chart->addSeries(series);
-     chart->createDefaultAxes();
-     if(title == "压力曲线2")
-        axisX->setRange(20, 40);
-     else
-     axisX->setRange(0, 20);
-     axisY->setRange(0, 450);
+    // 设置X轴为日期时间轴
+    axisX->setFormat("yyyy-MM-dd HH:mm:ss");  // 设置日期时间格式
+    axisX->setTickCount(2);  // 设置 X 轴刻度数量（显示两个刻度，即当前时间和下一秒）
 
-     chart->setAxisX(axisX, series);
-     chart->setAxisY(axisY, series);
+    // 设置初始X轴范围，确保显示当前时间及之前5秒的数据
+    axisX->setMin(QDateTime::fromMSecsSinceEpoch(currentTime - 5000));  // 设置最小时间，5秒前
+    axisX->setMax(QDateTime::fromMSecsSinceEpoch(currentTime + 1000));  // 设置最大时间，当前时间 + 1秒
 
-     QChartView *chartView = new QChartView(chart);
-     chartView->setRenderHint(QPainter::Antialiasing);
-     return chartView;
- }
+    // 设置Y轴范围和刻度
+    axisY->setRange(0, 450);        // 设置Y轴范围
+    axisY->setTickCount(6);         // 设置Y轴刻度数量
+    axisY->setLabelFormat("%.0f");  // 设置Y轴标签格式，显示整数
 
-void MainWindow::insertDataToSeries(QSplineSeries *series1, QSplineSeries *series2, const QVector<QPointF> &dataPoints) {
-    if (!series1 && !series2) {
-//        qDebug() << "Series is null, cannot insert data!";
-        return;
+    // 将坐标轴应用到图表
+    chart->setAxisX(axisX, series);
+    chart->setAxisY(axisY, series);
+
+    // 创建并返回QChartView
+    QChartView *chartView = new QChartView(chart);
+    chartView->setRenderHint(QPainter::Antialiasing);  // 启用抗锯齿
+
+    startDataInsertion(axisX, series, chart, chartView);  // 传入chartView，确保更新
+    return chartView;
+}
+
+void MainWindow::startDataInsertion(QDateTimeAxis *axisX, QLineSeries *series, QChart *chart, QChartView *chartView) {
+    if (!timerChart01) {
+        timerChart01 = new QTimer(this);  // 只创建一次定时器
+
+        connect(timerChart01, &QTimer::timeout, this, [=]() {
+            qint64 currentTime = QDateTime::currentDateTime().toMSecsSinceEpoch();  // 获取当前时间戳（毫秒）
+
+            // 将全局变量a插入到曲线中，currentTime作为X值，a作为Y值
+            series->append(currentTime, a);
+            qDebug() << "Inserted data point: " << currentTime << ", " << a;
+
+            // 最多显示4个数据点，删除最早的点
+            if (series->count() > 4) {
+                series->remove(0);  // 删除最早的数据点
+            }
+
+            // 获取当前数据点的数量
+            int pointCount = series->count();
+            qint64 firstPointTime = series->points().first().x();  // 获取最早的数据点的X值
+            qint64 lastPointTime = series->points().last().x();    // 获取最新的数据点的X值
+
+            // 动态更新X轴范围
+            axisX->setMin(QDateTime::fromMSecsSinceEpoch(firstPointTime));  // 设置最小时间为最早的数据点
+            axisX->setMax(QDateTime::fromMSecsSinceEpoch(lastPointTime));   // 设置最大时间为最新的数据点
+
+            // 根据数据点数目动态设置X轴的刻度数
+            axisX->setTickCount(qMin(4, pointCount));  // 显示2到4个X轴时间点
+
+            // 打印当前X轴范围，帮助调试
+            qDebug() << "X Axis Min: " << axisX->min() << " Max: " << axisX->max();
+
+            // 强制更新图表视图
+            chart->update();
+            chartView->repaint();  // 强制重绘，更新图表视图
+        });
+
+//        timerChart01->start(1000);  // 每秒插入一次数据
     }
-    for (const QPointF &point : dataPoints) {
-        if (point.x() <= 20) // 直接访问 point 的 x 坐标
-            series1->append(point);
-        else
-            series2->append(point);
-    }
+}
 
+
+
+
+
+void MainWindow::updateChart(QSplineSeries *series) {
+    // 清空当前曲线中的数据
+    series->clear();
 }
 
 
@@ -700,3 +774,5 @@ void MainWindow::initializeControls()
     yaZhuangData = new QDateEdit(this);
 
 }
+
+

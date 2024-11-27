@@ -39,6 +39,7 @@
 #include <QSqlQuery>
 #include "hstorylist.h"
 #include "pressstd.h"
+#include <QDateTimeAxis>
 
 QT_CHARTS_USE_NAMESPACE // 如果使用Qt Charts模块
 namespace Ui {
@@ -55,8 +56,9 @@ public:
     ~MainWindow();
     QModbusClient *modbusDevice;
 public:
-    QChartView *createChartView(const QString &title, QValueAxis *axisX, QValueAxis *axisY);
-    void insertDataToSeries(QSplineSeries *series1, QSplineSeries *series2, const QVector<QPointF> &dataPoints);
+    QChartView *createChartView(const QString &title, QDateTimeAxis *axisX, QValueAxis *axisY);
+void startDataInsertion(QDateTimeAxis *axisX, QLineSeries *series, QChart *chart,QChartView *chartView);
+void   updateChart(QSplineSeries *series);
 
     void toReadReady();
 public:
@@ -72,11 +74,22 @@ QPushButton *recordQueryButton; // 记录查询
 QPushButton *startReBtn1;
 QPushButton *startReBtn2;
 QSqlDatabase dataBaseConn; //DB连接
+
+QDateTimeAxis *axisX1;
+QValueAxis *axisY1;
+QDateTimeAxis *axisX2;
+QValueAxis *axisY2;
+QLineSeries *series1;
+QLineSeries *series2;
+QChartView *chartView1;
+QChartView *chartView2;
+//QChart *chart;
 private slots:
 #if 1
     void startRefun1();
     void recordQueryButtonFun();
     void initializeControls();
+
 #endif
 private:
     Ui::MainWindow *ui;

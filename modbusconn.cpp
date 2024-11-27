@@ -10,19 +10,19 @@ void MainWindow::startRefun1() {
         return;
     }
 
-    qDebug() << "Current state:" << modbusDevice->state();
+//    qDebug() << "Current state:" << modbusDevice->state();
 
     // 如果 Modbus 未处于连接状态，尝试连接
     if (modbusDevice->state() != QModbusDevice::ConnectedState) {
         modbusDevice->setConnectionParameter(QModbusDevice::NetworkPortParameter, 502);
-        modbusDevice->setConnectionParameter(QModbusDevice::NetworkAddressParameter, "192.168.1.6");
+        modbusDevice->setConnectionParameter(QModbusDevice::NetworkAddressParameter, "192.168.0.170");
         modbusDevice->setTimeout(2000);  // 设置超时时间
         modbusDevice->setNumberOfRetries(2);  // 设置重试次数
 
-        qDebug() << "Attempting to connect to:"
-                 << modbusDevice->connectionParameter(QModbusDevice::NetworkAddressParameter).toString()
-                 << "Port:"
-                 << modbusDevice->connectionParameter(QModbusDevice::NetworkPortParameter).toInt();
+//        qDebug() << "Attempting to connect to:"
+//                 << modbusDevice->connectionParameter(QModbusDevice::NetworkAddressParameter).toString()
+//                 << "Port:"
+//                 << modbusDevice->connectionParameter(QModbusDevice::NetworkPortParameter).toInt();
 
         // 捕获连接过程中的错误
         connect(modbusDevice, &QModbusDevice::errorOccurred, this, [this](QModbusDevice::Error error) {
@@ -42,19 +42,19 @@ void MainWindow::startRefun1() {
         qDebug() << "Connection attempt started...";
 //        return; // 等待连接完成后再执行后续操作
     } else {
-        qDebug() << "Already connected. Proceeding to read.";
+//        qDebug() << "Already connected. Proceeding to read.";
     }
     // 准备读取操作
     QModbusDataUnit readUnit(QModbusDataUnit::HoldingRegisters, 1, 1);  // 寄存器起始地址3，读取1个寄存器
-    qDebug() << "device. State:-------------" << modbusDevice->state();
+//    qDebug() << "device. State:-------------" << modbusDevice->state();
 
 
     if (auto *reply = modbusDevice->sendReadRequest(readUnit, 1)) {  // 设备地址为1
         if (!reply->isFinished()) {
-            qDebug() << "reoly -------" << endl;
+//            qDebug() << "reoly -------" << endl;
             connect(reply, &QModbusReply::finished, this, &MainWindow::toReadReady);
         } else {
-            qDebug() << "Broadcast reply finished immediately.";
+//            qDebug() << "Broadcast reply finished immediately.";
             reply->deleteLater();  // 广播请求立即完成时，清理回复对象
         }
     } else {
@@ -79,8 +79,8 @@ void MainWindow::toReadReady()
         //quint16 stat = unit.value(1);  //状态（位与关系）
 
          MainWindow::a = unit.value(0);
-       qDebug() << "hahah" <<endl;
-       qDebug()<<"plc值"<<unit.value(0);
+//       qDebug() << "hahah" <<endl;
+//       qDebug()<<"plc值"<<unit.value(0);
 
        yazhuang1->setText(QString::number(MainWindow::a));
 
