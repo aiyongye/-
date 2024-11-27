@@ -57,7 +57,10 @@ public:
     QModbusClient *modbusDevice;
 public:
     QChartView *createChartView(const QString &title, QDateTimeAxis *axisX, QValueAxis *axisY);
-void startDataInsertion(QDateTimeAxis *axisX, QLineSeries *series, QChart *chart,QChartView *chartView);
+    void startDataInsertion(QDateTimeAxis *axisX, QLineSeries *series, QChart *chart,QChartView *chartView);
+QChartView* createChartView2(const QString &title, QDateTimeAxis *axisX, QValueAxis *axisY);
+void startDataInsertion2(QDateTimeAxis *axisX, QLineSeries *series, QChart *chart, QChartView *chartView) ;
+
 void   updateChart(QSplineSeries *series);
 
     void toReadReady();
@@ -76,23 +79,29 @@ QPushButton *startReBtn2;
 QSqlDatabase dataBaseConn; //DB连接
 
 QDateTimeAxis *axisX1;
-QValueAxis *axisY1;
 QDateTimeAxis *axisX2;
+QValueAxis *axisY1;
 QValueAxis *axisY2;
 QLineSeries *series1;
 QLineSeries *series2;
-QChartView *chartView1;
 QChartView *chartView2;
+QChartView *chartView1;
+QTimer *timerChart02; //处理图表2
+QTimer *timerChart01; //处理图表1
+QChart *chart02;
 //QChart *chart;
 private slots:
 #if 1
     void startRefun1();
     void recordQueryButtonFun();
     void initializeControls();
+    void timerEvent(QTimerEvent *event) Q_DECL_OVERRIDE;
 
 #endif
-private:
+public:
     Ui::MainWindow *ui;
+    //定义需要用到的定时器
+    int Timer2;
 public:
     int a;
     HstoryList w1;//历史界面

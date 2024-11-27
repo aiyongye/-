@@ -4,8 +4,9 @@
 
 QPushButton *createJiLu;
 QString buttonStyle;
+
     QList<QPair<QDateTime, int>> valueContainer;  // 用于存储每个时间点对应的 a 值
-    QTimer *timerChart01;
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -18,7 +19,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     MainWindow::initializeControls();
 MainWindow::a = 0;
-
 
 QString radioButtonStyle = R"(
     QRadioButton {
@@ -84,7 +84,9 @@ QString groupBoxStyle = R"(
  axisY1 = new QValueAxis();
  axisX2 = new QDateTimeAxis();
  axisY2 = new QValueAxis();
+ chart02 = new QChart();
 timerChart01 = nullptr; // 确保定时器只创建一次
+//timerChart02 = nullptr; // 确保定时器只创建一次
  // 创建两个图表并初始化
   chartView1 = new QChartView();
   chartView2 = new QChartView();
@@ -132,7 +134,7 @@ QPushButton *exitButton = new QPushButton("退出", this);
 QLineEdit *zhanKaiLine = new QLineEdit("0", this);  // 展开值
 QPushButton *zhanKaiBtn = new QPushButton("展开", this);  // 展开按钮
 QLabel *qieHuan = new QLabel("主设备:0\n副设备:0\nF5切换:主设备\n数据来源:仪表",this);
-QChart *chart = new QChart();
+//QChart *chart = new QChart();
 /**操作通过plc获取压装力值绘制到曲线上**/
  series1 = new QLineSeries();
  series2 = new QLineSeries();
@@ -457,11 +459,11 @@ danWeiMiao->setStyleSheet(labelStyle);
 tuBianSetLabel->setStyleSheet(labelStyle);
 #if 1
 // 图表区域
-QGroupBox *chartBox = new QGroupBox("图表区域", this);
-QGridLayout *chartLayout = new QGridLayout(chartBox);
+    QGroupBox *chartBox = new QGroupBox("图表区域", this);
+    QGridLayout *chartLayout = new QGridLayout(chartBox);
 
     chartView1 = createChartView("压力曲线1", axisX1, axisY1);
-    chartView2 = createChartView("压力曲线2", axisX2, axisY2);
+    chartView2 = createChartView2("压力曲线2", axisX2, axisY2);
 
     //////////////////////////////////////////
 //  MainWindow::startDataInsertion( axisX1, series1);
@@ -472,11 +474,9 @@ connect(startReBtn1, &QPushButton::clicked, this, [=]() {
 //    MainWindow::startDataInsertion(axisX1, series1);
     timerChart01->start(1000);
 
-    //清除表结构
-    // 假设你的 QChart 对象是 chart
 
     // 清空所有数据系列
-    chart->removeAllSeries();
+//    chart->removeAllSeries();
 
     // 清空所有坐标轴
 //    chart->axes(Qt::Horizontal).clear();  // 清空 X 轴
@@ -489,7 +489,16 @@ connect(jieShu1, &QPushButton::clicked, this, [=]() {
 //    MainWindow::startDataInsertion(axisX1, series1);
     timerChart01->stop();
 });
-//    MainWindow::chartInit01();
+
+connect(startReBtn2, &QPushButton::clicked,this,[=]{
+            Timer2 = startTimer(1000);  // 每秒插入一次数据
+
+
+});
+connect(jieShu2, &QPushButton::clicked,this,[=]{
+            killTimer(Timer2);
+            qDebug() << "close" << endl;
+});
 
 chartView1->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 chartView2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -658,83 +667,6 @@ MainWindow::~MainWindow()
        }
     delete ui;
     MainWindow::w1.close();
-}
-// 创建图表
-QChartView* MainWindow::createChartView(const QString &title, QDateTimeAxis *axisX, QValueAxis *axisY) {
-    QChart *chart = new QChart();
-    chart->setTitle(title);
-
-    // 创建曲线数据系列
-    QLineSeries *series = new QLineSeries();
-    qint64 currentTime = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    series->append(currentTime, 0);  // 使用当前时间作为初始数据点
-
-    chart->addSeries(series);
-    chart->createDefaultAxes();  // 创建默认坐标轴
-
-    // 设置X轴为日期时间轴
-    axisX->setFormat("yyyy-MM-dd HH:mm:ss");  // 设置日期时间格式
-    axisX->setTickCount(2);  // 设置 X 轴刻度数量（显示两个刻度，即当前时间和下一秒）
-
-    // 设置初始X轴范围，确保显示当前时间及之前5秒的数据
-    axisX->setMin(QDateTime::fromMSecsSinceEpoch(currentTime - 5000));  // 设置最小时间，5秒前
-    axisX->setMax(QDateTime::fromMSecsSinceEpoch(currentTime + 1000));  // 设置最大时间，当前时间 + 1秒
-
-    // 设置Y轴范围和刻度
-    axisY->setRange(0, 450);        // 设置Y轴范围
-    axisY->setTickCount(6);         // 设置Y轴刻度数量
-    axisY->setLabelFormat("%.0f");  // 设置Y轴标签格式，显示整数
-
-    // 将坐标轴应用到图表
-    chart->setAxisX(axisX, series);
-    chart->setAxisY(axisY, series);
-
-    // 创建并返回QChartView
-    QChartView *chartView = new QChartView(chart);
-    chartView->setRenderHint(QPainter::Antialiasing);  // 启用抗锯齿
-
-    startDataInsertion(axisX, series, chart, chartView);  // 传入chartView，确保更新
-    return chartView;
-}
-
-void MainWindow::startDataInsertion(QDateTimeAxis *axisX, QLineSeries *series, QChart *chart, QChartView *chartView) {
-    if (!timerChart01) {
-        timerChart01 = new QTimer(this);  // 只创建一次定时器
-
-        connect(timerChart01, &QTimer::timeout, this, [=]() {
-            qint64 currentTime = QDateTime::currentDateTime().toMSecsSinceEpoch();  // 获取当前时间戳（毫秒）
-
-            // 将全局变量a插入到曲线中，currentTime作为X值，a作为Y值
-            series->append(currentTime, a);
-            qDebug() << "Inserted data point: " << currentTime << ", " << a;
-
-            // 最多显示4个数据点，删除最早的点
-            if (series->count() > 4) {
-                series->remove(0);  // 删除最早的数据点
-            }
-
-            // 获取当前数据点的数量
-            int pointCount = series->count();
-            qint64 firstPointTime = series->points().first().x();  // 获取最早的数据点的X值
-            qint64 lastPointTime = series->points().last().x();    // 获取最新的数据点的X值
-
-            // 动态更新X轴范围
-            axisX->setMin(QDateTime::fromMSecsSinceEpoch(firstPointTime));  // 设置最小时间为最早的数据点
-            axisX->setMax(QDateTime::fromMSecsSinceEpoch(lastPointTime));   // 设置最大时间为最新的数据点
-
-            // 根据数据点数目动态设置X轴的刻度数
-            axisX->setTickCount(qMin(4, pointCount));  // 显示2到4个X轴时间点
-
-            // 打印当前X轴范围，帮助调试
-            qDebug() << "X Axis Min: " << axisX->min() << " Max: " << axisX->max();
-
-            // 强制更新图表视图
-            chart->update();
-            chartView->repaint();  // 强制重绘，更新图表视图
-        });
-
-//        timerChart01->start(1000);  // 每秒插入一次数据
-    }
 }
 
 

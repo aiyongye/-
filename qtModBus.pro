@@ -31,7 +31,8 @@ SOURCES += main.cpp\
     modbusconn.cpp \
     hstorylist.cpp \
     hoveredrowitemdelegate.cpp \
-    pressstd.cpp
+    pressstd.cpp \
+    chartdel.cpp
 
 HEADERS  += mainwindow.h \
     sqliteaction.h \
