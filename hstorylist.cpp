@@ -1,12 +1,17 @@
 #include "hstorylist.h"
 #include "ui_hstorylist.h"
+#include <QVBoxLayout>
+#include <QLabel>
+#include <QDateTimeEdit>
+#include <QCalendarWidget>
+#include <QString>
 
 HstoryList::HstoryList(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::HstoryList)
 {
     ui->setupUi(this);
-    setWindowTitle("悬挂件压装力测试系统");
+    setWindowTitle("记录查询");
     resize(1200, 800);
     QFile file(":/Table.qss");
     file.open(QFile::ReadOnly);
@@ -14,6 +19,107 @@ HstoryList::HstoryList(QWidget *parent) :
     file.close();
 
     applyStyles(this,qss);
+    QString buttonStyle = R"(
+        QPushButton {
+            font: bold 14px;
+            color: black;
+            background-color: #E5E5E5;
+            border: 1px solid #A0A0A0;
+            border-radius: 5px;
+            padding: 5px;
+        }
+        QPushButton:pressed {
+            background-color: #C8C8C8; /* 按下时变为更深的灰色 */
+            border: 1px solid #707070; /* 按下时改变边框颜色 */
+        }
+        QPushButton:hover {
+            background-color: #F2F2F2; /* 鼠标悬停时变为浅灰色 */
+        }
+    )";
+    // 状态栏
+    QStatusBar *statusBar = new QStatusBar(this);
+    setStatusBar(statusBar);
+    // 设置状态栏样式
+    statusBar->setStyleSheet("QStatusBar { background-color: #34495e; color: white; font-size: 12px; }");
+
+    QMenuBar *menuBar = new QMenuBar(this);
+    setMenuBar(menuBar);
+    menuBar->addMenu("系统(&V)");
+    menuBar->addMenu("设置(&Y)");
+    menuBar->addMenu("维护(&P)");
+    menuBar->addMenu("工具(&T)");
+    menuBar->addMenu("帮助(&Z)");
+
+    // 设置菜单栏样式
+    menuBar->setStyleSheet("QMenuBar { background-color: #2c3e50; color: white; font-size: 14px; }"
+                           "QMenuBar::item { background-color: #34495e; padding: 5px; border-radius: 5px; }"
+                           "QMenuBar::item:selected { background-color: #1abc9c; }");
+
+
+
+#if 1
+    this->setFocus();
+    ui->pushButton_2->setStyleSheet(buttonStyle);
+    ui->pushButton_3->setStyleSheet(buttonStyle);
+    ui->pushButton_4->setStyleSheet(buttonStyle);
+    ui->pushButton_5->setStyleSheet(buttonStyle);
+    ui->pushButton_6->setStyleSheet(buttonStyle);
+    ui->startDateEdit->setFocus();
+    // 设置 QDateTimeEdit 的日历弹出功能
+    ui->startDateEdit->setCalendarPopup(true);
+    ui->endDateEdit->setCalendarPopup(true);
+    // 设置初始日期时间为当前时间
+    ui->startDateEdit->setDate(QDate::currentDate());
+    ui->startDateEdit->setCalendarWidget(new QCalendarWidget);
+ui->startTimeEdit->setTime(QTime::currentTime());  // 当前时间，精确到秒
+qDebug() << QTime::currentTime() << endl;
+    ui->endDateEdit->setDate(QDate::currentDate());
+    QCalendarWidget *calendar = new QCalendarWidget;
+    ui->endDateEdit->setCalendarWidget(calendar);
+    ui->endTimeEdit->setTime(QTime::currentTime());    // 当前时间，精确到秒
+    calendar->setStyleSheet("background-color: lightblue;");
+    // 设置显示格式，精确到秒
+    ui->startTimeEdit->setDisplayFormat("hh:mm:ss");
+    ui->endTimeEdit->setDisplayFormat("hh:mm:ss");
+
+    connect(ui->startDateEdit, &QDateEdit::dateChanged, this, [this]() {
+        // 当开始日期更改时，确保结束日期不小于开始日期
+        if (ui->endDateEdit->date() < ui->startDateEdit->date()) {
+            ui->endDateEdit->setDate(ui->startDateEdit->date());
+        }
+    });
+
+    connect(ui->startTimeEdit, &QTimeEdit::timeChanged, this, [this]() {
+        // 当开始时间更改时，确保结束时间不小于开始时间
+        QDateTime startDateTime(ui->startDateEdit->date(), ui->startTimeEdit->time());
+        QDateTime endDateTime(ui->endDateEdit->date(), ui->endTimeEdit->time());
+
+        if (endDateTime < startDateTime) {
+            ui->endDateEdit->setDate(ui->startDateEdit->date());
+            ui->endTimeEdit->setTime(ui->startTimeEdit->time());
+        }
+    });
+
+    // 连接结束时间编辑控件，确保结束日期和时间不会早于开始时间
+    connect(ui->endDateEdit, &QDateEdit::dateChanged, this, [this]() {
+        QDateTime startDateTime(ui->startDateEdit->date(), ui->startTimeEdit->time());
+        QDateTime endDateTime(ui->endDateEdit->date(), ui->endTimeEdit->time());
+        if (endDateTime < startDateTime) {
+            ui->endDateEdit->setDate(ui->startDateEdit->date());
+            ui->endTimeEdit->setTime(ui->startTimeEdit->time());
+        }
+    });
+
+    connect(ui->endTimeEdit, &QTimeEdit::timeChanged, this, [this]() {
+        QDateTime startDateTime(ui->startDateEdit->date(), ui->startTimeEdit->time());
+        QDateTime endDateTime(ui->endDateEdit->date(), ui->endTimeEdit->time());
+        if (endDateTime < startDateTime) {
+            ui->endDateEdit->setDate(ui->startDateEdit->date());
+            ui->endTimeEdit->setTime(ui->startTimeEdit->time());
+        }
+    });
+
+#endif
 
     //鼠标移过时，整行背景颜色变化
     HoveredRowItemDelegate *delegate2 = new HoveredRowItemDelegate(ui->tableWidget2);

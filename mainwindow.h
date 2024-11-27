@@ -38,6 +38,7 @@
 #include <QSqlError>
 #include <QSqlQuery>
 #include "hstorylist.h"
+#include "pressstd.h"
 
 QT_CHARTS_USE_NAMESPACE // 如果使用Qt Charts模块
 namespace Ui {
@@ -82,6 +83,7 @@ private:
 public:
     int a;
     HstoryList w1;//历史界面
+    PressStd w2; //工艺标准界面
 
 };
 

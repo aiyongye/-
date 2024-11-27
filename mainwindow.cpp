@@ -139,7 +139,8 @@ QLabel *qieHuan = new QLabel("主设备:0\n副设备:0\nF5切换:主设备\n数�
 
         // 将各个控件的数据存入 QList<QVariant>
         values.append(xuanGuaName->currentText());       // 选挂名称
-        values.append(yaZhuangData->text());             // 压装日期
+        values.append(yaZhuangData->text()+" "+ (QTime::currentTime()).toString());// 压装日期
+        //values.append(yaZhuangData->text());             // 压装日期
         values.append(caoZuoName->currentText());        // 操作人
         values.append(jianChaName->currentText());       // 检查人
 
@@ -205,6 +206,13 @@ QLabel *qieHuan = new QLabel("主设备:0\n副设备:0\nF5切换:主设备\n数�
 
 #endif
 
+#if 1
+    connect(standardButton, QPushButton::clicked,this,[=]{
+       qDebug() << "即将跳转工艺标准界面" << endl;
+       MainWindow::w2.show();
+    });
+#endif
+
 
 #if 1
 // 创建菜单栏
@@ -244,7 +252,7 @@ exitButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
 
 // 设置按钮的样式，包含按下时颜色变化
-QString buttonStyle = R"(
+buttonStyle = R"(
     QPushButton {
         font: bold 14px;
         color: black;

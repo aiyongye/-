@@ -30,16 +30,19 @@ SOURCES += main.cpp\
     sqliteaction.cpp \
     modbusconn.cpp \
     hstorylist.cpp \
-    hoveredrowitemdelegate.cpp
+    hoveredrowitemdelegate.cpp \
+    pressstd.cpp
 
 HEADERS  += mainwindow.h \
     sqliteaction.h \
     modbusconn.h \
     hstorylist.h \
-    hoveredrowitemdelegate.h
+    hoveredrowitemdelegate.h \
+    pressstd.h
 
 FORMS    += mainwindow.ui \
-    hstorylist.ui
+    hstorylist.ui \
+    pressstd.ui
 
 RESOURCES += \
     res.qrc
