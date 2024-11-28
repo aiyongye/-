@@ -85,7 +85,8 @@ QString groupBoxStyle = R"(
  axisX2 = new QDateTimeAxis();
  axisY2 = new QValueAxis();
  chart02 = new QChart();
-timerChart01 = nullptr; // 确保定时器只创建一次
+ chart = new QChart();
+//timerChart01 = nullptr; // 确保定时器只创建一次
 //timerChart02 = nullptr; // 确保定时器只创建一次
  // 创建两个图表并初始化
   chartView1 = new QChartView();
@@ -96,8 +97,13 @@ QLineEdit *xiuZhengLine = new QLineEdit(this);    // 修正系数输入框
 QPushButton *xiuZhengBtn = new QPushButton("修正曲线", this);  // 修正按钮
 QLabel *xiuZhengLabel = new QLabel("修正系数：", this);
 
-QDateEdit *yaZhuangData = new QDateEdit(this);    // 压装日期选择器
+QDateEdit *yaZhuangData = new QDateEdit(this);  // 创建 QDateEdit 控件
+
+// 设置日期显示格式为 "yyyy-MM-dd"
+yaZhuangData->setDisplayFormat("yyyy-MM-dd");
+// 设置日期为当前日期
 yaZhuangData->setDate(QDate::currentDate());
+
 
 QSpinBox *saoMiaoData = new QSpinBox(this);       // 扫描时间
 QPushButton *saveBtn = new QPushButton("保存", this);  // 保存按钮
@@ -461,39 +467,32 @@ tuBianSetLabel->setStyleSheet(labelStyle);
 // 图表区域
     QGroupBox *chartBox = new QGroupBox("图表区域", this);
     QGridLayout *chartLayout = new QGridLayout(chartBox);
-
-    chartView1 = createChartView("压力曲线1", axisX1, axisY1);
-    chartView2 = createChartView2("压力曲线2", axisX2, axisY2);
+//    chartView1 = createChartView("压力曲线1", axisX1, axisY1);
+//    chartView2 = createChartView2("压力曲线2", axisX2, axisY2);
 
     //////////////////////////////////////////
 //  MainWindow::startDataInsertion( axisX1, series1);
 
 connect(startReBtn1, &QPushButton::clicked, this, [=]() {
-    // 这里进行判断 和突变值进行比较 如果大于突变值则将大于突变值的值和突变值前三个数
-    // 在图表中显示
-//    MainWindow::startDataInsertion(axisX1, series1);
-    timerChart01->start(1000);
-
-
-    // 清空所有数据系列
-//    chart->removeAllSeries();
-
-    // 清空所有坐标轴
-//    chart->axes(Qt::Horizontal).clear();  // 清空 X 轴
-//    chart->axes(Qt::Vertical).clear();    // 清空 Y 轴
-
+    Timer1 = startTimer(1000);
+    MainWindow::clearChart(chartView1);
+    chartView1 = createChartView("压力曲线1", axisX1, axisY1);
+    chartLayout->addWidget(chartView1, 1, 0, 1, 3);  // Chart 1: Spans 2 columns (Column 0-1)
 });
 connect(jieShu1, &QPushButton::clicked, this, [=]() {
     // 这里进行判断 和突变值进行比较 如果大于突变值则将大于突变值的值和突变值前三个数
     // 在图表中显示
 //    MainWindow::startDataInsertion(axisX1, series1);
-    timerChart01->stop();
+    killTimer(Timer1);
+    qDebug() << "定时器1 close" << endl;
 });
 
 connect(startReBtn2, &QPushButton::clicked,this,[=]{
+
             Timer2 = startTimer(1000);  // 每秒插入一次数据
-
-
+            MainWindow::clearChart(chartView2);
+            chartView2 = createChartView2("压力曲线2", axisX2, axisY2);
+chartLayout->addWidget(chartView2, 1, 3, 1, 3);  // Chart 2: Spans 3 columns (Column 2-4)
 });
 connect(jieShu2, &QPushButton::clicked,this,[=]{
             killTimer(Timer2);
@@ -524,8 +523,6 @@ chartLayout->setColumnStretch(4, 1);             // Column 4: Normal stretch
 chartLayout->setColumnStretch(5, 1);             // Column 5: Normal stretch
 chartLayout->setRowStretch(0, 1);                // Row 0: Less height (controls area)
 chartLayout->setRowStretch(1, 5);                // Row 1: More height (charts area)
-
-
 
 
 chartView1->chart()->addSeries(series1);
@@ -569,8 +566,6 @@ QGroupBox *controlBox = new QGroupBox("控制区", this);
 QGridLayout *controlLayout = new QGridLayout(controlBox);
 controlBox->setStyleSheet("QGroupBox { font-weight: bold; font-size: 16px; border: 2px solid #3498db; border-radius: 5px; padding: 10px; }");
 
-
-
 jieDianSignLine1->setStyleSheet(lineEditStyle);
 daYinChartBtn1->setStyleSheet(buttonStyle);
 yaZhuang1->setStyleSheet(lineEditStyle);
@@ -588,8 +583,6 @@ for (int i = 0; i < controlLayout->count(); ++i) {
         label->setStyleSheet(labelStyle);
     }
 }
-
-
 
 yaZhuangSaultLine1->setStyleSheet(lineEditStyle);
 yaZhuangStdLine1->setStyleSheet(lineEditStyle);
@@ -707,4 +700,20 @@ void MainWindow::initializeControls()
 
 }
 
+void MainWindow::clearChart(QChartView *chartView) {
+    if (chartView) {
+        QChart *chart = chartView->chart();
 
+        // 移除所有数据系列
+        QList<QAbstractSeries*> seriesList = chart->series();
+        for (QAbstractSeries *series : seriesList) {
+            chart->removeSeries(series);
+        }
+
+        // 移除所有坐标轴
+        QList<QAbstractAxis*> axisList = chart->axes();
+        for (QAbstractAxis* axis : axisList) {
+            chart->removeAxis(axis);
+        }
+    }
+}

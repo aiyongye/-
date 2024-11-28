@@ -6,6 +6,9 @@
 #include <QCalendarWidget>
 #include <QString>
 
+    QList<QList<QVariant>> mainJiLuList;
+        QList<QList<QVariant>> dateFind;
+
 HstoryList::HstoryList(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::HstoryList)
@@ -56,23 +59,84 @@ HstoryList::HstoryList(QWidget *parent) :
                            "QMenuBar::item:selected { background-color: #1abc9c; }");
 
 
+#if 1 // 查询按钮设定
+
+    // 创建菜单
+            QMenu *queryButtonMenu = new QMenu(this);
+
+            // 创建菜单项
+            QAction *queryButtonAction1 = new QAction("全部查询", this);
+            QAction *queryButtonAction2 = new QAction("按时间范围查询", this);
+            QAction *queryButtonAction3 = new QAction("悬挂名称", this);
+            QAction *queryButtonAction4 = new QAction("节点序列号", this);
+
+            // 添加菜单项到菜单
+            queryButtonMenu->addAction(queryButtonAction1);
+            queryButtonMenu->addAction(queryButtonAction2);
+            queryButtonMenu->addAction(queryButtonAction3);
+            queryButtonMenu->addAction(queryButtonAction4);
+
+            // 为菜单项连接槽函数
+            connect(queryButtonAction1, &QAction::triggered, this, &HstoryList::onOption1);
+            connect(queryButtonAction2, &QAction::triggered, this, &HstoryList::onOption2);
+            connect(queryButtonAction3, &QAction::triggered, this, &HstoryList::onOption3);
+            connect(queryButtonAction4, &QAction::triggered, this, &HstoryList::onOption4);
+
+            // 设置按钮点击时弹出菜单
+            connect(ui->queryButton, &QPushButton::clicked, this, [queryButtonMenu, this]() {
+                // 弹出菜单，位置在按钮的左下角
+                queryButtonMenu->exec(ui->queryButton->mapToGlobal(ui->queryButton->rect().bottomLeft()));
+            });
+
+#endif
+
+#if 1 // 打印按钮设定
+            // 创建菜单
+                    QMenu *printButtonMenu = new QMenu(this);
+
+                    // 创建菜单项
+                    QAction *printButtonAction1 = new QAction("打印主记录列表(Y)", this);
+                    QAction *printButtonAction2 = new QAction("打印曲线数据列表(Z)", this);
+
+                    // 添加菜单项到菜单
+                    printButtonMenu->addAction(printButtonAction1);
+                    printButtonMenu->addAction(printButtonAction2);
+
+                    // 为菜单项连接槽函数
+                    connect(printButtonAction1, &QAction::triggered, this, &HstoryList::printOnOption1);
+                    connect(printButtonAction2, &QAction::triggered, this, &HstoryList::printonOption2);
+
+                    // 设置按钮点击时弹出菜单
+                    connect(ui->printButton, &QPushButton::clicked, this, [printButtonMenu, this]() {
+                        // 弹出菜单，位置在按钮的左下角
+                        printButtonMenu->exec(ui->printButton->mapToGlobal(ui->printButton->rect().bottomLeft()));
+                    });
+#endif
+                    connect(ui->exitButton, QPushButton::clicked, this,[=]{
+                        this->close();
+                    });
 
 #if 1
     this->setFocus();
-    ui->pushButton_2->setStyleSheet(buttonStyle);
-    ui->pushButton_3->setStyleSheet(buttonStyle);
+    ui->queryButton->setStyleSheet(buttonStyle);
+    ui->printButton->setStyleSheet(buttonStyle);
     ui->pushButton_4->setStyleSheet(buttonStyle);
     ui->pushButton_5->setStyleSheet(buttonStyle);
-    ui->pushButton_6->setStyleSheet(buttonStyle);
+    ui->exitButton->setStyleSheet(buttonStyle);
     ui->startDateEdit->setFocus();
     // 设置 QDateTimeEdit 的日历弹出功能
     ui->startDateEdit->setCalendarPopup(true);
     ui->endDateEdit->setCalendarPopup(true);
     // 设置初始日期时间为当前时间
+
+    // 设置日期显示格式为 "yyyy-MM-dd"
+    ui->startDateEdit->setDisplayFormat("yyyy-MM-dd");
     ui->startDateEdit->setDate(QDate::currentDate());
     ui->startDateEdit->setCalendarWidget(new QCalendarWidget);
 ui->startTimeEdit->setTime(QTime::currentTime());  // 当前时间，精确到秒
 qDebug() << QTime::currentTime() << endl;
+
+    ui->endDateEdit->setDisplayFormat("yyyy-MM-dd");
     ui->endDateEdit->setDate(QDate::currentDate());
     QCalendarWidget *calendar = new QCalendarWidget;
     ui->endDateEdit->setCalendarWidget(calendar);
@@ -140,19 +204,20 @@ HstoryList::~HstoryList()
 {
     delete ui;
 }
+
 void HstoryList::loadTable(QTableWidget *tableWidget){
     tableWidget->setColumnCount(12);
     QStringList heardList;
     heardList<<"悬挂件名称"<<"压装日期"<<"操作者"<<"检查者"<<"节点序列号1"<<"压装力值1"<<"压装结果1"<<"压装力标准1"
             <<"节点序列号2"<<"压装力值2"<<"压装结果2"<<"压装力标准2";
     tableWidget->setHorizontalHeaderLabels(heardList);
-    QSqlDatabase dataBaseConn;
+
     dataBaseConn = HstoryList::getDatabaseConnection("../qtModBus/D1.db");
     qDebug() << "history界面" << endl;
     // 将数据库存入的数据 便利到tableWidget中
 #if 1
     // 查询数据库数据，注意这里查询结果中会包含 'id' 列
-    QList<QList<QVariant>> mainJiLuList = HstoryList::queryTable(dataBaseConn, "../qtModBus/D1.db", "mainListTb");
+    mainJiLuList = HstoryList::queryTable(dataBaseConn, "../qtModBus/D1.db", "mainListTb");
 
     // 1.2 设置列的宽度，拉伸使表格充满窗口
     tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
@@ -175,8 +240,8 @@ void HstoryList::loadTable(QTableWidget *tableWidget){
 
     // 如果需要对表格进行额外设置或调整，可以继续进行
     // 例如，如果想要在表格中加入其他数据，继续使用 appendOneRow 或其他方式填充。
-
 #endif
+
 
     //去除选中虚线框
     tableWidget->setFocusPolicy(Qt::NoFocus);
@@ -206,6 +271,7 @@ void HstoryList::loadTable(QTableWidget *tableWidget){
     tableWidget->verticalHeader()->setDefaultSectionSize(48); // 设置默认行高
     tableWidget->setShowGrid(false);//设置item无边框
 }
+
 
 void HstoryList::applyStyles(QWidget *widget,QString stylesheet)
 {
@@ -454,3 +520,129 @@ QList<QList<QVariant>> HstoryList::queryTable(QSqlDatabase &db, const QString &d
     return results;
 }
 
+
+
+#if 1 //按照时间区间查询
+QList<QList<QVariant>> HstoryList::queryTableDate(QSqlDatabase &db, const QString &dbName, const QString &tableName,
+                                               const QString &startDateTime, const QString &endDateTime,const QStringList &columns) {
+    QList<QList<QVariant>> results;
+
+    // 检查数据库连接是否有效
+    if (!db.isOpen() || db.databaseName() != dbName) {
+        qDebug() << "数据库连接无效!";
+        return results;
+    }
+    QSqlQuery query(db);
+
+    // 构造 SQL 查询语句
+    QString columnStr = columns.join(", ");
+    QString selectSQL = QString("SELECT %1 FROM %2").arg(columnStr).arg(tableName);
+
+    // 生成时间范围的条件 (假设时间字段名为 "press_date")
+    QString condition;
+    if (!startDateTime.isEmpty() && !endDateTime.isEmpty()) {
+//        qDebug() << "enter1111" << endl;
+        // 过滤时间大于开始时间且小于结束时间
+        condition = QString("WHERE press_date >= '%1' AND press_date <= '%2'").arg(startDateTime).arg(endDateTime);
+        qDebug() << condition << endl;
+
+    } else if (!startDateTime.isEmpty()) {
+                qDebug() << "enter1111" << endl;
+        // 过滤时间大于开始时间
+        condition = QString("WHERE press_date >= '%1'").arg(startDateTime);
+                qDebug() << condition << "开始---------------" << endl;
+
+    } else if (!endDateTime.isEmpty()) {
+        // 过滤时间小于结束时间
+        condition = QString("WHERE press_date <= '%1'").arg(endDateTime);
+        qDebug() << condition << "jieshu---------------" << endl;
+    }
+
+    if (!condition.isEmpty()) {
+        selectSQL += " " + condition;
+    }
+
+    // 执行查询
+    if (!query.exec(selectSQL)) {
+        qDebug() << "查询失败:" << query.lastError();
+        return results;
+    }
+
+    // 遍历查询结果并存储到 results 中
+    while (query.next()) {
+        QList<QVariant> row;
+        for (int i = 0; i < query.record().count(); ++i) {
+            row.append(query.value(i));  // 添加每列的数据
+        }
+        results.append(row);  // 添加每行数据
+    }
+//   qDebug() << results << endl;
+
+    return results;
+}
+#endif
+// 按照时间查询
+void HstoryList::onOption2() {
+    qDebug("选项2被选择");
+
+    // 获取时间范围
+    QString startDateTime = ui->startDateEdit->text() + " " + ui->startTimeEdit->text();
+    QString endDateTime = ui->endDateEdit->text() + " " + ui->endTimeEdit->text();
+//    数据插入容器成功
+    dateFind = HstoryList::queryTableDate(dataBaseConn, "../qtModBus/D1.db", "mainListTb",startDateTime,endDateTime);
+    ui->tableWidget2->clearContents();
+
+#if 1
+    // 1.2 设置列的宽度，拉伸使表格充满窗口
+    ui->tableWidget2->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+
+    // 1.3 获取表格的行数和列数
+    int rowCount = dateFind.size();
+    int columnCount = (rowCount > 0) ? dateFind[0].size() : 0;
+
+    // 1.4 设置表格的行数和列数
+    ui->tableWidget2->setRowCount(rowCount);
+    ui->tableWidget2->setColumnCount(columnCount - 1);  // 排除 id 列，减去 1
+
+    // 1.5 填充表格数据，跳过 'id' 列（假设 'id' 是第一列）
+    for (int i = 0; i < rowCount; ++i) {
+        const QList<QVariant> &row = dateFind[i];
+        for (int j = 1; j < columnCount; ++j) {  // 从第2列开始填充，跳过 'id' 列
+            ui->tableWidget2->setItem(i, j - 1, new QTableWidgetItem(row[j].toString()));
+        }
+    }
+
+    // 如果需要对表格进行额外设置或调整，可以继续进行
+    // 例如，如果想要在表格中加入其他数据，继续使用 appendOneRow 或其他方式填充。
+#endif
+
+    qDebug() << startDateTime << "--" << endDateTime << endl;
+}
+
+
+// 菜单项对应的槽函数
+    // 全部查询
+    void HstoryList::onOption1() {
+        qDebug("选项1被选择");
+    }
+
+    // 悬挂名称
+    void HstoryList::onOption3() {
+        //如果当前QLineEdit中的数据和数据库xuanName字段名称相等将数据库中的数据
+        // 插入的 table中
+        qDebug("选项3被选择");
+    }
+    // 节点序列号
+    void HstoryList::onOption4() {
+        // 如果当前QLiineEdit中的节点序列号和数据库中的Serial_number1相等
+        // 将数据库中的数据插入到Table中
+        qDebug("选项4被选择");
+    }
+    // 打印主记录列表(Y)
+    void HstoryList::printOnOption1() {
+        qDebug("打印触发1");
+    }
+    //打印曲线数据列表(Z)
+    void HstoryList::printonOption2() {
+        qDebug("打印触发2");
+    }

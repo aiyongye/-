@@ -32,10 +32,25 @@ private:
 public:
       static QSqlDatabase getDatabaseConnection(const QString &dbName);
       static bool ensureTableInDatabase(QSqlDatabase &db, const QString &dbName, const QString &tableName);
-      static bool insertIntoTable(QSqlDatabase &db, const QString &dbName, const QString &tableName, const QList<QString> &columns,const QList<QVariant> &values);
+      static bool insertIntoTable(QSqlDatabase &db, const QString &dbName, const QString &tableName,
+                                  const QList<QString> &columns,const QList<QVariant> &values);
       static QList<QList<QVariant>>  queryTable(QSqlDatabase &db, const QString &dbName, const QString &tableName,
                                                     const QStringList &columns = QStringList("*"),
                                                     const QString &condition = QString());
+      QList<QList<QVariant>> queryTableDate(QSqlDatabase &db, const QString &dbName, const QString &tableName,
+                                                     const QString &startDateTime, const QString &endDateTime,const QStringList &columns = QStringList("*")) ;
+public:
+ QSqlDatabase dataBaseConn;
+private slots:
+      // 菜单项对应的槽函数
+          void onOption1() ;
+
+          void onOption2();
+
+          void onOption3() ;
+          void onOption4() ;
+          void printOnOption1();
+          void printonOption2() ;
 };
 
 #endif // HSTORYLIST_H

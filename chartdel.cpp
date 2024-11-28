@@ -38,39 +38,18 @@ QChartView* MainWindow::createChartView(const QString &title, QDateTimeAxis *axi
     return chartView;
 }
 
-void MainWindow::startDataInsertion(QDateTimeAxis *axisX, QLineSeries *series, QChart *chart, QChartView *chartView) {
-    if (!timerChart01) {
-        timerChart01 = new QTimer(this);  // 只创建一次定时器
+void MainWindow::startDataInsertion(QDateTimeAxis *axisX, QLineSeries *series, QChart *chart1, QChartView *chartView) {
+    // 保存参数供定时器使用
+    axisX1 = axisX;
+    series1 = series;
+    chart = chart1;
+    chartView1 = chartView;
 
-        connect(timerChart01, &QTimer::timeout, this, [=]() {
-            qint64 currentTime = QDateTime::currentDateTime().toMSecsSinceEpoch();  // 获取当前时间戳（毫秒）
-
-            // 将全局变量a插入到曲线中，currentTime作为X值，a作为Y值
-            series->append(currentTime, a);
-            qDebug() << "Inserted data point: " << currentTime << ", " << a;
-
-            // 最多显示4个数据点，删除最早的点
-            if (series->count() > 4) {
-                series->remove(0);  // 删除最早的数据点
-            }
-
-            // 获取当前数据点的数量
-            int pointCount = series->count();
-            qint64 firstPointTime = series->points().first().x();  // 获取最早的数据点的X值
-            qint64 lastPointTime = series->points().last().x();    // 获取最新的数据点的X值
-
-            // 动态更新X轴范围
-            axisX->setMin(QDateTime::fromMSecsSinceEpoch(firstPointTime));  // 设置最小时间为最早的数据点
-            axisX->setMax(QDateTime::fromMSecsSinceEpoch(lastPointTime));   // 设置最大时间为最新的数据点
-
-            // 根据数据点数目动态设置X轴的刻度数
-            axisX->setTickCount(qMin(4, pointCount));  // 显示2到4个X轴时间点
-
-            // 强制更新图表视图
-            chart->update();
-            chartView->repaint();  // 强制重绘，更新图表视图
-        });
-
+    // 如果定时器尚未启动，则启动定时器
+    if (Timer1 == -1) {
+        // 启动定时器，每秒触发一次
+//        Timer1 = startTimer(1000);  // 启动定时器，1000毫秒（1秒）
+        qDebug() << "定时器已启动!";
     }
 }
 
@@ -165,4 +144,37 @@ void MainWindow::timerEvent(QTimerEvent *event) {
             chartView2->repaint();  // 强制重绘，更新图表视图
         }
     }
+    if(event->timerId() == Timer1) {
+      //do Timer1_Fuc
+        qDebug() << "定时器1 start" << endl;
+        if (series1 && axisX1 && chart && chartView1) {
+            qint64 currentTime = QDateTime::currentDateTime().toMSecsSinceEpoch();  // 获取当前时间戳（毫秒）
+
+            // 将全局变量 a 插入到曲线中，currentTime 作为 X 值，a 作为 Y 值
+            series1->append(currentTime, a);
+            qDebug() << "Inserted data point: " << currentTime << ", " << a;
+
+            // 最多显示 4 个数据点，删除最早的点
+            if (series1->count() > 4) {
+                series1->remove(0);  // 删除最早的数据点
+            }
+
+            // 获取当前数据点的数量
+            int pointCount = series1->count();
+            qint64 firstPointTime = series1->points().first().x();  // 获取最早的数据点的 X 值
+            qint64 lastPointTime = series1->points().last().x();    // 获取最新的数据点的 X 值
+
+            // 动态更新 X 轴范围
+            axisX1->setMin(QDateTime::fromMSecsSinceEpoch(firstPointTime));  // 设置最小时间为最早的数据点
+            axisX1->setMax(QDateTime::fromMSecsSinceEpoch(lastPointTime));   // 设置最大时间为最新的数据点
+
+            // 根据数据点数目动态设置 X 轴的刻度数
+            axisX1->setTickCount(qMin(4, pointCount));  // 显示 2 到 4 个 X 轴时间点
+
+            // 强制更新图表视图
+            chart->update();
+            chartView1->repaint();  // 强制重绘，更新图表视图
+        }
+    }
+
 }

@@ -38,7 +38,7 @@
 #include <QSqlError>
 #include <QSqlQuery>
 #include "hstorylist.h"
-#include "pressstd.h"
+#include "configset.h"
 #include <QDateTimeAxis>
 
 QT_CHARTS_USE_NAMESPACE // 如果使用Qt Charts模块
@@ -64,6 +64,7 @@ void startDataInsertion2(QDateTimeAxis *axisX, QLineSeries *series, QChart *char
 void   updateChart(QSplineSeries *series);
 
     void toReadReady();
+    void clearChart(QChartView *chartView); // 清除表结构
 public:
 QDateEdit *yaZhuangData;
 QComboBox *xuanGuaName;
@@ -89,7 +90,8 @@ QChartView *chartView1;
 QTimer *timerChart02; //处理图表2
 QTimer *timerChart01; //处理图表1
 QChart *chart02;
-//QChart *chart;
+//QChar *chart11;
+QChart *chart;
 private slots:
 #if 1
     void startRefun1();
@@ -102,10 +104,11 @@ public:
     Ui::MainWindow *ui;
     //定义需要用到的定时器
     int Timer2;
+    int Timer1; //处理图表1
 public:
     int a;
     HstoryList w1;//历史界面
-    PressStd w2; //工艺标准界面
+    ConfigSet w2; //工艺标准界面
 
 };
 

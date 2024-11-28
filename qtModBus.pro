@@ -32,18 +32,24 @@ SOURCES += main.cpp\
     hstorylist.cpp \
     hoveredrowitemdelegate.cpp \
     pressstd.cpp \
-    chartdel.cpp
+    chartdel.cpp \
+    configset.cpp \
+    login.cpp
 
 HEADERS  += mainwindow.h \
     sqliteaction.h \
     modbusconn.h \
     hstorylist.h \
     hoveredrowitemdelegate.h \
-    pressstd.h
+    pressstd.h \
+    configset.h \
+    login.h
 
 FORMS    += mainwindow.ui \
     hstorylist.ui \
-    pressstd.ui
+    pressstd.ui \
+    configset.ui \
+    login.ui
 
 RESOURCES += \
     res.qrc
