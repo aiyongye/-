@@ -1,5 +1,7 @@
 <RCC>
     <qresource prefix="/">
         <file>Table.qss</file>
+        <file>Tabs.qss</file>
+        <file>elementForm.qss</file>
     </qresource>
 </RCC>

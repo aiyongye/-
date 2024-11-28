@@ -1,0 +1,85 @@
+/*定义tabWidgetFrame*/
+#Widget{
+    background: #fff;
+}
+
+/* border-top:2px solid #e4e7ed; */
+QTabWidget::pane{
+    border:none;
+}
+
+/*定义TabBar的位置*/
+QTabWidget::tab-bar{
+
+}
+
+/*定义Tab的样式*/
+QTabWidget QTabBar::tab{
+    padding: 0 10px;
+    width:85;
+    height: 40px;
+    box-sizing: border-box;
+    line-height: 40px;
+    display: inline-block;
+    list-style: none;
+    font-size: 14px;
+    font-weight: 100;
+    color: #303133;
+    position: relative;
+    background: #fff;
+}
+
+/*定义Tab被选中时的样式  border-bottom: 2px solid #409eff; */
+QTabWidget QTabBar::tab:selected{
+    color: #409eff;
+}
+
+/*定义Tab鼠标悬停时的样式*/
+QTabWidget QTabBar::tab:hover{
+    color: #409eff;
+    cursor: pointer;
+}
+
+/*定义Tab在非选中时的样式e*/
+QTabWidget QTabBar::tab:!selected{
+
+}
+
+
+/*tab的card模式 border-top:1px solid #e4e7ed; */
+QTabWidget[type="card"]::pane{
+    border:none;
+}
+
+
+/*定义Tab的样式*/
+QTabWidget[type="card"] QTabBar::tab{
+    padding: 0 10px;
+    width:85;
+    height: 40px;
+    box-sizing: border-box;
+    line-height: 40px;
+    display: inline-block;
+    list-style: none;
+    font-size: 14px;
+    font-weight: 100;
+    color: #303133;
+    position: relative;
+    background: #fff;
+    border: 1px solid #dcdfe6;
+    border-bottom: none;
+}
+
+/*定义Tab被选中时的样式 border-bottom: 1px solid #fff;*/
+QTabWidget[type="card"] QTabBar::tab:selected{
+    color: #409eff;
+
+}
+
+/*定义Tab鼠标悬停时的样式*/
+QTabWidget[type="card"] QTabBar::tab:hover{
+    color: #409eff;
+    cursor: pointer;
+}
+
+
