@@ -1,57 +1,36 @@
-#include "pressstd.h"
-#include "ui_pressstd.h"
+#include "loginset.h"
+#include "ui_loginset.h"
 
 
-PressStd::PressStd(QWidget *parent) :
+
+LoginSet::LoginSet(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::PressStd)
+    ui(new Ui::LoginSet)
 {
     ui->setupUi(this);
+    database = LoginSet::getDatabaseConnection("../qtModBus/D1.db");//数据库连接
 
-    QFile file(":/elementForm.qss");
-    file.open(QFile::ReadOnly);
-    QString qss=file.readAll();
-    file.close();
-       database = PressStd::getDatabaseConnection("../qtModBus/D1.db");//数据库连接
-    applyStyles(this,qss);
+    // 处理创建用户
+    connect(ui->creUserBtn, QPushButton::clicked, this, [=]{
+        QString userName = ui->userName->text();
+        QString userpass = ui->userPass->text();
+        // 获取当前日期和时间
+        QDateTime currentDateTime = QDateTime::currentDateTime();
 
-    //引用fontawesome，加载字体图标资源
-    int i_font_id = QFontDatabase::addApplicationFont(":/fontawesome-webfont.ttf");
-    QStringList font_families = QFontDatabase::applicationFontFamilies(i_font_id);
-    if (!font_families.empty()){
-        //fontAwesome已经在qss设置了，这里就直接设置图标就可以
-        //QFont fontAwesome(font_families[0]);
-    }
-    // 设置日历弹出模式为真，这样当点击下拉按钮时就会显示一个日历控件
-    ui->dateEdit->setCalendarPopup(true);
-    // 获取当前日期并设置到 QDateEdit
-    QDate currentDate = QDate::currentDate();  // 获取当前日期
-    ui->dateEdit->setDisplayFormat("yyyy-MM-dd");
-    ui->dateEdit->setDate(currentDate);        // 设置当前日期到 dateEdit
-    ui->timeEdit->setTime(QTime::currentTime());
-#if 1 //数据创建处理
-    connect(ui->liJiCreateBtn, QPushButton::clicked,this,[=]{
-       // 插入数据库
-       // 悬挂件名称在第一字段、压力标准开始和结束拼接在一起用~连接
-       QString guaName = ui->xuanGuaName->text();
-       QString crePressSE = ui->startStd->text() + "~" + ui->endStd->text();
-       // 创建时间 Data 和 Time 也拼接在一起用 " " 连接
-       QString credataTime =ui->dateEdit->text() + " " + ui->timeEdit->text();
-       bool flags = PressStd::ensureTableInDatabase(database, "../qtModBus/D1.db", "proStds");
-       if(flags)
-           qDebug() << "proStds表创建成功" << endl;
-       flags = PressStd::insertDataIntoTable(database, "proStds", guaName, crePressSE, credataTime);
-       if(flags)
-            qDebug() << "创建成功"<< guaName << "->" << crePressSE << "->" << credataTime << endl;
+        // 格式化为 "yyyy-MM-dd HH:mm:ss" 形式（包括秒）
+        QString creDataTime = currentDateTime.toString("yyyy-MM-dd HH:mm:ss");
+
+        qDebug() << "Formatted date and time: " <<userName <<"->"<< userpass<<"->" << creDataTime << endl;
+        bool flags = LoginSet::ensureTableInDatabase(database, "../qtModBus/D1.db", "userPass");
+        if(flags)
+            qDebug() << "表创建成功" << endl;
+        flags = LoginSet::insertDataIntoTable(database, "userPass", userName,userpass, creDataTime);
     });
-#endif
-
-#if 1 // 数据查询处理 目前处理全查询 按时间升序插入表格中
-    // 每次点击按钮时清空之前的数据并重新插入
-    connect(ui->findBtn, QPushButton::clicked, this, [=]() {
+    // 查找用户数据在ui->tableWidget上显示
+    connect(ui->findBtn, QPushButton::clicked, this,[=]{
         qDebug() << "查询开始" << endl;
         // 假设 dataList 是你的查询结果
-        bool flags = PressStd::queryAllDataFromTable(database, "proStds", dataList);
+        bool flags = LoginSet::queryAllDataFromTable(database, "userPass", dataList);
         if (flags)
             qDebug() << "查询成功" << endl;
 
@@ -83,7 +62,6 @@ PressStd::PressStd(QWidget *parent) :
             }
         }
     });
-#endif
 #if 1 // 当选中某一行时将那一行中的所有数据存储
     // 连接信号，响应表格行选择变化
     connect(ui->tableWidget, &QTableWidget::itemSelectionChanged, this, [=]() {
@@ -150,7 +128,7 @@ PressStd::PressStd(QWidget *parent) :
         }
 
         // 删除数据库中的相同数据
-        bool success = deleteDataFromDatabase(database, "proStds", rowData);
+        bool success = deleteDataFromDatabase(database, "userPass", rowData);
         if (success) {
             qDebug() << "删除行成功!!!";
         } else {
@@ -165,24 +143,17 @@ PressStd::PressStd(QWidget *parent) :
 
 }
 
-PressStd::~PressStd()
+LoginSet::~LoginSet()
 {
     delete ui;
 }
-void PressStd::applyStyles(QWidget *widget,QString stylesheet)
-{
-    widget->setStyleSheet(stylesheet); // 使用上面读取到的stylesheet
-    // 遍历所有子控件并递归应用样式
-    for (auto child : widget->findChildren<QWidget*>()) {
-        applyStyles(child,stylesheet);
-    }
-}
+
 /**
  * @brief 获取指定名称的数据库连接
  * @param dbName 数据库文件名
  * @return QSqlDatabase 返回数据库连接对象
  */
-QSqlDatabase PressStd::getDatabaseConnection(const QString &dbName) {
+QSqlDatabase LoginSet::getDatabaseConnection(const QString &dbName) {
     QSqlDatabase database;
 
     // 检查是否存在默认连接
@@ -205,7 +176,6 @@ QSqlDatabase PressStd::getDatabaseConnection(const QString &dbName) {
 
     return database;
 }
-
 /**
  * @brief 判断是否为指定的数据库文件，并在表不存在时创建表
  * @param db 数据库对象
@@ -214,7 +184,7 @@ QSqlDatabase PressStd::getDatabaseConnection(const QString &dbName) {
  * @return true 表已存在或创建成功，且数据库名正确
  * @return false 表创建失败或数据库名不匹配
  */
-bool PressStd::ensureTableInDatabase(QSqlDatabase &db, const QString &dbName, const QString &tableName) {
+bool LoginSet::ensureTableInDatabase(QSqlDatabase &db, const QString &dbName, const QString &tableName) {
     // 检查数据库是否打开
     if (!db.isOpen()) {
         qDebug() << "Error: Database is not open.";
@@ -247,9 +217,9 @@ bool PressStd::ensureTableInDatabase(QSqlDatabase &db, const QString &dbName, co
     QString createSQL = QString(
         "CREATE TABLE %1 ("
         "    id INTEGER PRIMARY KEY AUTOINCREMENT, "
-        "    xuanName TEXT NOT NULL, "
-        "    press_std TEXT NOT NULL, "
-        "    press_date DATE NOT NULL"
+        "    u_name TEXT NOT NULL, "
+        "    p_word TEXT NOT NULL, "
+        "    up_date DATE NOT NULL"
         ");"
     ).arg(tableName);
 
@@ -270,7 +240,7 @@ bool PressStd::ensureTableInDatabase(QSqlDatabase &db, const QString &dbName, co
  * @param tableName 表名
  * @return false 表插入失败或数据库名不匹配
  */
-bool PressStd::insertDataIntoTable(QSqlDatabase &db, const QString &tableName, const QString &xuanName, const QString &pressStd, const QString &pressDate) {
+bool LoginSet::insertDataIntoTable(QSqlDatabase &db, const QString &tableName, const QString &userName, const QString &userPass, const QString &upDate) {
     // 检查数据库是否打开
     if (!db.isOpen()) {
         qDebug() << "Error: Database is not open.";
@@ -281,14 +251,14 @@ bool PressStd::insertDataIntoTable(QSqlDatabase &db, const QString &tableName, c
 
     // 插入数据的 SQL 语句
     QString insertSQL = QString(
-        "INSERT INTO %1 (xuanName, press_std, press_date) "
-        "VALUES (:xuanName, :pressStd, :pressDate);"
+        "INSERT INTO %1 (u_name, p_word, up_date) "
+        "VALUES (:userName, :userPass, :upDate);"
     ).arg(tableName);
 
     query.prepare(insertSQL);
-    query.bindValue(":xuanName", xuanName);
-    query.bindValue(":pressStd", pressStd);
-    query.bindValue(":pressDate", pressDate);
+    query.bindValue(":userName", userName);
+    query.bindValue(":userPass", userPass);
+    query.bindValue(":upDate", upDate);
 
     if (!query.exec()) {
         qDebug() << "Error inserting data:" << query.lastError();
@@ -306,7 +276,7 @@ bool PressStd::insertDataIntoTable(QSqlDatabase &db, const QString &tableName, c
  * @return true 查询存入容器成功
  * @return false 查询存入容器失败
  */
-bool PressStd::queryAllDataFromTable(QSqlDatabase &db, const QString &tableName, QList<QList<QVariant>> &dataList) {
+bool LoginSet::queryAllDataFromTable(QSqlDatabase &db, const QString &tableName, QList<QList<QVariant>> &dataList) {
         dataList.clear();
     // 检查数据库是否打开
     if (!db.isOpen()) {
@@ -345,8 +315,6 @@ bool PressStd::queryAllDataFromTable(QSqlDatabase &db, const QString &tableName,
     qDebug() << "Query executed successfully, retrieved" << dataList.size() << "rows of data.";
     return true;
 }
-
-
 /**
  * @brief 判断是否为指定的数据库文件，当点击表格中的行时点击删除则会从数据库中删除对应的行
  * @param db 数据库对象
@@ -355,7 +323,7 @@ bool PressStd::queryAllDataFromTable(QSqlDatabase &db, const QString &tableName,
  * @return true 查询存入容器成功
  * @return false 查询存入容器失败
  */
-bool PressStd::deleteDataFromDatabase(QSqlDatabase &db, const QString &tableName, const QList<QVariant> &rowData) {
+bool LoginSet::deleteDataFromDatabase(QSqlDatabase &db, const QString &tableName, const QList<QVariant> &rowData) {
     // 检查数据库是否打开
     if (!db.isOpen()) {
         qDebug() << "Error: Database is not open.";
@@ -366,7 +334,7 @@ bool PressStd::deleteDataFromDatabase(QSqlDatabase &db, const QString &tableName
 
     // 创建 SQL 删除语句（假设 rowData 中的内容与表中的列顺序一致）
     QString deleteSQL = QString(
-        "DELETE FROM %1 WHERE xuanName = :xuanName AND press_std = :pressStd AND press_date = :pressDate;"
+        "DELETE FROM %1 WHERE u_name = :xuanName AND p_word = :pressStd AND up_date = :pressDate;"
     ).arg(tableName);
 
     query.prepare(deleteSQL);

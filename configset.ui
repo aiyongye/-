@@ -18,19 +18,19 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="PressStd" name="tab_9">
        <attribute name="title">
         <string>工艺标准</string>
        </attribute>
       </widget>
-      <widget class="QWidget" name="tab_10">
+      <widget class="UserCreate" name="tab_10">
        <attribute name="title">
         <string>角色创建</string>
        </attribute>
       </widget>
-      <widget class="QWidget" name="tab_11">
+      <widget class="LoginSet" name="tab_11">
        <attribute name="title">
         <string>角色管理</string>
        </attribute>
@@ -61,6 +61,18 @@
    <class>PressStd</class>
    <extends>QWidget</extends>
    <header location="global">pressstd.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>UserCreate</class>
+   <extends>QWidget</extends>
+   <header location="global">usercreate.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>LoginSet</class>
+   <extends>QWidget</extends>
+   <header location="global">loginset.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

@@ -34,7 +34,9 @@ SOURCES += main.cpp\
     pressstd.cpp \
     chartdel.cpp \
     configset.cpp \
-    login.cpp
+    login.cpp \
+    usercreate.cpp \
+    loginset.cpp
 
 HEADERS  += mainwindow.h \
     sqliteaction.h \
@@ -43,13 +45,17 @@ HEADERS  += mainwindow.h \
     hoveredrowitemdelegate.h \
     pressstd.h \
     configset.h \
-    login.h
+    login.h \
+    usercreate.h \
+    loginset.h
 
 FORMS    += mainwindow.ui \
     hstorylist.ui \
     pressstd.ui \
     configset.ui \
-    login.ui
+    login.ui \
+    usercreate.ui \
+    loginset.ui
 
 RESOURCES += \
     res.qrc
