@@ -105,7 +105,7 @@ void MainWindow::startDataInsertion2(QDateTimeAxis *axisX, QLineSeries *series, 
     if (Timer2 == -1) {
         // 启动定时器，每秒触发一次
 //        Timer2 = startTimer(1000);  // 启动定时器，1000毫秒（1秒）
-        qDebug() << "定时器2已启动!";
+//        qDebug() << "定时器2已启动!";
 
     }
 }

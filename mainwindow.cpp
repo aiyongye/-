@@ -4,7 +4,6 @@
 
 QPushButton *createJiLu;
 QString buttonStyle;
-int MainWindow::nextTimerId = 1;  // 初始化静态计数器
 
     QList<QPair<QDateTime, int>> valueContainer;  // 用于存储每个时间点对应的 a 值
 
@@ -478,7 +477,7 @@ tuBianSetLabel->setStyleSheet(labelStyle);
 
 connect(startReBtn1, &QPushButton::clicked, this, [=]() {
 
-            Timer1 = nextTimerId++;
+            MainWindow::stopTimers();
             Timer1 = startTimer(1000);
             MainWindow::clearChart(chartView1);
             chartView1 = createChartView("压力曲线1", axisX1, axisY1);
@@ -495,8 +494,7 @@ connect(jieShu1, &QPushButton::clicked, this, [=]() {
 });
 
 connect(startReBtn2, &QPushButton::clicked,this,[=]{
-
-            Timer2 = nextTimerId++;
+            MainWindow::stopTimers();
             Timer2 = startTimer(1000);  // 每秒插入一次数据
             MainWindow::clearChart(chartView2);
             chartView2 = createChartView2("压力曲线2", axisX2, axisY2);
@@ -726,4 +724,18 @@ void MainWindow::clearChart(QChartView *chartView) {
             chart->removeAxis(axis);
         }
     }
+}
+
+// 停止所有定时器
+void MainWindow::stopTimers() {
+    if (Timer1 != -1) {
+        killTimer(Timer1);
+        Timer1 = -1;  // 重置定时器ID
+    }
+
+    if (Timer2 != -1) {
+        killTimer(Timer2);
+        Timer2 = -1;  // 重置定时器ID
+    }
+    qDebug() << "Both timers stopped and IDs reset.";
 }

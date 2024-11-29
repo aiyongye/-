@@ -36,7 +36,8 @@ SOURCES += main.cpp\
     configset.cpp \
     login.cpp \
     usercreate.cpp \
-    loginset.cpp
+    loginset.cpp \
+    styletools.cpp
 
 HEADERS  += mainwindow.h \
     sqliteaction.h \

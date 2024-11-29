@@ -65,6 +65,7 @@ void   updateChart(QSplineSeries *series);
 
     void toReadReady();
     void clearChart(QChartView *chartView); // 清除表结构
+    void stopTimers(); //清除定时器
 public:
 QDateEdit *yaZhuangData;
 QComboBox *xuanGuaName;
@@ -92,6 +93,7 @@ QTimer *timerChart01; //处理图表1
 QChart *chart02;
 //QChar *chart11;
 QChart *chart;
+
 private slots:
 #if 1
     void startRefun1();
@@ -103,13 +105,13 @@ private slots:
 public:
     Ui::MainWindow *ui;
     //定义需要用到的定时器
-    static int nextTimerId;  // 静态计数器用于生成唯一的定时器ID
-    int Timer2 = nextTimerId;
-    int Timer1 = nextTimerId; //处理图表1
+    int Timer2;
+    int Timer1; //处理图表1
 public:
     int a;
     HstoryList w1;//历史界面
     ConfigSet w2; //工艺标准界面
+public:
 
 };
 
