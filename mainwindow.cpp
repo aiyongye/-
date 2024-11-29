@@ -16,6 +16,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // 设置主窗口
             setWindowTitle("悬挂件压装力测试系统");
             resize(1200, 800);
+            MainWindow::dataBaseConn = SqliteAction::getDatabaseConnection("../qtModBus/D1.db");
 
 #if 1
 
@@ -82,6 +83,24 @@ QString groupBoxStyle = R"(
         padding: 5px; /* 内部留白 */
     }
 )";
+// 设置按钮的样式，包含按下时颜色变化
+buttonStyle = R"(
+    QPushButton {
+        font: bold 14px;
+        color: black;
+        background-color: #E5E5E5;
+        border: 1px solid #A0A0A0;
+        border-radius: 5px;
+        padding: 5px;
+    }
+    QPushButton:pressed {
+        background-color: #C8C8C8; /* 按下时变为更深的灰色 */
+        border: 1px solid #707070; /* 按下时改变边框颜色 */
+    }
+    QPushButton:hover {
+        background-color: #F2F2F2; /* 鼠标悬停时变为浅灰色 */
+    }
+)";
  axisX1 = new QDateTimeAxis();
  axisY1 = new QValueAxis();
  axisX2 = new QDateTimeAxis();
@@ -115,7 +134,8 @@ QLineEdit *tuBianSet = new QLineEdit(this);       // 突变跨度设置
 tuBianSet->setText("80");
 QPushButton *saveTuBianBtn = new QPushButton("保存", this);  // 保存突变按钮
 
-QComboBox *jianChaName = new QComboBox(this);     // 检查者下拉框
+jianChaName = new QComboBox(this);     // 检查者下拉框
+xuanGuaName = new QComboBox(this);
 
 // 左侧控件组
 QLineEdit *jieDianSignLine1 = new QLineEdit(this);
@@ -168,15 +188,89 @@ QLabel *qieHuan = new QLabel("主设备:0\n副设备:0\nF5切换:主设备\n数�
        }
 
     });
-
-
-
     #endif
+#if 1
+    // 处理数据库与控件同步
+    // 操作者同步
+    bool flags = SqliteAction::queryAllDataFromTable(dataBaseConn,"operatorTb", dataList);
+    if(flags){
+        qDebug() << "查询 operatorTb 成功!!!";
+
+        // 清空 QComboBox，准备添加新的项
+        caoZuoName->clear();  // 清空 QComboBox 中的所有项
+        // 遍历 dataList 将每一行的 xuanName 列添加到 QComboBox 中
+        for (const QList<QVariant>& row : dataList) {
+            if (!row.isEmpty()) {
+                // 假设 xuanName 是 dataList 每行的第一列（根据你的表结构调整列索引）
+                QString xuanName = row.at(1).toString();  // 获取 xuanName 的值
+                caoZuoName->addItem(xuanName);  // 将该值添加到 QComboBox
+            }
+        }
+    }
+    // 检查者同步
+    flags = SqliteAction::queryAllDataFromTable(dataBaseConn,"inspectorTb", dataList1);
+    if(flags){
+        qDebug() << "查询 inspectorTb 成功!!!";
+
+        // 清空 QComboBox，准备添加新的项
+        jianChaName->clear();  // 清空 QComboBox 中的所有项
+        // 遍历 dataList 将每一行的 xuanName 列添加到 QComboBox 中
+        for (const QList<QVariant>& row : dataList1) {
+            if (!row.isEmpty()) {
+                // 假设 xuanName 是 dataList 每行的第一列（根据你的表结构调整列索引）
+                QString xuanName = row.at(1).toString();  // 获取 xuanName 的值
+                jianChaName->addItem(xuanName);  // 将该值添加到 QComboBox
+            }
+        }
+    }
+    flags = SqliteAction::queryAllDataFromTableXuan(dataBaseConn, "proStds", dataList2);
+        if(flags){
+            qDebug() << "查询 inspectorTb 成功!!!";
+
+            // 清空 QComboBox，准备添加新的项
+            xuanGuaName->clear();  // 清空 QComboBox 中的所有项
+            // 遍历 dataList 将每一行的 xuanName 列添加到 QComboBox 中
+            for (const QList<QVariant>& row : dataList2) {
+                if (!row.isEmpty()) {
+                    // 假设 xuanName 是 dataList 每行的第一列（根据你的表结构调整列索引）
+                    QString xuanName = row.at(1).toString();  // 获取 xuanName 的值
+                    xuanGuaName->addItem(xuanName);  // 将该值添加到 QComboBox
+                }
+            }
+        }
+#endif
+#if 1
+        // 假设 dataList2 是包含所有项数据的容器，每个元素是一个 QList<QVariant>，
+        // 每个 QList<QVariant> 包含了：xuanName, pressStd1, pressStd2 等信息
+
+        // 连接 QComboBox 的 currentIndexChanged 信号到槽函数
+        connect(xuanGuaName, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [=](int index) {
+            // 如果索引有效
+            if (index >= 0 && index < dataList2.size()) {
+                // 获取当前选中的项对应的数据行
+                const QList<QVariant>& selectedRow = dataList2.at(index);
+
+                // 假设 selectedRow 的结构是：[xuanName, pressStd1, pressStd2]
+                if (selectedRow.size() >= 3) {
+                    // 获取对应的压力标准
+                    QString pressStd1 = selectedRow.at(2).toString();  // 获取 pressStd1
+                    QString pressStd2 = selectedRow.at(2).toString();  // 获取 pressStd2
+
+                    // 设置压力标准文本
+                    yaZhuangStdLine1->setText(pressStd1);
+                    yaZhuangStdLine2->setText(pressStd2);
+                }
+            }
+        });
+
+
+#endif
+
     createJiLu = new QPushButton("创建", this);  // 创建记录按钮
     // 点击创建连接数据库，将主记录信息插入数据库
     connect(createJiLu, QPushButton::clicked,this, [=]{
             qDebug() << "创建记录" << endl;
-        MainWindow::dataBaseConn = SqliteAction::getDatabaseConnection("../qtModBus/D1.db");
+
         bool result1 = SqliteAction::ensureTableInDatabase(dataBaseConn, "../qtModBus/D1.db", "mainListTb");
         if(result1)
             qDebug() << "Table创建成功!!!"<< endl;
@@ -296,24 +390,7 @@ dataMaintenanceButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Prefer
 exitButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
 
-// 设置按钮的样式，包含按下时颜色变化
-buttonStyle = R"(
-    QPushButton {
-        font: bold 14px;
-        color: black;
-        background-color: #E5E5E5;
-        border: 1px solid #A0A0A0;
-        border-radius: 5px;
-        padding: 5px;
-    }
-    QPushButton:pressed {
-        background-color: #C8C8C8; /* 按下时变为更深的灰色 */
-        border: 1px solid #707070; /* 按下时改变边框颜色 */
-    }
-    QPushButton:hover {
-        background-color: #F2F2F2; /* 鼠标悬停时变为浅灰色 */
-    }
-)";
+
 
 qieHuan->setStyleSheet(labelStyle);
 zhanKaiLine->setStyleSheet(lineEditStyle);
@@ -385,15 +462,6 @@ workModeBox->setStyleSheet(groupBoxStyle);
 QGroupBox *recordCreationBox = new QGroupBox("创建区", this);
 QGridLayout *recordLayout = new QGridLayout(recordCreationBox);
 
-// 填充数据到下拉框
-std::vector<QString> xuanGuaItems = {"选项1", "选项2", "选项3", "选项4"};
-xuanGuaName->addItems(QStringList::fromVector(QVector<QString>::fromStdVector(xuanGuaItems)));
-
-std::vector<QString> caoZuoItems = {"小马", "小明", "小红", "赵武"};
-caoZuoName->addItems(QStringList::fromVector(QVector<QString>::fromStdVector(caoZuoItems)));
-
-std::vector<QString> jianChaItems = {"小马", "小明", "小红", "赵武"};
-jianChaName->addItems(QStringList::fromVector(QVector<QString>::fromStdVector(jianChaItems)));
 
 // 添加控件到布局
 recordLayout->addWidget(new QLabel("悬挂件名称：", this), 0, 0);
@@ -509,6 +577,7 @@ connect(jieShu2, &QPushButton::clicked,this,[=]{
 
 chartView1->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 chartView2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
 
 // 设置图表的大小策略，以确保它们在布局中正确显示
 chartLayout->addWidget(shuJuBox, 0, 0);          // Column 0: 数据点 selection box
@@ -701,8 +770,7 @@ void MainWindow::initializeControls()
     startReBtn2->setStyleSheet(buttonStyle);
     yazhuang1 = new QLineEdit(this);
     modbusDevice = new QModbusTcpClient(this);
-    xuanGuaName = new QComboBox(this);
-    jianChaName = new QComboBox(this);
+
     caoZuoName = new QComboBox(this);
     yaZhuangData = new QDateEdit(this);
 

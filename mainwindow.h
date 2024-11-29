@@ -111,6 +111,9 @@ public:
     int a;
     HstoryList w1;//历史界面
     ConfigSet w2; //工艺标准界面
+    QList<QList<QVariant>> dataList; //存储operator数据库中的值
+    QList<QList<QVariant>> dataList1; //存储检查者数据库中的值
+    QList<QList<QVariant>> dataList2; //存储悬挂名称和标准数据库中的值
 public:
 
 };

@@ -13,6 +13,8 @@ public:
     static QList<QList<QVariant>>  queryTable(QSqlDatabase &db, const QString &dbName, const QString &tableName,
                                                   const QStringList &columns = QStringList("*"),
                                                   const QString &condition = QString());
+    static bool queryAllDataFromTable(QSqlDatabase &db, const QString &tableName, QList<QList<QVariant>> &dataList);
+    static bool queryAllDataFromTableXuan(QSqlDatabase &db, const QString &tableName, QList<QList<QVariant>> &dataList);
 };
 
 #endif // SQLITEACTION_H
