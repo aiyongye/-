@@ -103,8 +103,9 @@ private slots:
 public:
     Ui::MainWindow *ui;
     //定义需要用到的定时器
-    int Timer2;
-    int Timer1; //处理图表1
+    static int nextTimerId;  // 静态计数器用于生成唯一的定时器ID
+    int Timer2 = nextTimerId;
+    int Timer1 = nextTimerId; //处理图表1
 public:
     int a;
     HstoryList w1;//历史界面

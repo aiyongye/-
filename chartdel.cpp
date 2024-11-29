@@ -105,7 +105,8 @@ void MainWindow::startDataInsertion2(QDateTimeAxis *axisX, QLineSeries *series, 
     if (Timer2 == -1) {
         // 启动定时器，每秒触发一次
 //        Timer2 = startTimer(1000);  // 启动定时器，1000毫秒（1秒）
-        qDebug() << "定时器已启动!";
+        qDebug() << "定时器2已启动!";
+
     }
 }
 
@@ -113,7 +114,7 @@ void MainWindow::startDataInsertion2(QDateTimeAxis *axisX, QLineSeries *series, 
 void MainWindow::timerEvent(QTimerEvent *event) {
     // 判断是否是 Timer2 定时器
     if (event->timerId() == Timer2) {
-        qDebug() << "定时器触发: 更新数据";
+        qDebug() << "定时器2触发: 更新数据" << "id==" << event->timerId() << endl; ;
 
         if (series2 && axisX2 && chart02 && chartView2) {
             qint64 currentTime = QDateTime::currentDateTime().toMSecsSinceEpoch();  // 获取当前时间戳（毫秒）
@@ -147,6 +148,7 @@ void MainWindow::timerEvent(QTimerEvent *event) {
     if(event->timerId() == Timer1) {
       //do Timer1_Fuc
         qDebug() << "定时器1 start" << endl;
+                qDebug() << "定时器1触发: 更新数据" << "id==" << event->timerId() << endl;
         if (series1 && axisX1 && chart && chartView1) {
             qint64 currentTime = QDateTime::currentDateTime().toMSecsSinceEpoch();  // 获取当前时间戳（毫秒）
 

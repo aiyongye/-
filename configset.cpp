@@ -5,6 +5,7 @@ ConfigSet::ConfigSet(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::ConfigSet)
 {
+    setAttribute(Qt::WA_QuitOnClose, false);  // 其他窗口关闭时不退出应用程序
     ui->setupUi(this);
     setFixedSize(1200,800);
     QFile file(":/Tabs.qss");

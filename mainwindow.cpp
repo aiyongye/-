@@ -4,6 +4,7 @@
 
 QPushButton *createJiLu;
 QString buttonStyle;
+int MainWindow::nextTimerId = 1;  // 初始化静态计数器
 
     QList<QPair<QDateTime, int>> valueContainer;  // 用于存储每个时间点对应的 a 值
 
@@ -12,9 +13,11 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+     setAttribute(Qt::WA_QuitOnClose, true);  // 主窗口关闭时退出应用程序
     // 设置主窗口
             setWindowTitle("悬挂件压装力测试系统");
             resize(1200, 800);
+
 #if 1
 
     MainWindow::initializeControls();
@@ -474,25 +477,32 @@ tuBianSetLabel->setStyleSheet(labelStyle);
 //  MainWindow::startDataInsertion( axisX1, series1);
 
 connect(startReBtn1, &QPushButton::clicked, this, [=]() {
-    Timer1 = startTimer(1000);
-    MainWindow::clearChart(chartView1);
-    chartView1 = createChartView("压力曲线1", axisX1, axisY1);
-    chartLayout->addWidget(chartView1, 1, 0, 1, 3);  // Chart 1: Spans 2 columns (Column 0-1)
+
+            Timer1 = nextTimerId++;
+            Timer1 = startTimer(1000);
+            MainWindow::clearChart(chartView1);
+            chartView1 = createChartView("压力曲线1", axisX1, axisY1);
+            chartLayout->addWidget(chartView1, 1, 0, 1, 3);  // Chart 1: Spans 2 columns (Column 0-1)
+
 });
 connect(jieShu1, &QPushButton::clicked, this, [=]() {
     // 这里进行判断 和突变值进行比较 如果大于突变值则将大于突变值的值和突变值前三个数
     // 在图表中显示
 //    MainWindow::startDataInsertion(axisX1, series1);
     killTimer(Timer1);
-    qDebug() << "定时器1 close" << endl;
+
+    qDebug() << "定时器1 close"<< Timer1 << endl;
 });
 
 connect(startReBtn2, &QPushButton::clicked,this,[=]{
 
+            Timer2 = nextTimerId++;
             Timer2 = startTimer(1000);  // 每秒插入一次数据
             MainWindow::clearChart(chartView2);
             chartView2 = createChartView2("压力曲线2", axisX2, axisY2);
-chartLayout->addWidget(chartView2, 1, 3, 1, 3);  // Chart 2: Spans 3 columns (Column 2-4)
+            chartLayout->addWidget(chartView2, 1, 3, 1, 3);  // Chart 2: Spans 3 columns (Column 2-4)
+
+
 });
 connect(jieShu2, &QPushButton::clicked,this,[=]{
             killTimer(Timer2);

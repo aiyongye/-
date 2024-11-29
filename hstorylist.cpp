@@ -13,6 +13,7 @@ HstoryList::HstoryList(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::HstoryList)
 {
+    setAttribute(Qt::WA_QuitOnClose, false);  // 其他窗口关闭时不退出应用程序
     ui->setupUi(this);
     setWindowTitle("记录查询");
     resize(1200, 800);
