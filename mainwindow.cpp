@@ -359,6 +359,24 @@ connect(jieShu2, &QPushButton::clicked,this,[=]{
 });
 #endif
 
+#if 1
+    /**
+     * @brief 保存图表1成图片
+     */
+connect(daYinChartBtn1, QPushButton::clicked,this, [=]{
+
+    MainWindow::exportPdf();
+});
+#endif
+
+#if 1
+    /**
+     * @brief 保存图表2成图片
+     */
+connect(daYinChartBtn1, QPushButton::clicked,this, [=]{
+
+});
+#endif
 
 // 状态栏
 QStatusBar *statusBar = new QStatusBar(this);
@@ -749,7 +767,9 @@ void MainWindow::stopTimers() {
     qDebug() << "Both timers stopped and IDs reset.";
 }
 
-
+/**
+ * @brief 加载外部qss
+ */
 void MainWindow::applyStyles(QWidget *widget,QString stylesheet)
 {
     widget->setStyleSheet(stylesheet); // 使用上面读取到的stylesheet
@@ -757,4 +777,76 @@ void MainWindow::applyStyles(QWidget *widget,QString stylesheet)
     for (auto child : widget->findChildren<QWidget*>()) {
         applyStyles(child,stylesheet);
     }
+}
+
+void MainWindow::exportPdf()
+{
+    // 选择保存路径
+    QString path = QFileDialog::getSaveFileName(nullptr, QString("Open file"),
+                                                QString("."), QString("PDF Files(*.pdf)"));
+    if (path.isEmpty())
+        return;
+
+    // 如果文件没有后缀，则添加 .pdf 后缀
+    if (QFileInfo(path).suffix().isEmpty())
+        path.append(".pdf");
+
+    // 创建 QPdfWriter 对象并设置 PDF 输出路径
+    QPdfWriter pdfWriter(path);
+    pdfWriter.setPageSize(QPagedPaintDevice::A4);
+    pdfWriter.setResolution(QPrinter::ScreenResolution);
+
+    // 创建 QTextDocument 来保存 HTML 内容
+    QTextDocument textDocument;
+
+    // 清空 HTML 内容，准备添加新内容
+    QString m_html;
+    m_html.append("<h1 style='text-align:center;'>转向架悬挂件节点压装力曲线</h1><br />");
+
+    // 添加 T1 表格
+    m_html.append("<table border='0.5' cellspacing='0' cellpadding='3' width='100%'>");
+    m_html.append("<tr><td align='center' style='vertical-align:middle;font-weight:bold;' colspan='7'>T1 数据</td></tr>");
+    m_html.append("<tr><td align='left' style='vertical-align:middle;font-weight:bold;' colspan='7'>信息摘要</td></tr>");
+    m_html.append("<tr><td width='14%' valign='center'>悬挂名称</td><td width='14%' valign='center'>380D齿轮箱吊杆</td><td width='14%' valign='center'>2024-11-12</td><td width='14%' valign='center'>操作者</td><td width='14%' valign='center'>李白</td><td width='14%' valign='center'>检查者</td><td width='14%' valign='center'>孙一刚</td></tr>");
+    m_html.append("</table><br /><br />");
+
+    // 使用父表格来排列 T2 和 T3 横向显示
+    m_html.append("<table border='0' cellspacing='0' cellpadding='0' style='width: 100%;'>");
+    m_html.append("<tr>");
+
+    // T2 表格
+    m_html.append("<td style='width: 48%; padding-right: 400%;'>");  // 增大 padding-right 来增加间距
+    m_html.append("<table border='0.5' cellspacing='0' cellpadding='3' width='100%'>");
+    m_html.append("<tr><td align='center' style='vertical-align:middle;font-weight:bold;' colspan='4'>T2 数据</td></tr>");
+    m_html.append("<tr><td style='width: 12.5%;' valign='center'>节点序列号</td><td style='width: 12.5%;' valign='center'>BZZ7134/423</td><td style='width: 12.5%;' valign='center'>压装力值</td><td style='width: 12.5%;' valign='center'>43.6</td></tr>");
+    m_html.append("<tr><td style='width: 12.5%;' valign='center'>压装结果</td><td style='width: 12.5%;' valign='center'>合格</td><td style='width: 12.5%;' valign='center'>压装力标准</td><td style='width: 12.5%;' valign='center'>5~300</td></tr>");
+    m_html.append("</table>");
+    m_html.append("</td>");
+
+    // 空隙列（增大宽度来加大间距）
+    m_html.append("<td style='width: 500%;'></td>");  // 这里将宽度从 4% 增加到 8%
+
+    // T3 表格
+    m_html.append("<td style='width: 48%;'>");
+    m_html.append("<table border='0.5' cellspacing='0' cellpadding='3' width='100%'>");
+    m_html.append("<tr><td align='center' style='vertical-align:middle;font-weight:bold;' colspan='4'>T3 数据</td></tr>");
+    m_html.append("<tr><td style='width: 12.5%;' valign='center'>节点序列号</td><td style='width: 12.5%;' valign='center'>BZZ7134/423</td><td style='width: 12.5%;' valign='center'>压装力值</td><td style='width: 12.5%;' valign='center'>36.8</td></tr>");
+    m_html.append("<tr><td style='width: 12.5%;' valign='center'>压装结果</td><td style='width: 12.5%;' valign='center'>合格</td><td style='width: 12.5%;' valign='center'>压装力标准</td><td style='width: 12.5%;' valign='center'>5~300</td></tr>");
+    m_html.append("</table>");
+    m_html.append("</td>");
+
+    m_html.append("</tr>");
+    m_html.append("</table>");
+
+    // 添加图片
+    m_html.append("<img src='qtLogo.png' width=\"100\" height=\"100\">");
+
+    // 将 HTML 内容设置到 QTextDocument
+    textDocument.setHtml(m_html);
+
+    // 使用 QPdfWriter 打印 PDF
+    textDocument.print(&pdfWriter);
+
+    // 关闭文件
+    pdfWriter.newPage();  // 如果需要新页面，使用 newPage
 }

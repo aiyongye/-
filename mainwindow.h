@@ -41,6 +41,8 @@
 #include "configset.h"
 #include <QDateTimeAxis>
 #include <QFile>
+#include <wpdfwriter.h>
+
 QT_CHARTS_USE_NAMESPACE // 如果使用Qt Charts模块
 namespace Ui {
 class MainWindow;
@@ -167,6 +169,13 @@ public:
     QVector<int> chart1Container;// 当点击图表1开始时将压力值存储
     QVector<int> chart2Container;// 当点击图表2开始时将压力值存储
 public:
+//    void writePdf();
+//void addTable(const QString &title, const QString &subTitle,
+//                          int rows, int cols, QList<int> colWidth, const QList<QList<QString> > &values);
+   void exportPdf();
+private:
+     QString m_html;  // 用于存储生成的 HTML 内容
+     QPdfWriter *m_pdfWriter;
 
 };
 

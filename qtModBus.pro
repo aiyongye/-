@@ -8,6 +8,7 @@ QT       += core gui
 QT   += serialbus serialport
 QT += charts
 QT += sql
+QT += printsupport
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = qtModBus
@@ -37,7 +38,8 @@ SOURCES += main.cpp\
     login.cpp \
     usercreate.cpp \
     loginset.cpp \
-    styletools.cpp
+    styletools.cpp \
+    wpdfwriter.cpp
 
 HEADERS  += mainwindow.h \
     sqliteaction.h \
@@ -48,7 +50,8 @@ HEADERS  += mainwindow.h \
     configset.h \
     login.h \
     usercreate.h \
-    loginset.h
+    loginset.h \
+    wpdfwriter.h
 
 FORMS    += mainwindow.ui \
     hstorylist.ui \
