@@ -3,5 +3,6 @@
         <file>Table.qss</file>
         <file>Tabs.qss</file>
         <file>elementForm.qss</file>
+        <file>mainForm.qss</file>
     </qresource>
 </RCC>

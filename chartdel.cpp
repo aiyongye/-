@@ -122,7 +122,12 @@ void MainWindow::timerEvent(QTimerEvent *event) {
             // 将全局变量 a 插入到曲线中，currentTime 作为 X 值，a 作为 Y 值
             series2->append(currentTime, a);
             qDebug() << "Inserted data point: " << currentTime << ", " << a;
+#if 1
+            // 如果定时器开始将a的值存入容器中
+            chart2Container.append(a);
+            // 容器中存储的值tuBianSet->text();
 
+#endif
             // 最多显示 4 个数据点，删除最早的点
             if (series2->count() > 4) {
                 series2->remove(0);  // 删除最早的数据点
@@ -155,7 +160,12 @@ void MainWindow::timerEvent(QTimerEvent *event) {
             // 将全局变量 a 插入到曲线中，currentTime 作为 X 值，a 作为 Y 值
             series1->append(currentTime, a);
             qDebug() << "Inserted data point: " << currentTime << ", " << a;
+#if 1
+            // 如果定时器开始将a的值存入容器中
+            chart1Container.append(a);
+            // 容器中存储的值tuBianSet->text();
 
+#endif
             // 最多显示 4 个数据点，删除最早的点
             if (series1->count() > 4) {
                 series1->remove(0);  // 删除最早的数据点

@@ -1,0 +1,70 @@
+QRadioButton {
+    font: 12px;
+    color: black;
+    spacing: 10px;
+}
+
+QLineEdit {
+    font: bold 20px;
+    color: black;
+    background-color: white;
+    border: 1px solid #A0A0A0;
+    border-radius: 5px;
+    text-align: center;
+}
+
+QLabel {
+    font: 12px;
+    color: black;
+    padding: 0 5px;
+}
+
+QComboBox {
+    font: 12px;
+    color: black;
+    background-color: white;
+    border: 1px solid #A0A0A0;
+    border-radius: 4px;
+}
+
+QGroupBox {
+    background-color: #ecf0f1;
+    border: 2px solid #bdc3c7;
+    border-radius: 8px;
+    padding: 10px;
+    margin-top: 15px;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    padding: 0 10px;
+    font: bold 14px;
+    color: #2c3e50;
+    background-color: transparent;
+}
+
+QChartView {
+    border: 1px solid #bdc3c7;
+    border-radius: 8px;
+    background-color: #ffffff;
+    padding: 5px;
+}
+
+QPushButton {
+    font: bold 14px;
+    color: black;
+    background-color: #E5E5E5;
+    border: 1px solid #A0A0A0;
+    border-radius: 5px;
+    padding: 5px;
+}
+
+QPushButton:pressed {
+    background-color: #C8C8C8;
+    border: 1px solid #707070;
+}
+
+QPushButton:hover {
+    background-color: #F2F2F2;
+}

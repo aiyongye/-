@@ -40,7 +40,7 @@
 #include "hstorylist.h"
 #include "configset.h"
 #include <QDateTimeAxis>
-
+#include <QFile>
 QT_CHARTS_USE_NAMESPACE // 如果使用Qt Charts模块
 namespace Ui {
 class MainWindow;
@@ -61,17 +61,18 @@ public:
 QChartView* createChartView2(const QString &title, QDateTimeAxis *axisX, QValueAxis *axisY);
 void startDataInsertion2(QDateTimeAxis *axisX, QLineSeries *series, QChart *chart, QChartView *chartView) ;
 
-void   updateChart(QSplineSeries *series);
-
     void toReadReady();
     void clearChart(QChartView *chartView); // 清除表结构
     void stopTimers(); //清除定时器
+    void applyStyles(QWidget *widget,QString stylesheet);
 public:
 QDateEdit *yaZhuangData;
 QComboBox *xuanGuaName;
 QComboBox *jianChaName;
 QComboBox *caoZuoName;
-QLineEdit *yazhuang1;
+
+QLineEdit *tuBianSet;
+
 QTimer *timer; //时间节奏和plc频率一致
 QElapsedTimer *elapsedTimer;
 QVector<QPointF> data1; // 用于存储压装力值和时间
@@ -79,6 +80,55 @@ QPushButton *recordQueryButton; // 记录查询
 QPushButton *startReBtn1;
 QPushButton *startReBtn2;
 QSqlDatabase dataBaseConn; //DB连接
+
+QLineEdit *yaZhuangSaultLine1;
+QLineEdit *xiuZhengLine;
+QPushButton *xiuZhengBtn;
+QLabel *xiuZhengLabel;
+QSpinBox *saoMiaoData;
+QPushButton *saveBtn;
+QPushButton *saveTuBianBtn;
+QLineEdit *jieDianSignLine1;
+QPushButton *daYinChartBtn1;
+QLineEdit *yaZhuang1;
+QLineEdit *yaZhuangStdLine1;
+QLineEdit *jieDianSignLine2;
+QPushButton *daYinChartBtn2;
+QLineEdit *yaZhuang2;
+QLineEdit *yaZhuangSaultLine2;
+QLineEdit *yaZhuangStdLine2;
+QPushButton *loginButton;
+QPushButton *logoutButton;
+QPushButton *standardButton;
+QPushButton *dataMaintenanceButton;
+QPushButton *exitButton;
+QLineEdit *zhanKaiLine;
+QPushButton *zhanKaiBtn;
+QLabel *qieHuan;
+
+QMenuBar *menuBar;
+// 创建主窗口的中心部件
+QWidget *centralWidget;
+// 主布局
+QGridLayout *mainLayout;
+// 添加工作模式分组
+QGroupBox *workModeBox;
+
+QRadioButton *putTongMode;
+QRadioButton *weiHuMode;
+QLabel *saoMiaoTime;
+QLabel *danWeiMiao;
+QLabel *tuBianSetLabel;
+QGroupBox *recordCreationBox;
+
+QCheckBox *shuJuBox;
+QPushButton *jieShu1;
+QPushButton *jieShu2;
+// 图表区域
+QGroupBox *chartBox;
+QGridLayout *chartLayout;
+// 添加控制区
+QGroupBox *controlBox;
 
 QDateTimeAxis *axisX1;
 QDateTimeAxis *axisX2;
@@ -97,8 +147,8 @@ QChart *chart;
 private slots:
 #if 1
     void startRefun1();
-    void recordQueryButtonFun();
     void initializeControls();
+    void initBuJu();
     void timerEvent(QTimerEvent *event) Q_DECL_OVERRIDE;
 
 #endif
@@ -114,6 +164,8 @@ public:
     QList<QList<QVariant>> dataList; //存储operator数据库中的值
     QList<QList<QVariant>> dataList1; //存储检查者数据库中的值
     QList<QList<QVariant>> dataList2; //存储悬挂名称和标准数据库中的值
+    QVector<int> chart1Container;// 当点击图表1开始时将压力值存储
+    QVector<int> chart2Container;// 当点击图表2开始时将压力值存储
 public:
 
 };

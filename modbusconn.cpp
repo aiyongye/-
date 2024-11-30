@@ -82,7 +82,7 @@ void MainWindow::toReadReady()
 //       qDebug() << "hahah" <<endl;
 //       qDebug()<<"plc值"<<unit.value(0);
 
-       yazhuang1->setText(QString::number(MainWindow::a));
+       zhanKaiLine->setText(QString::number(MainWindow::a));
 
 //       timer->start(1000);
 //       elapsedTimer->start();

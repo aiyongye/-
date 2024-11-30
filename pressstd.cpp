@@ -12,8 +12,9 @@ PressStd::PressStd(QWidget *parent) :
     file.open(QFile::ReadOnly);
     QString qss=file.readAll();
     file.close();
+        applyStyles(this,qss);
        database = PressStd::getDatabaseConnection("../qtModBus/D1.db");//数据库连接
-    applyStyles(this,qss);
+
 
     //引用fontawesome，加载字体图标资源
     int i_font_id = QFontDatabase::addApplicationFont(":/fontawesome-webfont.ttf");
