@@ -17,6 +17,7 @@ HstoryList::HstoryList(QWidget *parent) :
     ui->setupUi(this);
     setWindowTitle("记录查询");
     resize(1200, 800);
+    dataBaseConn = HstoryList::getDatabaseConnection("../qtModBus/D1.db");
     QFile file(":/Table.qss");
     file.open(QFile::ReadOnly);
     QString qss=file.readAll();
@@ -134,8 +135,8 @@ HstoryList::HstoryList(QWidget *parent) :
     ui->startDateEdit->setDisplayFormat("yyyy-MM-dd");
     ui->startDateEdit->setDate(QDate::currentDate());
     ui->startDateEdit->setCalendarWidget(new QCalendarWidget);
-ui->startTimeEdit->setTime(QTime::currentTime());  // 当前时间，精确到秒
-qDebug() << QTime::currentTime() << endl;
+    ui->startTimeEdit->setTime(QTime::currentTime());  // 当前时间，精确到秒
+    qDebug() << QTime::currentTime() << endl;
 
     ui->endDateEdit->setDisplayFormat("yyyy-MM-dd");
     ui->endDateEdit->setDate(QDate::currentDate());
@@ -147,6 +148,9 @@ qDebug() << QTime::currentTime() << endl;
     ui->startTimeEdit->setDisplayFormat("hh:mm:ss");
     ui->endTimeEdit->setDisplayFormat("hh:mm:ss");
 
+    /**
+     * @brief 当开始日期更改时，确保结束日期不小于开始日期
+     */
     connect(ui->startDateEdit, &QDateEdit::dateChanged, this, [this]() {
         // 当开始日期更改时，确保结束日期不小于开始日期
         if (ui->endDateEdit->date() < ui->startDateEdit->date()) {
@@ -154,6 +158,9 @@ qDebug() << QTime::currentTime() << endl;
         }
     });
 
+    /**
+     * @brief 当开始时间更改时，确保结束时间不小于开始时间
+     */
     connect(ui->startTimeEdit, &QTimeEdit::timeChanged, this, [this]() {
         // 当开始时间更改时，确保结束时间不小于开始时间
         QDateTime startDateTime(ui->startDateEdit->date(), ui->startTimeEdit->time());
@@ -165,7 +172,9 @@ qDebug() << QTime::currentTime() << endl;
         }
     });
 
-    // 连接结束时间编辑控件，确保结束日期和时间不会早于开始时间
+    /**
+     * @brief // 连接结束时间编辑控件，确保结束日期和时间不会早于开始时间
+     */
     connect(ui->endDateEdit, &QDateEdit::dateChanged, this, [this]() {
         QDateTime startDateTime(ui->startDateEdit->date(), ui->startTimeEdit->time());
         QDateTime endDateTime(ui->endDateEdit->date(), ui->endTimeEdit->time());
@@ -189,9 +198,8 @@ qDebug() << QTime::currentTime() << endl;
     //鼠标移过时，整行背景颜色变化
     HoveredRowItemDelegate *delegate2 = new HoveredRowItemDelegate(ui->tableWidget2);
     ui->tableWidget2->setItemDelegate(delegate2);
-
-
     loadTable(ui->tableWidget2);
+
 
     //隔行变色
     ui->tableWidget2->setAlternatingRowColors(true);
@@ -206,17 +214,21 @@ HstoryList::~HstoryList()
     delete ui;
 }
 
+/**
+ * @brief 加载表格
+ */
 void HstoryList::loadTable(QTableWidget *tableWidget){
+#if 0
     tableWidget->setColumnCount(12);
     QStringList heardList;
     heardList<<"悬挂件名称"<<"压装日期"<<"操作者"<<"检查者"<<"节点序列号1"<<"压装力值1"<<"压装结果1"<<"压装力标准1"
             <<"节点序列号2"<<"压装力值2"<<"压装结果2"<<"压装力标准2";
     tableWidget->setHorizontalHeaderLabels(heardList);
 
-    dataBaseConn = HstoryList::getDatabaseConnection("../qtModBus/D1.db");
+
     qDebug() << "history界面" << endl;
     // 将数据库存入的数据 便利到tableWidget中
-#if 1
+
     // 查询数据库数据，注意这里查询结果中会包含 'id' 列
     mainJiLuList = HstoryList::queryTable(dataBaseConn, "../qtModBus/D1.db", "mainListTb");
 
@@ -241,8 +253,6 @@ void HstoryList::loadTable(QTableWidget *tableWidget){
 
     // 如果需要对表格进行额外设置或调整，可以继续进行
     // 例如，如果想要在表格中加入其他数据，继续使用 appendOneRow 或其他方式填充。
-#endif
-
 
     //去除选中虚线框
     tableWidget->setFocusPolicy(Qt::NoFocus);
@@ -271,9 +281,13 @@ void HstoryList::loadTable(QTableWidget *tableWidget){
     tableWidget->verticalHeader()->setVisible(false);//第一列序号不显示
     tableWidget->verticalHeader()->setDefaultSectionSize(48); // 设置默认行高
     tableWidget->setShowGrid(false);//设置item无边框
+    #endif
 }
 
 
+/**
+ * @brief 加载qss
+ */
 void HstoryList::applyStyles(QWidget *widget,QString stylesheet)
 {
     widget->setStyleSheet(stylesheet); // 使用上面读取到的stylesheet
@@ -282,6 +296,7 @@ void HstoryList::applyStyles(QWidget *widget,QString stylesheet)
         applyStyles(child,stylesheet);
     }
 }
+
 
 
 void HstoryList::appendOneRow(QTableWidget *tableWidget,QString x1, QString x2, QString x3,
@@ -334,6 +349,7 @@ void HstoryList::appendOneRow(QTableWidget *tableWidget,QString x1, QString x2, 
     tableWidget->setItem(count, 10,x11Item);
     tableWidget->setItem(count, 11,x12Item);
 }
+
 /**
  * @brief 获取指定名称的数据库连接
  * @param dbName 数据库文件名
@@ -485,7 +501,10 @@ bool HstoryList::insertIntoTable(QSqlDatabase &db, const QString &dbName, const 
     return query.exec();
 }
 
-// 将从库中拿到的信息存入QList<QVariantList>
+
+/**
+ * @brief 将从库中拿到的信息存入QList<QVariantList>
+ */
 QList<QList<QVariant>> HstoryList::queryTable(QSqlDatabase &db, const QString &dbName, const QString &tableName,
                                               const QStringList &columns,
                                               const QString &condition) {
@@ -523,7 +542,10 @@ QList<QList<QVariant>> HstoryList::queryTable(QSqlDatabase &db, const QString &d
 
 
 
-#if 1 //按照时间区间查询
+#if 1
+/**
+ * @brief 按照时间区间查询数据库
+ */
 QList<QList<QVariant>> HstoryList::queryTableDate(QSqlDatabase &db, const QString &dbName, const QString &tableName,
                                                const QString &startDateTime, const QString &endDateTime,const QStringList &columns) {
     QList<QList<QVariant>> results;
@@ -582,9 +604,18 @@ QList<QList<QVariant>> HstoryList::queryTableDate(QSqlDatabase &db, const QStrin
     return results;
 }
 #endif
+
+/**
+ * @brief 按时间查询槽函数
+ */
 // 按照时间查询
 void HstoryList::onOption2() {
     qDebug("选项2被选择");
+    ui->tableWidget2->setColumnCount(12);
+    QStringList heardList;
+    heardList<<"悬挂件名称"<<"压装日期"<<"操作者"<<"检查者"<<"节点序列号1"<<"压装力值1"<<"压装结果1"<<"压装力标准1"
+            <<"节点序列号2"<<"压装力值2"<<"压装结果2"<<"压装力标准2";
+    ui->tableWidget2->setHorizontalHeaderLabels(heardList);
 
     // 获取时间范围
     QString startDateTime = ui->startDateEdit->text() + " " + ui->startTimeEdit->text();
@@ -613,9 +644,16 @@ void HstoryList::onOption2() {
         }
     }
 
-    // 如果需要对表格进行额外设置或调整，可以继续进行
-    // 例如，如果想要在表格中加入其他数据，继续使用 appendOneRow 或其他方式填充。
+    // 1.6 末尾行添加统计行，显示数量
+    ui->tableWidget2->setRowCount(rowCount + 1);  // 增加一行用于显示统计信息
+    ui->tableWidget2->setItem(rowCount, 0, new QTableWidgetItem("总计"));
+    ui->tableWidget2->setItem(rowCount, 1, new QTableWidgetItem(QString::number(rowCount)));
+    // 合并第二列到最后一列，形成一个跨度
+    int columnCount1 = ui->tableWidget2->columnCount();
+    ui->tableWidget2->setSpan(rowCount, 1, 1, columnCount1 - 1);  // 合并第二列到最后一列
+
 #endif
+
 
     qDebug() << startDateTime << "--" << endDateTime << endl;
 }
@@ -646,4 +684,104 @@ void HstoryList::onOption2() {
     //打印曲线数据列表(Z)
     void HstoryList::printonOption2() {
         qDebug("打印触发2");
+        HstoryList::filePrintPreview();
     }
+
+
+    // 打印预览槽函数
+    void HstoryList::filePrintPreview()
+    {
+
+
+        // 53%
+    #if !defined(QT_NO_PRINTER) && !defined(QT_NO_PRINTDIALOG)
+        QPrinter printer(QPrinter::HighResolution);
+        QPrintPreviewDialog preview(&printer, this);
+        preview.resize(1200,800);
+
+        connect(&preview, &QPrintPreviewDialog::paintRequested, this, &HstoryList::printPreview);
+        preview.exec();
+    #endif
+    }
+
+
+    void HstoryList::printPreview(QPrinter *printer)
+    {
+    #ifdef QT_NO_PRINTER
+        Q_UNUSED(printer);
+    #else
+        // 设置打印机页面为 A4 横向
+        printer->setPageSize(QPrinter::A4);
+        printer->setOrientation(QPrinter::Landscape);  // 设置为横向
+
+        QString filePath = QFileDialog::getOpenFileName(this, "选择PDF文件", "", "PDF Files (*.pdf)");
+        if (filePath.isEmpty()) {
+            return;
+        }
+
+        printer->setResolution(300);
+
+        // 创建 Poppler 文档
+        Poppler::Document *pdfDocument = Poppler::Document::load(filePath);
+        if (!pdfDocument) {
+            qWarning() << "Failed to load PDF:" << filePath;
+            return;
+        }
+
+        // 打印 PDF 的第一页
+        int pageNumber = 0;  // 0-based, 第一页
+        Poppler::Page *page = pdfDocument->page(pageNumber);
+        if (!page) {
+            qWarning() << "Failed to load page" << pageNumber;
+            delete pdfDocument;
+            return;
+        }
+
+        // 获取打印页面的大小（横向 A4）
+        QSize pageSize = printer->pageRect().size(); // 获取打印机页面的尺寸
+
+        // 设置渲染为高分辨率图像，600 DPI 或更高
+        QImage image = page->renderToImage(600, 600);  // 使用 600 DPI 渲染图像
+        if (image.isNull()) {
+            qWarning() << "Failed to render page to image";
+            delete pdfDocument;
+            return;
+        }
+
+        // 创建 QPainter 来绘制图像到打印机
+        QPainter painter(printer);
+        if (!painter.isActive()) {  // 确保 QPainter 初始化成功
+            qWarning() << "Failed to initialize QPainter";
+            delete pdfDocument;
+            return;
+        }
+
+        // 保存当前 QPainter 状态
+        painter.save();
+
+        // 设置打印页面上的目标区域
+        QRect targetRect(0, 0, pageSize.width(), pageSize.height());  // 使用整个页面宽高作为目标区域
+        painter.translate(targetRect.topLeft());
+
+        // 计算图像缩放比例（不保持比例，强制图像充满页面）
+        qreal scaleX = targetRect.width() / static_cast<qreal>(image.width());
+        qreal scaleY = targetRect.height() / static_cast<qreal>(image.height());
+
+        // 强制按页面大小缩放图像，使用最大的比例
+        qreal scale = qMax(scaleX, scaleY);  // 使用最大的缩放比例，确保图像充满页面
+
+        // 缩放绘制
+        painter.scale(scale, scale);
+
+        // 将 PDF 图像绘制到打印机上
+        painter.drawImage(0, 0, image);
+
+        // 恢复 QPainter 状态
+        painter.restore();
+
+        // 清理
+        delete pdfDocument;
+
+    #endif
+    }
+

@@ -8,6 +8,13 @@
 #include <QSqlQuery>
 #include <QDebug>
 #include <QSqlRecord>  // 确保包含此头文件
+#include <QPrinter>
+#include <QPrintPreviewDialog>
+#include <QFileDialog>
+#include <QGraphicsScene>
+#include <QPainter>
+#include "poppler-qt5.h"
+
 #define HSTORYLIST_H
 
 namespace Ui {
@@ -39,6 +46,8 @@ public:
                                                     const QString &condition = QString());
       QList<QList<QVariant>> queryTableDate(QSqlDatabase &db, const QString &dbName, const QString &tableName,
                                                      const QString &startDateTime, const QString &endDateTime,const QStringList &columns = QStringList("*")) ;
+    void printPreview(QPrinter *printer);
+    void filePrintPreview();
 public:
  QSqlDatabase dataBaseConn;
 private slots:
