@@ -67,6 +67,7 @@ void startDataInsertion2(QDateTimeAxis *axisX, QLineSeries *series, QChart *char
     void clearChart(QChartView *chartView); // 清除表结构
     void stopTimers(); //清除定时器
     void applyStyles(QWidget *widget,QString stylesheet);
+    void saveChartToImage(QChartView* chartView, const QString& filePath);
 public:
 QDateEdit *yaZhuangData;
 QComboBox *xuanGuaName;

@@ -123,6 +123,12 @@ tuBianSet->setText("80");
      * 单击悬挂名称时会自动将标准显示到标准框里
      */
     connect(xuanGuaName, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [=](int index) {
+        MainWindow::clearChart(chartView1);
+        MainWindow::clearChart(chartView2);
+        yaZhuang1->setText("");
+        yaZhuangSaultLine1->setText("");
+        yaZhuang2->setText("");
+        yaZhuangSaultLine2->setText("");
         // 如果索引有效
         if (index >= 0 && index < dataList2.size()) {
             // 获取当前选中的项对应的数据行
@@ -364,6 +370,13 @@ connect(jieShu2, &QPushButton::clicked,this,[=]{
      * @brief 保存图表1成图片
      */
 connect(daYinChartBtn1, QPushButton::clicked,this, [=]{
+
+//    QSize newSize1(450, 400);  // 新的图像大小
+//    QSize newSize2(450, 400);  // 新的图像大小
+    MainWindow::saveChartToImage(chartView1, "../qtModBus/chart1.png");
+    MainWindow::saveChartToImage(chartView2, "../qtModBus/chart2.png");
+
+
 
     MainWindow::exportPdf();
 });
@@ -805,31 +818,45 @@ void MainWindow::exportPdf()
 
     // 添加 T1 表格
     m_html.append("<table border='0.5' cellspacing='0' cellpadding='3' width='100%'>");
-    m_html.append("<tr><td align='center' style='vertical-align:middle;font-weight:bold;' colspan='7'>T1 数据</td></tr>");
-    m_html.append("<tr><td align='left' style='vertical-align:middle;font-weight:bold;' colspan='7'>信息摘要</td></tr>");
+//    m_html.append("<tr><td align='center' style='vertical-align:middle;font-weight:bold;' colspan='7'>T1 数据</td></tr>");
+//    m_html.append("<tr><td align='left' style='vertical-align:middle;font-weight:bold;' colspan='7'>信息摘要</td></tr>");
     m_html.append("<tr><td width='14%' valign='center'>悬挂名称</td><td width='14%' valign='center'>380D齿轮箱吊杆</td><td width='14%' valign='center'>2024-11-12</td><td width='14%' valign='center'>操作者</td><td width='14%' valign='center'>李白</td><td width='14%' valign='center'>检查者</td><td width='14%' valign='center'>孙一刚</td></tr>");
     m_html.append("</table><br /><br />");
+
+    // 横向排布图片1和图片2 在 T2 和 T3 之前
+    m_html.append("<table border='0' cellspacing='0' cellpadding='0' style='width: 100%;'>");
+    m_html.append("<tr>");
+
+    // 图片1
+    m_html.append("<td style='width: 48%;'><img src='../qtModBus/chart1.png' width='450' height='400'></td>");
+
+    // 图片2
+    m_html.append("<td style='width: 4%;'></td>");  // 空隙列，调整宽度控制图片间距
+    m_html.append("<td style='width: 48%;'><img src='../qtModBus/chart2.png' width='450' height='400'></td>");
+
+    m_html.append("</tr>");
+    m_html.append("</table><br />");
 
     // 使用父表格来排列 T2 和 T3 横向显示
     m_html.append("<table border='0' cellspacing='0' cellpadding='0' style='width: 100%;'>");
     m_html.append("<tr>");
 
     // T2 表格
-    m_html.append("<td style='width: 48%; padding-right: 400%;'>");  // 增大 padding-right 来增加间距
+    m_html.append("<td style='width: 48%; padding-right: 400%;padding-left: 10%;'>");  // 增大 padding-right 来增加间距
     m_html.append("<table border='0.5' cellspacing='0' cellpadding='3' width='100%'>");
-    m_html.append("<tr><td align='center' style='vertical-align:middle;font-weight:bold;' colspan='4'>T2 数据</td></tr>");
+//    m_html.append("<tr><td align='center' style='vertical-align:middle;font-weight:bold;' colspan='4'>T2 数据</td></tr>");
     m_html.append("<tr><td style='width: 12.5%;' valign='center'>节点序列号</td><td style='width: 12.5%;' valign='center'>BZZ7134/423</td><td style='width: 12.5%;' valign='center'>压装力值</td><td style='width: 12.5%;' valign='center'>43.6</td></tr>");
     m_html.append("<tr><td style='width: 12.5%;' valign='center'>压装结果</td><td style='width: 12.5%;' valign='center'>合格</td><td style='width: 12.5%;' valign='center'>压装力标准</td><td style='width: 12.5%;' valign='center'>5~300</td></tr>");
     m_html.append("</table>");
     m_html.append("</td>");
 
     // 空隙列（增大宽度来加大间距）
-    m_html.append("<td style='width: 500%;'></td>");  // 这里将宽度从 4% 增加到 8%
+    m_html.append("<td style='width: 4%;'></td>");  // 增加间距，控制T2与T3之间的距离
 
     // T3 表格
     m_html.append("<td style='width: 48%;'>");
     m_html.append("<table border='0.5' cellspacing='0' cellpadding='3' width='100%'>");
-    m_html.append("<tr><td align='center' style='vertical-align:middle;font-weight:bold;' colspan='4'>T3 数据</td></tr>");
+//    m_html.append("<tr><td align='center' style='vertical-align:middle;font-weight:bold;' colspan='4'>T3 数据</td></tr>");
     m_html.append("<tr><td style='width: 12.5%;' valign='center'>节点序列号</td><td style='width: 12.5%;' valign='center'>BZZ7134/423</td><td style='width: 12.5%;' valign='center'>压装力值</td><td style='width: 12.5%;' valign='center'>36.8</td></tr>");
     m_html.append("<tr><td style='width: 12.5%;' valign='center'>压装结果</td><td style='width: 12.5%;' valign='center'>合格</td><td style='width: 12.5%;' valign='center'>压装力标准</td><td style='width: 12.5%;' valign='center'>5~300</td></tr>");
     m_html.append("</table>");
@@ -837,9 +864,6 @@ void MainWindow::exportPdf()
 
     m_html.append("</tr>");
     m_html.append("</table>");
-
-    // 添加图片
-    m_html.append("<img src='qtLogo.png' width=\"100\" height=\"100\">");
 
     // 将 HTML 内容设置到 QTextDocument
     textDocument.setHtml(m_html);
@@ -849,4 +873,32 @@ void MainWindow::exportPdf()
 
     // 关闭文件
     pdfWriter.newPage();  // 如果需要新页面，使用 newPage
+}
+
+
+void MainWindow::saveChartToImage(QChartView* chartView, const QString& filePath)
+{
+    // 获取图表的当前尺寸
+    QSize chartSize = chartView->size();  // 使用当前图表的尺寸作为基础
+
+    // 创建一个新的 QPixmap 用于保存图像
+    QPixmap pixmap(chartSize);
+
+    // 使用 QPainter 在 QPixmap 上绘制图表
+    QPainter painter(&pixmap);
+    pixmap.fill(Qt::white);  // 填充背景为白色
+
+    // 设置高质量渲染
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setRenderHint(QPainter::SmoothPixmapTransform);
+
+    // 绘制图表
+    chartView->render(&painter);
+
+    // 保存图像
+    if (pixmap.toImage().save(filePath)) {
+        qDebug() << "图像保存成功：" << filePath;
+    } else {
+        qDebug() << "图像保存失败：" << filePath;
+    }
 }
