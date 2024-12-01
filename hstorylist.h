@@ -48,6 +48,8 @@ public:
                                                      const QString &startDateTime, const QString &endDateTime,const QStringList &columns = QStringList("*")) ;
     void printPreview(QPrinter *printer);
     void filePrintPreview();
+
+        bool queryAllDataFromTableXuan(QSqlDatabase &db, const QString &tableName, QList<QList<QVariant>> &dataList) ;
 public:
  QSqlDatabase dataBaseConn;
 private slots:
@@ -60,6 +62,8 @@ private slots:
           void onOption4() ;
           void printOnOption1();
           void printonOption2() ;
+public:
+          QList<QList<QVariant>> dataList2; //存储悬挂名称和标准数据库中的值
 };
 
 #endif // HSTORYLIST_H

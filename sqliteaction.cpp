@@ -285,3 +285,136 @@ bool SqliteAction::queryAllDataFromTableXuan(QSqlDatabase &db, const QString &ta
     qDebug() << "Query executed successfully, retrieved" << dataList.size() << "rows of data.";
     return true;
 }
+
+// 处理数据将曲线上的数据存入数据库中 字段压力值、时间、节点序列号1、左侧数据
+/**
+ * @brief 判断是否为指定的数据库文件，并在表不存在时创建压力值存储表
+ * @param db 数据库对象
+ * @param dbName 数据库文件名（如 "D1.db"）
+ * @param tableName 表名
+ * @return true 表已存在或创建成功，且数据库名正确
+ * @return false 表创建失败或数据库名不匹配
+ */
+bool SqliteAction::streetTableInDatabase(QSqlDatabase &db, const QString &dbName, const QString &tableName) {
+    // 检查数据库是否打开
+    if (!db.isOpen()) {
+        qDebug() << "Error: Database is not open.";
+        return false;
+    }
+
+    // 检查是否为指定的数据库文件
+    if (db.databaseName() != dbName) {
+        qDebug() << "Error: The database is not" << dbName << "but" << db.databaseName();
+        return false;
+    }
+
+    QSqlQuery query(db);
+
+    // 检查表是否存在
+    QString checkTableSQL = QString(
+        "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='%1';"
+    ).arg(tableName);
+
+    if (query.exec(checkTableSQL)) {
+        if (query.next() && query.value(0).toInt() > 0) {
+            qDebug() << "Table" << tableName << "already exists in" << dbName;
+            return true;
+        }
+    } else {
+        qDebug() << "Error checking table existence:" << query.lastError();
+        return false;
+    }
+
+    // 如果表不存在，则创建表
+    /*
+
+CREATE TABLE %s (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,  -- 主键自增
+    street_data TEXT NOT NULL,            -- 压力值
+    press_date TEXT NOT NULL,             -- 压装日期
+    jie_dian_sign TEXT NOT NULL,          -- 节点序列号1
+    left_data TEXT NOT NULL               -- 左侧数据
+);
+*/
+    QString createSQL = QString(
+                "CREATE TABLE %1 ("
+                "    id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                "    street_data TEXT NOT NULL, "
+                "    press_date DATE NOT NULL, "
+                "    jie_dian_sign TEXT NOT NULL, "
+                "    left_data TEXT NOT NULL"
+                ");"
+    ).arg(tableName);
+
+    query.prepare(createSQL);
+    if (!query.exec()) {
+        qDebug() << "Error: Failed to create table." << query.lastError();
+        return false;
+    }
+    qDebug() << "Table" << tableName << "created successfully in" << dbName;
+    return true;
+}
+
+
+/**
+ * @brief 插入表将曲线上的数据和唯一字段加入
+ * @param db 数据库对象
+ * @param dbName 数据库文件名（如 "D1.db"）
+ * @return true 数据插入成功，且数据库名正确
+ * @return false 数据插入失败或数据库名不匹配
+ */
+bool SqliteAction::insertStreetDataToTable(QSqlDatabase &db, const QString &dbName, const QString &tableName,
+                                            const QString &streetData, const QString &pressDate,
+                                            const QString &jieDianSign, const QString &leftData) {
+    // 检查数据库是否打开
+    if (!db.isOpen()) {
+        qDebug() << "Error: Database is not open.";
+        return false;
+    }
+
+    // 检查是否为指定的数据库文件
+    if (db.databaseName() != dbName) {
+        qDebug() << "Error: The database is not" << dbName << "but" << db.databaseName();
+        return false;
+    }
+
+    QSqlQuery query(db);
+
+    // 检查表是否存在
+    QString checkTableSQL = QString(
+        "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='%1';"
+    ).arg(tableName);
+
+    if (query.exec(checkTableSQL)) {
+        if (query.next() && query.value(0).toInt() == 0) {
+            qDebug() << "Error: Table" << tableName << "does not exist in" << dbName;
+            return false;
+        }
+    } else {
+        qDebug() << "Error checking table existence:" << query.lastError();
+        return false;
+    }
+
+    // 插入数据的SQL语句
+    QString insertSQL = QString(
+        "INSERT INTO %1 (street_data, press_date, jie_dian_sign, left_data) "
+        "VALUES (:street_data, :press_date, :jie_dian_sign, :left_data);"
+    ).arg(tableName);
+
+    query.prepare(insertSQL);
+
+    // 绑定参数
+    query.bindValue(":street_data", streetData);
+    query.bindValue(":press_date", pressDate);
+    query.bindValue(":jie_dian_sign", jieDianSign);
+    query.bindValue(":left_data", leftData);
+
+    // 执行插入
+    if (!query.exec()) {
+        qDebug() << "Error: Failed to insert data into" << tableName << query.lastError();
+        return false;
+    }
+
+    qDebug() << "Data inserted successfully into" << tableName;
+    return true;
+}

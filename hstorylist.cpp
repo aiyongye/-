@@ -22,8 +22,25 @@ HstoryList::HstoryList(QWidget *parent) :
     file.open(QFile::ReadOnly);
     QString qss=file.readAll();
     file.close();
-
     applyStyles(this,qss);
+
+    //// 悬挂件标准同步
+    bool flags = HstoryList::queryAllDataFromTableXuan(dataBaseConn, "proStds", dataList2);
+        if(flags){
+            qDebug() << "查询 inspectorTb 成功!!!";
+
+            // 清空 QComboBox，准备添加新的项
+            ui->xuanNameBox->clear();  // 清空 QComboBox 中的所有项
+            // 遍历 dataList 将每一行的 xuanName 列添加到 QComboBox 中
+            for (const QList<QVariant>& row : dataList2) {
+                if (!row.isEmpty()) {
+                    // 假设 xuanName 是 dataList 每行的第一列（根据你的表结构调整列索引）
+                    QString xuanName = row.at(1).toString();  // 获取 xuanName 的值
+                    ui->xuanNameBox->addItem(xuanName);  // 将该值添加到 QComboBox
+                }
+            }
+        }
+
     QString buttonStyle = R"(
         QPushButton {
             font: bold 14px;
@@ -783,5 +800,53 @@ void HstoryList::onOption2() {
         delete pdfDocument;
 
     #endif
+    }
+
+    /**
+     * @brief 判断是否为指定的数据库文件，查询表中所有数据存入容器中
+     * @param db 数据库对象
+     * @param dbName 数据库文件名（如 "D1.db"）
+     * @param tableName 表名
+     * @return true 查询存入容器成功
+     * @return false 查询存入容器失败
+     */
+    bool HstoryList::queryAllDataFromTableXuan(QSqlDatabase &db, const QString &tableName, QList<QList<QVariant>> &dataList) {
+            dataList.clear();
+        // 检查数据库是否打开
+        if (!db.isOpen()) {
+            qDebug() << "Error: Database is not open.";
+            return false;
+        }
+
+        QSqlQuery query(db);
+
+        // 构建查询所有数据的 SQL 语句
+        QString selectSQL = QString("SELECT * FROM %1;").arg(tableName);
+
+        if (!query.exec(selectSQL)) {
+            qDebug() << "Error executing query:" << query.lastError();
+            return false;
+        }
+
+        // 获取查询结果的字段信息
+           QSqlRecord record = query.record();
+           int fieldCount = record.count();  // 获取字段数量
+
+           // 处理查询结果
+           while (query.next()) {
+               QList<QVariant> rowData;  // 存储当前行的所有列数据
+
+               // 遍历所有列
+               for (int i = 0; i < fieldCount; ++i) {
+                   QVariant fieldValue = query.value(i);  // 获取列值
+                   rowData.append(fieldValue);  // 将列值存入 QList
+               }
+
+               // 将当前行数据插入到 dataList 中
+               dataList.append(rowData);
+           }
+
+        qDebug() << "Query executed successfully, retrieved" << dataList.size() << "rows of data.";
+        return true;
     }
 

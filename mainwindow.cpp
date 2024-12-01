@@ -293,6 +293,9 @@ connect(jieShu1, &QPushButton::clicked, this, [=]() {
             if (value >= minRange && value <= maxRange) {
                 lastValidValue = value;  // 更新最后一个符合范围的值
             }
+            // 处理数据将曲线上的数据存入数据库中 字段压力值、时间、节点序列号1、左侧数据
+
+
         }
 
         // 如果找到符合条件的值

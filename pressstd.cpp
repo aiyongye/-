@@ -164,6 +164,13 @@ PressStd::PressStd(QWidget *parent) :
 
 #endif
 
+#if 1 //当点击修改按钮时将当前数据修改
+    connect(ui->fixBtn, QPushButton::clicked, this, [=]{
+        qDebug() << "修改按钮" << endl;
+
+    });
+
+#endif
 }
 
 PressStd::~PressStd()
