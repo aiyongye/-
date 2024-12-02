@@ -2,7 +2,7 @@
 #include "ui_form3fix.h"
 #include <QDebug>
 #include <QPushButton>
-int index;
+//int index;
 Form3Fix::Form3Fix(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::Form3Fix)
