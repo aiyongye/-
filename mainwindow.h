@@ -169,6 +169,10 @@ public:
     QList<QList<QVariant>> dataList2; //存储悬挂名称和标准数据库中的值
     QVector<int> chart1Container;// 当点击图表1开始时将压力值存储
     QVector<int> chart2Container;// 当点击图表2开始时将压力值存储
+    // 创建一个容器来存储压力值、时间和左侧数据
+    QList<QList<QVariant>> streedataList;
+    // 将 a、currentTime 和 "leftData" 放入一个 QLsit<QVariant>
+    QList<QVariant> data;
 public:
 //    void writePdf();
 //void addTable(const QString &title, const QString &subTitle,

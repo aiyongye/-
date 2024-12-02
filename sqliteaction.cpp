@@ -332,8 +332,8 @@ CREATE TABLE %s (
     id INTEGER PRIMARY KEY AUTOINCREMENT,  -- 主键自增
     street_data TEXT NOT NULL,            -- 压力值
     press_date TEXT NOT NULL,             -- 压装日期
-    jie_dian_sign TEXT NOT NULL,          -- 节点序列号1
-    left_data TEXT NOT NULL               -- 左侧数据
+    left_data TEXT NOT NULL,               -- 左侧数据
+    mainId TEXT NOT NULL          -- 节点序列号1
 );
 */
     QString createSQL = QString(
@@ -341,8 +341,8 @@ CREATE TABLE %s (
                 "    id INTEGER PRIMARY KEY AUTOINCREMENT, "
                 "    street_data TEXT NOT NULL, "
                 "    press_date DATE NOT NULL, "
-                "    jie_dian_sign TEXT NOT NULL, "
-                "    left_data TEXT NOT NULL"
+                "    left_data TEXT NOT NULL, "
+                "    mainId TEXT NULL"
                 ");"
     ).arg(tableName);
 
@@ -355,66 +355,91 @@ CREATE TABLE %s (
     return true;
 }
 
-
 /**
- * @brief 插入表将曲线上的数据和唯一字段加入
+ * @brief 将从图表上保存的数据存储到数据库中
  * @param db 数据库对象
  * @param dbName 数据库文件名（如 "D1.db"）
- * @return true 数据插入成功，且数据库名正确
- * @return false 数据插入失败或数据库名不匹配
+ * @param tableName 表名
+ * @return true 表已存在或创建成功，且数据库名正确
+ * @return false 表创建失败或数据库名不匹配
  */
-bool SqliteAction::insertStreetDataToTable(QSqlDatabase &db, const QString &dbName, const QString &tableName,
-                                            const QString &streetData, const QString &pressDate,
-                                            const QString &jieDianSign, const QString &leftData) {
+bool SqliteAction::insertStreetData(QSqlDatabase &db, const QString &tableName,
+                                    const QList<QList<QVariant>> &streedataList, const QString &mainId) {
     // 检查数据库是否打开
     if (!db.isOpen()) {
         qDebug() << "Error: Database is not open.";
         return false;
     }
 
-    // 检查是否为指定的数据库文件
-    if (db.databaseName() != dbName) {
-        qDebug() << "Error: The database is not" << dbName << "but" << db.databaseName();
-        return false;
-    }
+    // Prepare the insert query
+    QString insertSQL = QString(
+        "INSERT INTO %1 (street_data, press_date, left_data, mainId) "
+        "VALUES (:streetData, :pressDate, :leftData, :mainId);"
+    ).arg(tableName);
 
     QSqlQuery query(db);
-
-    // 检查表是否存在
-    QString checkTableSQL = QString(
-        "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='%1';"
-    ).arg(tableName);
-
-    if (query.exec(checkTableSQL)) {
-        if (query.next() && query.value(0).toInt() == 0) {
-            qDebug() << "Error: Table" << tableName << "does not exist in" << dbName;
-            return false;
-        }
-    } else {
-        qDebug() << "Error checking table existence:" << query.lastError();
-        return false;
-    }
-
-    // 插入数据的SQL语句
-    QString insertSQL = QString(
-        "INSERT INTO %1 (street_data, press_date, jie_dian_sign, left_data) "
-        "VALUES (:street_data, :press_date, :jie_dian_sign, :left_data);"
-    ).arg(tableName);
-
     query.prepare(insertSQL);
 
-    // 绑定参数
-    query.bindValue(":street_data", streetData);
-    query.bindValue(":press_date", pressDate);
-    query.bindValue(":jie_dian_sign", jieDianSign);
-    query.bindValue(":left_data", leftData);
+    // Loop through the list and insert each item
+    for (const auto &entry : streedataList) {
+        // Check if the entry contains at least 3 elements (for streetData, pressDate, leftData)
+        if (entry.size() < 3) {
+            qDebug() << "Error: Each entry in the list must contain at least 3 elements.";
+            return false;
+        }
 
-    // 执行插入
-    if (!query.exec()) {
-        qDebug() << "Error: Failed to insert data into" << tableName << query.lastError();
-        return false;
+        // Bind values from the inner list (entry)
+        query.bindValue(":streetData", entry[0].toString());  // streetData
+        query.bindValue(":pressDate", entry[1].toString());   // pressDate
+        query.bindValue(":leftData", entry[2].toString());    // leftData
+        query.bindValue(":mainId", mainId);                   // mainId (passed as an argument)
+
+        // Execute insert query for each entry
+        if (!query.exec()) {
+            qDebug() << "Error: Failed to insert data" << query.lastError();
+            return false;
+        }
     }
 
-    qDebug() << "Data inserted successfully into" << tableName;
+    qDebug() << "Data inserted successfully into table" << tableName;
     return true;
+}
+
+/**
+ * @brief 查询主键Id
+ * @param db 数据库对象
+ * @param dbName 数据库文件名（如 "D1.db"）
+ * @param tableName 表名
+ * @return true 表已存在或创建成功，且数据库名正确
+ * @return false 表创建失败或数据库名不匹配
+ */
+QString SqliteAction::getLastRecordId(QSqlDatabase &db, const QString &tableName) {
+    // 检查数据库是否打开
+    if (!db.isOpen()) {
+        qDebug() << "Error: Database is not open.";
+        return QString();
+    }
+
+    // Prepare the SQL query to select the last record based on the id
+    QString queryStr = QString(
+        "SELECT id FROM %1 ORDER BY id DESC LIMIT 1;"
+    ).arg(tableName);
+
+    QSqlQuery query(db);
+    query.prepare(queryStr);
+
+    // Execute the query
+    if (!query.exec()) {
+        qDebug() << "Error: Failed to execute query" << query.lastError();
+        return QString();
+    }
+
+    // Fetch the result
+    if (query.next()) {
+        // Convert the id to QString and return it
+        return query.value(0).toString();
+    } else {
+        qDebug() << "Error: No records found in table" << tableName;
+        return QString();
+    }
 }

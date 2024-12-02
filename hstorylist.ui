@@ -115,17 +115,17 @@
               </property>
               <column>
                <property name="text">
+                <string>压力值</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
                 <string>日期时间</string>
                </property>
               </column>
               <column>
                <property name="text">
-                <string>测量值</string>
-               </property>
-              </column>
-              <column>
-               <property name="text">
-                <string>修正值</string>
+                <string>图表类型</string>
                </property>
               </column>
              </widget>

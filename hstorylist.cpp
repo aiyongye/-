@@ -6,9 +6,6 @@
 #include <QCalendarWidget>
 #include <QString>
 
-    QList<QList<QVariant>> mainJiLuList;
-        QList<QList<QVariant>> dateFind;
-
 HstoryList::HstoryList(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::HstoryList)
@@ -18,6 +15,8 @@ HstoryList::HstoryList(QWidget *parent) :
     setWindowTitle("记录查询");
     resize(1200, 800);
     dataBaseConn = HstoryList::getDatabaseConnection("../qtModBus/D1.db");
+//    mainJiLuList = HstoryList::queryTable(dataBaseConn, "../qtModBus/D1.db", "mainListTb"); // 主记录查询
+//    dataList4 = HstoryList::queryTable(dataBaseConn, "../qtModBus/D1.db", "streetDataTb"); // 曲线记录查询
     QFile file(":/Table.qss");
     file.open(QFile::ReadOnly);
     QString qss=file.readAll();
@@ -215,7 +214,7 @@ HstoryList::HstoryList(QWidget *parent) :
     //鼠标移过时，整行背景颜色变化
     HoveredRowItemDelegate *delegate2 = new HoveredRowItemDelegate(ui->tableWidget2);
     ui->tableWidget2->setItemDelegate(delegate2);
-    loadTable(ui->tableWidget2);
+//    loadTable(ui->tableWidget2);
 
 
     //隔行变色
@@ -235,7 +234,7 @@ HstoryList::~HstoryList()
  * @brief 加载表格
  */
 void HstoryList::loadTable(QTableWidget *tableWidget){
-#if 0
+#if 1
     tableWidget->setColumnCount(12);
     QStringList heardList;
     heardList<<"悬挂件名称"<<"压装日期"<<"操作者"<<"检查者"<<"节点序列号1"<<"压装力值1"<<"压装结果1"<<"压装力标准1"
@@ -301,6 +300,64 @@ void HstoryList::loadTable(QTableWidget *tableWidget){
     #endif
 }
 
+/**
+ * @brief 加载表格
+ */
+void HstoryList::loadTable2(QTableWidget *tableWidget){
+#if 1
+    tableWidget->setColumnCount(3);
+    QStringList heardList;
+    heardList<<"压力值"<<"时期时间"<<"图表类型";
+    tableWidget->setHorizontalHeaderLabels(heardList);
+
+
+    qDebug() << "history界面" << endl;
+    // 将数据库存入的数据 便利到tableWidget中
+
+    // 查询数据库数据，注意这里查询结果中会包含 'id' 列
+    dataList4 = HstoryList::queryTable(dataBaseConn, "../qtModBus/D1.db", "streetDataTb");
+
+    // 1.2 设置列的宽度，拉伸使表格充满窗口
+    tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+
+    // 1.3 获取表格的行数和列数
+    int rowCount = dataList4.size();
+    int columnCount = (rowCount > 0) ? dataList4[0].size() : 0;
+
+    // 1.4 设置表格的行数和列数
+    tableWidget->setRowCount(rowCount);
+    tableWidget->setColumnCount(columnCount - 1);  // 排除 id 列，减去 1
+
+    // 1. 填充表格数据，跳过 'id' 列和最后一列
+    for (int i = 0; i < rowCount; ++i) {
+        const QList<QVariant> &row = dataList4[i];
+        for (int j = 1; j < row.size() - 1; ++j) {
+            tableWidget->setItem(i, j - 1, new QTableWidgetItem(row[j].toString()));
+        }
+    }
+
+    //去除选中虚线框
+    tableWidget->setFocusPolicy(Qt::NoFocus);
+
+    tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);//只读 不允许编辑 (整表)
+//    ui->tableWidget->item(r,w)->setFlags(Qt::NoItemFlags);         //设置不可编辑 (单元格)
+//    ui->tableWidget->item(r,w)->setFlags(Qt::ItemIsEditable | Qt::ItemIsEnabled);  //可编辑 (单元格)
+
+    // 设置选中行的行为
+    tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
+    // 还可以设置选择模式为单选
+    tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
+
+    // 获取水平头视图
+    QHeaderView *headerView = tableWidget->horizontalHeader();
+
+    headerView->setMinimumHeight(48); //设置头的高度
+
+    tableWidget->verticalHeader()->setVisible(false);//第一列序号不显示
+    tableWidget->verticalHeader()->setDefaultSectionSize(48); // 设置默认行高
+    tableWidget->setShowGrid(false);//设置item无边框
+    #endif
+}
 
 /**
  * @brief 加载qss
@@ -661,13 +718,13 @@ void HstoryList::onOption2() {
         }
     }
 
-    // 1.6 末尾行添加统计行，显示数量
-    ui->tableWidget2->setRowCount(rowCount + 1);  // 增加一行用于显示统计信息
-    ui->tableWidget2->setItem(rowCount, 0, new QTableWidgetItem("总计"));
-    ui->tableWidget2->setItem(rowCount, 1, new QTableWidgetItem(QString::number(rowCount)));
-    // 合并第二列到最后一列，形成一个跨度
-    int columnCount1 = ui->tableWidget2->columnCount();
-    ui->tableWidget2->setSpan(rowCount, 1, 1, columnCount1 - 1);  // 合并第二列到最后一列
+//    // 1.6 末尾行添加统计行，显示数量
+//    ui->tableWidget2->setRowCount(rowCount + 1);  // 增加一行用于显示统计信息
+//    ui->tableWidget2->setItem(rowCount, 0, new QTableWidgetItem("总计"));
+//    ui->tableWidget2->setItem(rowCount, 1, new QTableWidgetItem(QString::number(rowCount)));
+//    // 合并第二列到最后一列，形成一个跨度
+//    int columnCount1 = ui->tableWidget2->columnCount();
+//    ui->tableWidget2->setSpan(rowCount, 1, 1, columnCount1 - 1);  // 合并第二列到最后一列
 
 #endif
 
@@ -680,6 +737,8 @@ void HstoryList::onOption2() {
     // 全部查询
     void HstoryList::onOption1() {
         qDebug("选项1被选择");
+        HstoryList::loadTable(ui->tableWidget2);
+        HstoryList::loadTable2(ui->tableWidget2_2);
     }
 
     // 悬挂名称
@@ -849,4 +908,13 @@ void HstoryList::onOption2() {
         qDebug() << "Query executed successfully, retrieved" << dataList.size() << "rows of data.";
         return true;
     }
+
+    /**
+     * @brief 曲线记录表
+     * @param db 数据库对象
+     * @param dbName 数据库文件名（如 "D1.db"）
+     * @param tableName 表名
+     * @return true 查询存入容器成功
+     * @return false 查询存入容器失败
+     */
 

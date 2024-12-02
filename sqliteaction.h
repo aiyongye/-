@@ -15,10 +15,10 @@ public:
                                                   const QString &condition = QString());
     static bool queryAllDataFromTable(QSqlDatabase &db, const QString &tableName, QList<QList<QVariant>> &dataList);
     static bool queryAllDataFromTableXuan(QSqlDatabase &db, const QString &tableName, QList<QList<QVariant>> &dataList);
-    bool streetTableInDatabase(QSqlDatabase &db, const QString &dbName, const QString &tableName);
-    bool insertStreetDataToTable(QSqlDatabase &db, const QString &dbName, const QString &tableName,
-                                                const QString &streetData, const QString &pressDate,
-                                                const QString &jieDianSign, const QString &leftData);
+    static bool streetTableInDatabase(QSqlDatabase &db, const QString &dbName, const QString &tableName);
+    static bool insertStreetData(QSqlDatabase &db, const QString &tableName,
+                                        const QList<QList<QVariant>> &streedataList, const QString &mainId);
+    static QString getLastRecordId(QSqlDatabase &db, const QString &tableName);
 };
 
 #endif // SQLITEACTION_H

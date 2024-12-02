@@ -194,6 +194,20 @@ tuBianSet->setText("80");
 
         if(result2)
             qDebug() << "数据插入成功!!!"<< endl;
+
+        // 点击创建获取当前插入主记录中的id
+        // streedataList存储了曲线1和2 的压力值曲线时间 标志位
+        // 创建表
+        bool flags = SqliteAction::streetTableInDatabase(dataBaseConn, "../qtModBus/D1.db", "streetDataTb");
+        if(flags)
+            qDebug() << "创建streeDataTb成功" << endl;
+        // 查询表mainListTb 将最后一条记录的主键值转QString返回
+        QString _mainId = SqliteAction::getLastRecordId(dataBaseConn, "mainListTb");
+        // 将streedataList容器和主记录id存入数据库中
+        flags = SqliteAction::insertStreetData(dataBaseConn, "streetDataTb", streedataList, _mainId);
+                if(flags)
+                    qDebug() << "数据插入streeDataTb成功" << endl;
+
     });
 #endif
 
@@ -253,6 +267,8 @@ tuBianSet->setText("80");
      */
 connect(startReBtn1, &QPushButton::clicked, this, [=]() {
 
+            // 点击开始1清空 压力数据容器
+            streedataList.clear();
             MainWindow::stopTimers();
             Timer1 = startTimer(1000);
             MainWindow::clearChart(chartView1);
@@ -271,9 +287,9 @@ connect(startReBtn1, &QPushButton::clicked, this, [=]() {
      * @brief 处理定时器停止后图标1操作
      */
 connect(jieShu1, &QPushButton::clicked, this, [=]() {
+
     // 这里进行判断 和突变值进行比较 如果大于突变值则将大于突变值的值和突变值前三个数
     // 在图表中显示
-//    MainWindow::startDataInsertion(axisX1, series1);
     killTimer(Timer1);
 
     // 解析 yaZhuangStdLine1->text() 的范围，假设格式是 "min~max"
@@ -293,8 +309,6 @@ connect(jieShu1, &QPushButton::clicked, this, [=]() {
             if (value >= minRange && value <= maxRange) {
                 lastValidValue = value;  // 更新最后一个符合范围的值
             }
-            // 处理数据将曲线上的数据存入数据库中 字段压力值、时间、节点序列号1、左侧数据
-
 
         }
 
@@ -353,6 +367,7 @@ connect(jieShu2, &QPushButton::clicked,this,[=]{
                     if (value >= minRange && value <= maxRange) {
                         lastValidValue = value;  // 更新最后一个符合范围的值
                     }
+
                 }
 
                 // 如果找到符合条件的值
@@ -367,6 +382,15 @@ connect(jieShu2, &QPushButton::clicked,this,[=]{
                 qDebug() << "Range format error! Expected format: min~max";
             }
             qDebug() << "close" << endl;
+
+
+            for (const QList<QVariant>& dataList : streedataList) {
+                for (const QVariant& var : dataList) {
+                    qDebug() << "Data:" << var.toString();
+                }
+            }
+
+
 });
 #endif
 

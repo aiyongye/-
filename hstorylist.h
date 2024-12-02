@@ -62,8 +62,12 @@ private slots:
           void onOption4() ;
           void printOnOption1();
           void printonOption2() ;
+          void loadTable2(QTableWidget *tableWidget);
 public:
-          QList<QList<QVariant>> dataList2; //存储悬挂名称和标准数据库中的值
+          QList<QList<QVariant>> dataList2; // 存储悬挂名称和标准数据库中的值
+          QList<QList<QVariant>> dataList4; // 存储曲线记录
+          QList<QList<QVariant>> mainJiLuList; // 存储主记录
+          QList<QList<QVariant>> dateFind;
 };
 
 #endif // HSTORYLIST_H

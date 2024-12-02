@@ -125,14 +125,40 @@ void MainWindow::timerEvent(QTimerEvent *event) {
 #if 1
             // 如果定时器开始将a的值存入容器中
             chart2Container.append(a);
-            // 容器中存储的值tuBianSet->text();
+
+#if 1
+            // 检查是否已经存在相同的记录
+            bool isUnique = true;
+            QDateTime currentDateTime = QDateTime::currentDateTime();
+            for (const QList<QVariant> &existingData : streedataList) {
+                // 假设数据的第一个元素是压力值，第二个是时间，第三个是"leftData"
+                if (existingData[0].toString() == a &&  // 如果压力值相同
+                    existingData[1].toString() == currentDateTime.toString("yyyy-MM-dd HH:mm:ss") && // 时间相同
+                    existingData[2].toString() == "rightData") {  // 左侧数据相同
+                    isUnique = false;
+                    break;
+                }
+            }
+
+            if (isUnique) {
+                // 如果数据是唯一的，插入数据
+                QList<QVariant> data;
+                data.append(a);  // 存储压力值
+                data.append(currentDateTime.toString("yyyy-MM-dd HH:mm:ss"));  // 存储时间
+                data.append("rightData");  // 存储左侧数据
+                // 将这个列表存入外层的容器
+                streedataList.append(data);
+            } else {
+                qDebug() << "Data already exists, skipping insertion.";
+            }
+
+#endif
 
 #endif
             // 最多显示 4 个数据点，删除最早的点
             if (series2->count() > 4) {
                 series2->remove(0);  // 删除最早的数据点
             }
-
             // 获取当前数据点的数量
             int pointCount = series2->count();
             qint64 firstPointTime = series2->points().first().x();  // 获取最早的数据点的 X 值
@@ -159,6 +185,33 @@ void MainWindow::timerEvent(QTimerEvent *event) {
 
             // 将全局变量 a 插入到曲线中，currentTime 作为 X 值，a 作为 Y 值
             series1->append(currentTime, a);
+#if 1
+            // 检查是否已经存在相同的记录
+            bool isUnique = true;
+            QDateTime currentDateTime = QDateTime::currentDateTime();
+            for (const QList<QVariant> &existingData : streedataList) {
+                // 假设数据的第一个元素是压力值，第二个是时间，第三个是"leftData"
+                if (existingData[0].toString() == a &&  // 如果压力值相同
+                    existingData[1].toString() == currentDateTime.toString("yyyy-MM-dd HH:mm:ss") && // 时间相同
+                    existingData[2].toString() == "leftData") {  // 左侧数据相同
+                    isUnique = false;
+                    break;
+                }
+            }
+
+            if (isUnique) {
+                // 如果数据是唯一的，插入数据
+                QList<QVariant> data;
+                data.append(a);  // 存储压力值
+                data.append(currentDateTime.toString("yyyy-MM-dd HH:mm:ss"));  // 存储时间
+                data.append("leftData");  // 存储左侧数据
+                // 将这个列表存入外层的容器
+                streedataList.append(data);
+            } else {
+                qDebug() << "Data already exists, skipping insertion.";
+            }
+
+#endif
             qDebug() << "Inserted data point: " << currentTime << ", " << a;
 #if 1
             // 如果定时器开始将a的值存入容器中
