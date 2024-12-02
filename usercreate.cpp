@@ -7,6 +7,14 @@ UserCreate::UserCreate(QWidget *parent) :
 {
     ui->setupUi(this);
     database = UserCreate::getDatabaseConnection("../qtModBus/D1.db"); //数据库连接
+    //去除选中虚线框
+    ui->tableWidget->setFocusPolicy(Qt::NoFocus);
+    ui->tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);//只读 不允许编辑 (整表)
+    // 设置选中行的行为
+    ui->tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
+    // 还可以设置选择模式为单选
+    ui->tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
+
     // 用于创建操作者表
     connect(ui->liJiCreateBtn, QPushButton::clicked, this, [=]{
         qDebug() << "操作者" << endl;

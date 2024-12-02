@@ -9,6 +9,13 @@ LoginSet::LoginSet(QWidget *parent) :
 {
     ui->setupUi(this);
     database = LoginSet::getDatabaseConnection("../qtModBus/D1.db");//数据库连接
+    //去除选中虚线框
+    ui->tableWidget->setFocusPolicy(Qt::NoFocus);
+    ui->tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);//只读 不允许编辑 (整表)
+    // 设置选中行的行为
+    ui->tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
+    // 还可以设置选择模式为单选
+    ui->tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
 
     // 处理创建用户
     connect(ui->creUserBtn, QPushButton::clicked, this, [=]{
@@ -98,46 +105,39 @@ LoginSet::LoginSet(QWidget *parent) :
 #if 1 //当我鼠标选中ui->tableWidget中某一行时
       // 获取当前行所有内容
       // 再通过点击删除按钮，将这一行在ui->tableWidget中移除，并且在数据库中移除
-    connect(ui->delBtn, QPushButton::clicked, this,[=]{
-        // 首先判断用户是否选中了某行如果没有则不删除
-        // 数据库中的数据如果和QList<QVariant> rowData; 中的数据一样则删除此条消息
-        // 检查是否有选中的行
-        QList<QTableWidgetItem*> selectedItems = ui->tableWidget->selectedItems();
-        if (selectedItems.isEmpty()) {
-            qDebug() << "No row selected. Deletion aborted.";
-            return;
+    connect(ui->fixBtn, &QPushButton::clicked, this, [=]() {
+        qDebug() << "数据修改";
+
+        // Get the selected row in the tableWidget
+        int selectedRow = ui->tableWidget->currentRow();  // Get the index of the selected row
+        if (selectedRow == -1) {
+            qDebug() << "没有选中任何行!";
+            return;  // If no row is selected, do nothing
         }
 
-        // 获取选中行的索引
-        int selectedRow = selectedItems.first()->row();
-        qDebug() << "Selected row for deletion:" << selectedRow;
+        // Get the data of the selected row
+        QList<QVariant> rowData;  // Create a QList<QVariant> to store the selected row data
+        rowData.append(ui->tableWidget->item(selectedRow, 0)->text());  // streetData
+        rowData.append(ui->tableWidget->item(selectedRow, 1)->text());  // pressDate
 
-        // 获取选中行的数据
-        rowData.clear();  // 清空 rowData 以便存储新选中行的数据
-        for (int col = 0; col < ui->tableWidget->columnCount(); ++col) {
-            QTableWidgetItem* item = ui->tableWidget->item(selectedRow, col);
-            if (item) {
-                rowData.append(item->text());  // 将选中行的每列数据添加到 rowData
-            }
-        }
+        // Create the Form3Fix object and pass the selected row and data
+//        Form3Fix w1;
+        w1.setRowData(selectedRow, rowData);  // Pass selected row index and data to Form3Fix
 
-        // 打印选中行的数据
-        qDebug() << "Selected row data for deletion:";
-        for (const QVariant& data : rowData) {
-            qDebug() << data.toString();
-        }
+        // Connect the signal to update data back to loginset
+        connect(&w1, &Form3Fix::dataUpdated, this, [=](int updatedRow, const QString &newStreetData, const QString &newPressDate) {
+            // Update the tableWidget with new data from Form3Fix
+            ui->tableWidget->item(updatedRow, 0)->setText(newStreetData);
+            ui->tableWidget->item(updatedRow, 1)->setText(newPressDate);
+        });
 
-        // 删除数据库中的相同数据
-        bool success = deleteDataFromDatabase(database, "userPass", rowData);
-        if (success) {
-            qDebug() << "删除行成功!!!";
-        } else {
-            qDebug() << "删除失败";
-        }
-
-        // 刷新表格，移除选中行
-        ui->tableWidget->removeRow(selectedRow);
+        // Show Form3Fix to modify the selected row data
+        w1.show();
     });
+
+
+
+
 
 #endif
 
@@ -349,3 +349,4 @@ bool LoginSet::deleteDataFromDatabase(QSqlDatabase &db, const QString &tableName
 
     return true;
 }
+

@@ -12,6 +12,7 @@
 #include <QFontDatabase>
 #include <QListView>
 #include <QDateTime>
+#include "form3fix.h"
 
 namespace Ui {
 class LoginSet;
@@ -31,6 +32,7 @@ public:
     QSqlDatabase database;
     QList<QList<QVariant>> dataList; //存储查询到的所有字段
     QList<QVariant> rowData; //存储单条消息
+    Form3Fix w1; // 修改界面
 public:
     QSqlDatabase getDatabaseConnection(const QString &dbName);
     bool ensureTableInDatabase(QSqlDatabase &db, const QString &dbName, const QString &tableName);
