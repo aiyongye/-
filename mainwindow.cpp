@@ -474,6 +474,7 @@ void MainWindow::initializeControls()
      yaZhuangData = new QDateEdit(this);  // 创建 QDateEdit 控件
 
      saoMiaoData = new QSpinBox(this);       // 扫描时间
+
      saveBtn = new QPushButton("保存", this);  // 保存按钮
      caoZuoName = new QComboBox(this);      // 操作者下拉框
 
@@ -530,7 +531,7 @@ void MainWindow::initBuJu(){
     menuBar->addMenu("帮助(&Z)");
 
     // 设置菜单栏样式
-    menuBar->setStyleSheet("QMenuBar { background-color: #2c3e50; color: white; font-size: 14px; }"
+    menuBar->setStyleSheet("QMenuBar { background-color: #2c3e50; color: white; font-size: 16px; }"
                            "QMenuBar::item { background-color: #34495e; padding: 5px 10px; }"
                            "QMenuBar::item:selected { background-color: #1abc9c; }");
 
@@ -602,6 +603,16 @@ void MainWindow::initBuJu(){
     mainLayout->addWidget(tuBianSetLabel, 1, 8);
     mainLayout->addWidget(tuBianSet, 1, 9);
     mainLayout->addWidget(saveTuBianBtn, 1, 10);
+    xiuZhengLabel->setStyleSheet("QLabel { margin-top: 20px; margin-bottom: 5px; }");
+    xiuZhengLine->setStyleSheet("QLineEdit { margin-top: 20px; margin-bottom: 5px; }");
+    xiuZhengBtn->setStyleSheet("QPushButton { margin-top: 20px; margin-bottom: 5px; }");
+    saoMiaoTime->setStyleSheet("QLabel { margin-top: 20px; margin-bottom: 5px; }");
+    saoMiaoData->setStyleSheet("QLineEdit { margin-top: 20px; margin-bottom: 15px; }");
+    danWeiMiao->setStyleSheet("QPushButton { margin-top: 20px; margin-bottom: 5px; }");
+    saveBtn->setStyleSheet("QPushButton { margin-top: 20px; margin-bottom: 5px; }");
+    tuBianSetLabel->setStyleSheet("QLabel { margin-top: 20px; margin-bottom: 5px; }");
+    tuBianSet->setStyleSheet("QLineEdit { margin-top: 20px; margin-bottom: 5px; }");
+    saveTuBianBtn->setStyleSheet("QPushButton { margin-top: 20px; margin-bottom: 5px; }");
 
 
     // 添加创建记录区
@@ -646,13 +657,14 @@ void MainWindow::initBuJu(){
     shuJuBox= new QCheckBox("数据点", this);
     jieShu1 = new QPushButton("结束", this);
     jieShu2 = new QPushButton("结束", this);
-
     shuJuBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    jieShu1->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    jieShu2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    startReBtn1->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    startReBtn2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     chartBox = new QGroupBox("图表区域", this);
-
     chartLayout = new QGridLayout(chartBox);
-
     chartView1->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     chartView2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
@@ -668,7 +680,6 @@ void MainWindow::initBuJu(){
     chartLayout->addWidget(chartView1, 1, 0, 1, 3);  // Chart 1: Spans 2 columns (Column 0-1)
     chartLayout->addWidget(chartView2, 1, 3, 1, 3);  // Chart 2: Spans 3 columns (Column 2-4)
 
-
     // Set stretch factors for better layout control
     chartLayout->setColumnStretch(0, 1);             // Column 0: Normal stretch
     chartLayout->setColumnStretch(1, 1);             // Column 1: Normal stretch
@@ -677,17 +688,11 @@ void MainWindow::initBuJu(){
     chartLayout->setColumnStretch(4, 1);             // Column 4: Normal stretch
     chartLayout->setColumnStretch(5, 1);             // Column 5: Normal stretch
     chartLayout->setRowStretch(0, 1);                // Row 0: Less height (controls area)
-    chartLayout->setRowStretch(1, 5);                // Row 1: More height (charts area)
+    chartLayout->setRowStretch(1, 18);                // Row 1: More height (charts area)
 
 
     chartView1->chart()->addSeries(series1);
     chartView2->chart()->addSeries(series2);
-
-
-    //// 创建定时器 前二十秒读取到的值存入data1中并且同时在ui上显示
-
-
-
 
     // 将图表区域添加到主布局中
     mainLayout->addWidget(chartBox, 3, 0,1,11);

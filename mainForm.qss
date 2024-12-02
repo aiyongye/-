@@ -1,5 +1,5 @@
 QRadioButton {
-    font: 12px;
+    font: 16px;
     color: black;
     spacing: 10px;
 }
@@ -14,13 +14,18 @@ QLineEdit {
 }
 
 QLabel {
-    font: 12px;
+    font: 16px;
+    color: black;
+    padding: 0 5px;
+}
+QSpinBox{
+    font: 16px;
     color: black;
     padding: 0 5px;
 }
 
 QComboBox {
-    font: 12px;
+    font: 16px;
     color: black;
     background-color: white;
     border: 1px solid #A0A0A0;
@@ -28,6 +33,7 @@ QComboBox {
 }
 
 QGroupBox {
+    font: 16px;
     background-color: #ecf0f1;
     border: 2px solid #bdc3c7;
     border-radius: 8px;
@@ -39,7 +45,7 @@ QGroupBox::title {
     subcontrol-origin: margin;
     subcontrol-position: top left;
     padding: 0 10px;
-    font: bold 14px;
+    font: bold 16px;
     color: #2c3e50;
     background-color: transparent;
 }
@@ -52,6 +58,7 @@ QChartView {
 }
 
 QPushButton {
+    font: 16px;
     font: bold 14px;
     color: black;
     background-color: #E5E5E5;

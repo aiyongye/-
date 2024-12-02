@@ -15,9 +15,8 @@ HstoryList::HstoryList(QWidget *parent) :
     setWindowTitle("记录查询");
     resize(1200, 800);
     dataBaseConn = HstoryList::getDatabaseConnection("../qtModBus/D1.db");
-//    mainJiLuList = HstoryList::queryTable(dataBaseConn, "../qtModBus/D1.db", "mainListTb"); // 主记录查询
-//    dataList4 = HstoryList::queryTable(dataBaseConn, "../qtModBus/D1.db", "streetDataTb"); // 曲线记录查询
-    QFile file(":/Table.qss");
+
+    QFile file(":/mainForm.qss");
     file.open(QFile::ReadOnly);
     QString qss=file.readAll();
     file.close();
@@ -72,7 +71,7 @@ HstoryList::HstoryList(QWidget *parent) :
     menuBar->addMenu("帮助(&Z)");
 
     // 设置菜单栏样式
-    menuBar->setStyleSheet("QMenuBar { background-color: #2c3e50; color: white; font-size: 14px; }"
+    menuBar->setStyleSheet("QMenuBar { background-color: #2c3e50; color: white; font-size: 16px; }"
                            "QMenuBar::item { background-color: #34495e; padding: 5px; border-radius: 5px; }"
                            "QMenuBar::item:selected { background-color: #1abc9c; }");
 
@@ -212,17 +211,16 @@ HstoryList::HstoryList(QWidget *parent) :
 #endif
 
     //鼠标移过时，整行背景颜色变化
-    HoveredRowItemDelegate *delegate2 = new HoveredRowItemDelegate(ui->tableWidget2);
-    ui->tableWidget2->setItemDelegate(delegate2);
+//    HoveredRowItemDelegate *delegate2 = new HoveredRowItemDelegate(ui->tableWidget2);
+//    ui->tableWidget2->setItemDelegate(delegate2);
 //    loadTable(ui->tableWidget2);
 
-
     //隔行变色
-    ui->tableWidget2->setAlternatingRowColors(true);
-    QPalette palette;    //调色板
-    palette.setColor(QPalette::Base, QColor(255,255,255));   //基底
-    palette.setColor(QPalette::AlternateBase, QColor(250,250,250));  //交替基底
-    ui->tableWidget2->setPalette(palette);
+//    ui->tableWidget2->setAlternatingRowColors(true);
+//    QPalette palette;    //调色板
+//    palette.setColor(QPalette::Base, QColor(255,255,255));   //基底
+//    palette.setColor(QPalette::AlternateBase, QColor(250,250,250));  //交替基底
+//    ui->tableWidget2->setPalette(palette);
 }
 
 HstoryList::~HstoryList()
@@ -295,8 +293,8 @@ void HstoryList::loadTable(QTableWidget *tableWidget){
     headerView->setMinimumHeight(48); //设置头的高度
 
     tableWidget->verticalHeader()->setVisible(false);//第一列序号不显示
-    tableWidget->verticalHeader()->setDefaultSectionSize(48); // 设置默认行高
-    tableWidget->setShowGrid(false);//设置item无边框
+//    tableWidget->verticalHeader()->setDefaultSectionSize(48); // 设置默认行高
+//    tableWidget->setShowGrid(false);//设置item无边框
     #endif
 }
 
@@ -773,7 +771,7 @@ void HstoryList::onOption2() {
     #if !defined(QT_NO_PRINTER) && !defined(QT_NO_PRINTDIALOG)
         QPrinter printer(QPrinter::HighResolution);
         QPrintPreviewDialog preview(&printer, this);
-        preview.resize(1200,800);
+        preview.resize(2400,1600);
 
         connect(&preview, &QPrintPreviewDialog::paintRequested, this, &HstoryList::printPreview);
         preview.exec();

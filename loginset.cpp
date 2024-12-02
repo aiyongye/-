@@ -106,6 +106,86 @@ LoginSet::LoginSet(QWidget *parent) :
 #if 1 //当我鼠标选中ui->tableWidget中某一行时
       // 获取当前行所有内容
       // 再通过点击删除按钮，将这一行在ui->tableWidget中移除，并且在数据库中移除
+#if 1 // 当选中某一行时将那一行中的所有数据存储
+    // 连接信号，响应表格行选择变化
+    connect(ui->tableWidget, &QTableWidget::itemSelectionChanged, this, [=]() {
+        rowData.clear();  // 清空全局容器中的数据
+        // 获取选中的行索引
+        QList<QTableWidgetItem*> selectedItems = ui->tableWidget->selectedItems();
+        if (selectedItems.isEmpty()) {
+            qDebug() << "No row selected";
+            return;
+        }
+
+        // 获取选中行的第一个单元格的行号
+        int selectedRow = selectedItems.first()->row();
+        qDebug() << "Selected row:" << selectedRow;
+
+        // 获取选中行所有列的内容
+
+        for (int col = 0; col < ui->tableWidget->columnCount(); ++col) {
+            QTableWidgetItem* item = ui->tableWidget->item(selectedRow, col);
+            if (item) {
+                // 获取每个单元格的内容，转换为 QVariant
+                rowData.append(item->text());
+            }
+        }
+
+        // 打印选中行的所有数据
+        qDebug() << "Selected row data:";
+        for (const QVariant& data : rowData) {
+            qDebug() << data.toString();
+        }
+    });
+
+#endif
+#if 1 //当我鼠标选中ui->tableWidget中某一行时
+      // 获取当前行所有内容
+      // 再通过点击删除按钮，将这一行在ui->tableWidget中移除，并且在数据库中移除
+    connect(ui->delBtn, QPushButton::clicked, this,[=]{
+        // 首先判断用户是否选中了某行如果没有则不删除
+        // 数据库中的数据如果和QList<QVariant> rowData; 中的数据一样则删除此条消息
+        // 检查是否有选中的行
+        QList<QTableWidgetItem*> selectedItems = ui->tableWidget->selectedItems();
+        if (selectedItems.isEmpty()) {
+            qDebug() << "No row selected. Deletion aborted.";
+            return;
+        }
+
+        // 获取选中行的索引
+        int selectedRow = selectedItems.first()->row();
+        qDebug() << "Selected row for deletion:" << selectedRow;
+
+        // 获取选中行的数据
+        rowData.clear();  // 清空 rowData 以便存储新选中行的数据
+        for (int col = 0; col < ui->tableWidget->columnCount(); ++col) {
+            QTableWidgetItem* item = ui->tableWidget->item(selectedRow, col);
+            if (item) {
+                rowData.append(item->text());  // 将选中行的每列数据添加到 rowData
+            }
+        }
+
+        // 打印选中行的数据
+        qDebug() << "Selected row data for deletion:";
+        for (const QVariant& data : rowData) {
+            qDebug() << data.toString();
+        }
+
+        // 删除数据库中的相同数据
+        bool success = deleteDataFromDatabase(database, "userPass", rowData);
+        if (success) {
+            qDebug() << "删除行成功!!!";
+        } else {
+            qDebug() << "删除失败";
+        }
+
+        // 刷新表格，移除选中行
+        ui->tableWidget->removeRow(selectedRow);
+    });
+
+#endif
+
+#if 1 // 用户修改
     connect(ui->fixBtn, &QPushButton::clicked, this, [=]() {
         qDebug() << "数据修改";
 
@@ -122,11 +202,10 @@ LoginSet::LoginSet(QWidget *parent) :
         // 便利 容器QList<QList<QVariant>> dataList 如果第二个字段和第三个字段
         // 和ui->tableWidget->item(selectedRow, 0)->text() ui->tableWidget->item(selectedRow, 1)->text()
         // 相等 把第一个字段 赋给  int index
-#if 1
+
         // 假设 dataList 是 QList<QList<QVariant>> 类型，存储了所有数据
         for (int i = 0; i < dataList.size(); ++i) {
             const QList<QVariant> &row = dataList[i];
-
             // 比较第二个字段和第三个字段与选中的 tableWidget 行数据
             if (row[1].toString() == ui->tableWidget->item(selectedRow, 0)->text() &&
                 row[2].toString() == ui->tableWidget->item(selectedRow, 1)->text()) {
@@ -142,7 +221,7 @@ LoginSet::LoginSet(QWidget *parent) :
         } else {
             qDebug() << "No matching row found.";
         }
-#endif
+
         // Create the Form3Fix object and pass the selected row and data
 //        Form3Fix w1;
         w1.setRowData(selectedRow, rowData);  // Pass selected row index and data to Form3Fix
@@ -164,10 +243,7 @@ LoginSet::LoginSet(QWidget *parent) :
 
     });
 
-
-
-
-
+#endif
 #endif
 
 }
