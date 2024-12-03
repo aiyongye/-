@@ -1,6 +1,8 @@
 #include "usercreate.h"
 #include "ui_usercreate.h"
 
+int flagsBtn = -1;
+
 UserCreate::UserCreate(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::UserCreate)
@@ -67,9 +69,143 @@ UserCreate::UserCreate(QWidget *parent) :
             });
 
 #endif
+#if 1 // 点击tableWidget存储此条消息
+#if 1 // 当选中某一行时将那一行中的所有数据存储
+    // 连接信号，响应表格行选择变化
+    connect(ui->tableWidget, &QTableWidget::itemSelectionChanged, this, [=]() {
+        rowData.clear();  // 清空全局容器中的数据
+        // 获取选中的行索引
+        QList<QTableWidgetItem*> selectedItems = ui->tableWidget->selectedItems();
+        if (selectedItems.isEmpty()) {
+            qDebug() << "No row selected";
+            return;
+        }
+
+        // 获取选中行的第一个单元格的行号
+        int selectedRow = selectedItems.first()->row();
+        qDebug() << "Selected row:" << selectedRow;
+
+        // 获取选中行所有列的内容
+
+        for (int col = 0; col < ui->tableWidget->columnCount(); ++col) {
+            QTableWidgetItem* item = ui->tableWidget->item(selectedRow, col);
+            if (item) {
+                // 获取每个单元格的内容，转换为 QVariant
+                rowData.append(item->text());
+            }
+        }
+        // 打印选中行的所有数据
+        qDebug() << "Selected row data:";
+        for (const QVariant& data : rowData) {
+            qDebug() << data.toString();
+        }
+    });
+
+#endif
+
+#endif
+#if 1 // 删除数据按钮
+            connect(ui->delBtn, QPushButton::clicked, this, [=]{
+                qDebug() << "删除数据" << endl;
+                // 首先区分查询的时候是那个被触发
+                if(flagsBtn == 0){
+                    qDebug() << "操作者" << endl;
+                    // 首先判断用户是否选中了某行如果没有则不删除
+                    // 数据库中的数据如果和QList<QVariant> rowData; 中的数据一样则删除此条消息
+                    // 检查是否有选中的行
+                    QList<QTableWidgetItem*> selectedItems = ui->tableWidget->selectedItems();
+                    if (selectedItems.isEmpty()) {
+                        qDebug() << "No row selected. Deletion aborted.";
+                        return;
+                    }
+
+                    // 获取选中行的索引
+                    int selectedRow = selectedItems.first()->row();
+                    qDebug() << "Selected row for deletion:" << selectedRow;
+
+                    // 获取选中行的数据
+                    rowData.clear();  // 清空 rowData 以便存储新选中行的数据
+                    for (int col = 0; col < ui->tableWidget->columnCount(); ++col) {
+                        QTableWidgetItem* item = ui->tableWidget->item(selectedRow, col);
+                        if (item) {
+                            rowData.append(item->text());  // 将选中行的每列数据添加到 rowData
+                        }
+                    }
+
+                    // 打印选中行的数据
+                    qDebug() << "Selected row data for deletion:";
+                    for (const QVariant& data : rowData) {
+                        qDebug() << data.toString();
+                    }
+
+                    // 删除数据库中的相同数据
+                    bool success = deleteDataFromDatabase(database, "operatorTb", rowData);
+                    if (success) {
+                        qDebug() << "删除行成功!!!";
+                    } else {
+                        qDebug() << "删除失败";
+                    }
+
+                    // 刷新表格，移除选中行
+                    ui->tableWidget->removeRow(selectedRow);
+
+                }else if(flagsBtn == 1){
+                    // 首先判断用户是否选中了某行如果没有则不删除
+                    // 数据库中的数据如果和QList<QVariant> rowData; 中的数据一样则删除此条消息
+                    // 检查是否有选中的行
+                    QList<QTableWidgetItem*> selectedItems = ui->tableWidget->selectedItems();
+                    if (selectedItems.isEmpty()) {
+                        qDebug() << "No row selected. Deletion aborted.";
+                        return;
+                    }
+
+                    // 获取选中行的索引
+                    int selectedRow = selectedItems.first()->row();
+                    qDebug() << "Selected row for deletion:" << selectedRow;
+
+                    // 获取选中行的数据
+                    rowData.clear();  // 清空 rowData 以便存储新选中行的数据
+                    for (int col = 0; col < ui->tableWidget->columnCount(); ++col) {
+                        QTableWidgetItem* item = ui->tableWidget->item(selectedRow, col);
+                        if (item) {
+                            rowData.append(item->text());  // 将选中行的每列数据添加到 rowData
+                        }
+                    }
+
+                    // 打印选中行的数据
+                    qDebug() << "Selected row data for deletion:";
+                    for (const QVariant& data : rowData) {
+                        qDebug() << data.toString();
+                    }
+
+                    // 删除数据库中的相同数据
+                    bool success = deleteDataFromDatabase(database, "inspectorTb", rowData);
+                    if (success) {
+                        qDebug() << "删除行成功!!!";
+                    } else {
+                        qDebug() << "删除失败";
+                    }
+
+                    // 刷新表格，移除选中行
+                    ui->tableWidget->removeRow(selectedRow);
+                }else {
+                    qDebug() << "请选择查询" << endl;
+                }
+            });
+
+#endif
 #if 1 // 修改数据按钮
             connect(ui->fixBtn, QPushButton::clicked, this, [=]{
                 qDebug() << "修改数据" << endl;
+                if(flagsBtn == 0){
+                    qDebug() << "操作者" << endl;
+
+                }else if(flagsBtn == 1){
+                    qDebug() << "检查者" << endl;
+
+                }else{
+                    qDebug() << "请先查询" << endl;
+                }
                 w1.show();
             });
 
@@ -251,6 +387,7 @@ bool UserCreate::queryAllDataFromTable(QSqlDatabase &db, const QString &tableNam
 }
 
 void UserCreate::onOption1(){
+    flagsBtn = 0;
     qDebug() << "操作者" << endl;
     // 假设 dataList 是你的查询结果
     bool flags = UserCreate::queryAllDataFromTable(database, "operatorTb", dataList);
@@ -290,6 +427,7 @@ void UserCreate::onOption1(){
 }
 
 void UserCreate::onOption2(){
+    flagsBtn = 1;
     qDebug() << "检查者" << endl;
     // 假设 dataList 是你的查询结果
     bool flags = UserCreate::queryAllDataFromTable(database, "inspectorTb", dataList);
@@ -325,4 +463,38 @@ void UserCreate::onOption2(){
             colIndex++;  // 只有在插入数据时才递增 colIndex
         }
     }
+}
+
+
+/**
+ * @brief 判断是否为指定的数据库文件，当点击表格中的行时点击删除则会从数据库中删除对应的行
+ * @param db 数据库对象
+ * @param dbName 数据库文件名（如 "D1.db"）
+ * @param tableName 表名
+ * @return true 查询存入容器成功
+ * @return false 查询存入容器失败
+ */
+bool UserCreate::deleteDataFromDatabase(QSqlDatabase &db, const QString &tableName, const QList<QVariant> &rowData) {
+    // 检查数据库是否打开
+    if (!db.isOpen()) {
+        qDebug() << "Error: Database is not open.";
+        return false;
+    }
+
+    QSqlQuery query(db);
+
+    // 创建 SQL 删除语句（假设 rowData 中的内容与表中的列顺序一致）
+    QString deleteSQL = QString(
+        "DELETE FROM %1 WHERE u_name = :xuanName;"
+    ).arg(tableName);
+
+    query.prepare(deleteSQL);
+    query.bindValue(":xuanName", rowData.at(0).toString());
+
+    if (!query.exec()) {
+        qDebug() << "Error deleting data:" << query.lastError();
+        return false;
+    }
+
+    return true;
 }

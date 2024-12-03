@@ -38,6 +38,7 @@ public:
     bool ensureTableInDatabase(QSqlDatabase &db, const QString &dbName, const QString &tableName);
     bool insertDataIntoTable(QSqlDatabase &db, const QString &tableName, const QString &userName, const QString &upDate);
     bool queryAllDataFromTable(QSqlDatabase &db, const QString &tableName, QList<QList<QVariant>> &dataList);
+    bool deleteDataFromDatabase(QSqlDatabase &db, const QString &tableName, const QList<QVariant> &rowData);
 private slots:
     void onOption1();
     void onOption2();
