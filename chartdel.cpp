@@ -33,6 +33,8 @@ QChartView* MainWindow::createChartView(const QString &title, QDateTimeAxis *axi
     // 创建并返回QChartView
     QChartView *chartView = new QChartView(chart);
     chartView->setRenderHint(QPainter::Antialiasing);  // 启用抗锯齿
+    axisX->setLabelsFont(QFont("Arial", 10));  // 设置X轴的字体为Arial，大小为10
+    axisY->setLabelsFont(QFont("Arial", 12));  // 设置X轴的字体为Arial，大小为10
 
     startDataInsertion(axisX, series, chart, chartView);  // 传入chartView，确保更新
     return chartView;
@@ -88,7 +90,8 @@ QChartView* MainWindow::createChartView2(const QString &title, QDateTimeAxis *ax
     // 创建并返回QChartView
     QChartView *chartView = new QChartView(chart);
     chartView->setRenderHint(QPainter::Antialiasing);  // 启用抗锯齿
-
+    axisX->setLabelsFont(QFont("Arial", 12));  // 设置X轴的字体为Arial，大小为10
+    axisY->setLabelsFont(QFont("Arial", 12));  // 设置X轴的字体为Arial，大小为10
     startDataInsertion2(axisX, series, chart, chartView);  // 传入chartView，确保更新
     return chartView;
 }

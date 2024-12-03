@@ -14,6 +14,9 @@
 #include <QGraphicsScene>
 #include <QPainter>
 #include "poppler-qt5.h"
+#include<QPdfWriter>
+#include <QTextDocument>
+#include <QFile>
 
 #define HSTORYLIST_H
 
@@ -63,6 +66,7 @@ private slots:
           void printOnOption1();
           void printonOption2() ;
           void loadTable2(QTableWidget *tableWidget);
+          void exportPdf();
 public:
           QList<QList<QVariant>> dataList2; // 存储悬挂名称和标准数据库中的值
           QList<QList<QVariant>> dataList4; // 存储曲线记录

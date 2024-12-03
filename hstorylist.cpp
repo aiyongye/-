@@ -234,11 +234,11 @@ HstoryList::~HstoryList()
 void HstoryList::loadTable(QTableWidget *tableWidget){
 #if 1
     tableWidget->setColumnCount(12);
+
     QStringList heardList;
     heardList<<"悬挂件名称"<<"压装日期"<<"操作者"<<"检查者"<<"节点序列号1"<<"压装力值1"<<"压装结果1"<<"压装力标准1"
             <<"节点序列号2"<<"压装力值2"<<"压装结果2"<<"压装力标准2";
     tableWidget->setHorizontalHeaderLabels(heardList);
-
 
     qDebug() << "history界面" << endl;
     // 将数据库存入的数据 便利到tableWidget中
@@ -272,7 +272,6 @@ void HstoryList::loadTable(QTableWidget *tableWidget){
     tableWidget->setFocusPolicy(Qt::NoFocus);
 
     tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);//只读 不允许编辑 (整表)
-//    ui->tableWidget->item(r,w)->setFlags(Qt::NoItemFlags);         //设置不可编辑 (单元格)
 //    ui->tableWidget->item(r,w)->setFlags(Qt::ItemIsEditable | Qt::ItemIsEnabled);  //可编辑 (单元格)
 
     // 设置选中行的行为
@@ -280,21 +279,14 @@ void HstoryList::loadTable(QTableWidget *tableWidget){
     // 还可以设置选择模式为单选
     tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
 
-    // 获取水平头视图
+    // 假设 headerView 是 QHeaderView 对象的指针，通常与 QTableWidget 或 QTreeView 绑定
     QHeaderView *headerView = tableWidget->horizontalHeader();
 
-    // 设置第二列的宽度为固定值
-//    headerView->setSectionResizeMode(1, QHeaderView::Fixed);
-//    headerView->resizeSection(1, 130);
-//    // 设置第三列的大小为200像素
-//    headerView->setSectionResizeMode(2, QHeaderView::Fixed); // 设置列的大小模式为固定
-//    headerView->resizeSection(2, 180); // 设置第三列的具体宽度
-
+    // 设置第一列的大小为 100 像素
+//    headerView->resizeSection(0, 300);
+//    headerView->setSectionResizeMode(0, QHeaderView::Fixed); // 固定大小模式
     headerView->setMinimumHeight(48); //设置头的高度
-
     tableWidget->verticalHeader()->setVisible(false);//第一列序号不显示
-//    tableWidget->verticalHeader()->setDefaultSectionSize(48); // 设置默认行高
-//    tableWidget->setShowGrid(false);//设置item无边框
     #endif
 }
 
@@ -715,6 +707,9 @@ void HstoryList::onOption2() {
             ui->tableWidget2->setItem(i, j - 1, new QTableWidgetItem(row[j].toString()));
         }
     }
+    // 时间查询时将容器存入主容器中因为打印pdf处调用的是主容器
+    mainJiLuList.clear();
+    mainJiLuList.append(dateFind);
 
 //    // 1.6 末尾行添加统计行，显示数量
 //    ui->tableWidget2->setRowCount(rowCount + 1);  // 增加一行用于显示统计信息
@@ -754,6 +749,7 @@ void HstoryList::onOption2() {
     // 打印主记录列表(Y)
     void HstoryList::printOnOption1() {
         qDebug("打印触发1");
+         HstoryList::exportPdf(); // 主记录存成pdf
     }
     //打印曲线数据列表(Z)
     void HstoryList::printonOption2() {
@@ -907,12 +903,86 @@ void HstoryList::onOption2() {
         return true;
     }
 
-    /**
-     * @brief 曲线记录表
-     * @param db 数据库对象
-     * @param dbName 数据库文件名（如 "D1.db"）
-     * @param tableName 表名
-     * @return true 查询存入容器成功
-     * @return false 查询存入容器失败
-     */
 
+
+    /**
+     * @brief 判导出主记录表
+     */
+    void HstoryList::exportPdf()
+    {
+        // 设置默认保存路径
+        QString defaultPath = QCoreApplication::applicationDirPath() + "/mainJiLu.pdf";  // 默认保存路径为应用程序目录下
+
+        // 如果文件没有后缀，则添加 .pdf 后缀
+        if (QFileInfo(defaultPath).suffix().isEmpty()) {
+            defaultPath.append(".pdf");
+            qDebug() << defaultPath << endl;
+        }
+
+        // 创建 QPdfWriter 对象并设置 PDF 输出路径
+        QPdfWriter pdfWriter(defaultPath);
+        pdfWriter.setPageSize(QPagedPaintDevice::A4);
+        pdfWriter.setResolution(QPrinter::ScreenResolution);
+
+        // 创建 QTextDocument 来保存 HTML 内容
+        QTextDocument textDocument;
+
+        // 清空 HTML 内容，准备添加新内容
+        QString m_html;
+        m_html.append("<html><head><style>"
+                      "th, td { border: 6px solid black; padding: 8px; text-align: center; }"
+                      "</style></head><body>");
+
+        // 标题
+        m_html.append("<h2 style='text-align: center;'>主记录列表</h2><br/>");
+        // 添加表格内容
+        m_html.append("<h3 style='text-align: left;'>统计时间:    "
+                      + ui->startDateEdit->text() + " => "
+                      + ui->endDateEdit->text() + " 23:59:59</h3>");
+        m_html.append("<table border='0.5' cellspacing='0' cellpadding='3' width='100%'>");
+        // 添加第一行的表头
+        m_html.append("<tr>"
+                      "<th>悬挂名称</th>"
+                      "<th>压装日期</th>"
+                      "<th>操作者</th>"
+                      "<th>检查者</th>"
+                      "<th>节点序列号1</th>"
+                      "<th>压装值力1</th>"
+                      "<th>压装结果1</th>"
+                      "<th>压装力标准1</th>"
+                      "<th>节点序列号2</th>"
+                      "<th>压装值力2</th>"
+                      "<th>压装结果2</th>"
+                      "<th>压装力标准2</th>"
+                      "</tr>");
+
+        // 逐行添加记录到表格
+        for (const auto& recordList : mainJiLuList) {
+            m_html.append("<tr>");
+
+            // 跳过第一个元素
+            for (int i = 1; i < recordList.size(); ++i) {
+                m_html.append("<td>" + recordList[i].toString() + "</td>");
+            }
+
+            m_html.append("</tr>");
+        }
+        // 在最后添加“数据条数”行
+        m_html.append("<tr><td colspan='11' style='text-align: right;'><strong>数据条数: " + QString::number(mainJiLuList.size()) + "</strong></td></tr>");
+        qDebug() << "mainJiLuList size: " << mainJiLuList.size();
+
+        // 结束表格
+        m_html.append("</table><br />");
+
+        // 结束 HTML
+        m_html.append("</body></html>");
+
+        // 将 HTML 内容设置到 QTextDocument
+        textDocument.setHtml(m_html);
+
+        // 使用 QPdfWriter 打印 PDF
+        textDocument.print(&pdfWriter);
+
+        // 关闭文件并开始新的一页
+        pdfWriter.newPage();  // 如果需要新页面，使用 newPage
+    }

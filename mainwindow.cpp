@@ -278,6 +278,7 @@ connect(startReBtn1, &QPushButton::clicked, this, [=]() {
             yaZhuangSaultLine1->setText("");
             // 处理容器中的值插入到数据库中和主记录表关联
             chart1Container.clear();
+            series1->setColor(Qt::red);
 
 });
 #endif
@@ -340,6 +341,7 @@ connect(startReBtn2, &QPushButton::clicked,this,[=]{
             yaZhuang2->setText("");
             yaZhuangSaultLine2->setText("");
             chart2Container.clear();
+            series2->setColor(Qt::red);
 });
 #endif
 
@@ -508,6 +510,16 @@ void MainWindow::initializeControls()
      dataMaintenanceButton = new QPushButton("数据维护", this);
      exitButton = new QPushButton("退出", this);
      zhanKaiLine = new QLineEdit("0", this);  // 展开值
+     zhanKaiLine->setStyleSheet("QLineEdit {"
+                                 "font-size: 30pt; "  // 设置字体大小
+                                 "font-family: Arial; "  // 设置字体类型
+                                 "text-align: center; "  // 设置文本居中
+                                 "border: 2px solid black; "  // 设置边框
+                                 "background-color: lightgray; "  // 设置背景颜色
+                                 "}");
+     zhanKaiLine->setAlignment(Qt::AlignCenter);
+     zhanKaiLine->setFixedWidth(200);
+
      zhanKaiBtn = new QPushButton("展开", this);  // 展开按钮
      qieHuan = new QLabel("主设备:0\n副设备:0\nF5切换:主设备\n数据来源:仪表",this);
 
