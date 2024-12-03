@@ -67,6 +67,13 @@ UserCreate::UserCreate(QWidget *parent) :
             });
 
 #endif
+#if 1 // 修改数据按钮
+            connect(ui->fixBtn, QPushButton::clicked, this, [=]{
+                qDebug() << "修改数据" << endl;
+                w1.show();
+            });
+
+#endif
 }
 
 UserCreate::~UserCreate()

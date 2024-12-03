@@ -212,7 +212,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="pushButton_7">
+            <widget class="QPushButton" name="fixBtn">
              <property name="text">
               <string>修改</string>
              </property>
@@ -257,12 +257,9 @@
         </layout>
        </item>
       </layout>
-      <zorder>liJiCreateBtn</zorder>
      </widget>
     </item>
    </layout>
-   <zorder>widget01_2</zorder>
-   <zorder>caoZuoLine</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">

@@ -1,6 +1,7 @@
 #include "pressstd.h"
 #include "ui_pressstd.h"
 
+int  index1 = -1;
 
 PressStd::PressStd(QWidget *parent) :
     QMainWindow(parent),
@@ -174,10 +175,47 @@ PressStd::PressStd(QWidget *parent) :
 #if 1 //当点击修改按钮时将当前数据修改
     connect(ui->fixBtn, QPushButton::clicked, this, [=]{
         qDebug() << "修改按钮" << endl;
+        // 获取当前行的索引
+        int selectedRow = ui->tableWidget->currentRow();
+        if(selectedRow == -1){
+            qDebug() << "没有选中任何行";
+            return;
+        }
+        QList<QVariant> rowData; // 元素1存的是设备名称 元素2存的是压力区间
+        rowData.append(ui->tableWidget->item(selectedRow, 0)->text());
+        rowData.append(ui->tableWidget->item(selectedRow, 1)->text());
+        qDebug() << rowData[0] << rowData[1] << endl;
+        // dataList 是 QList<QList<QVariant>> 类型，存储了所有数据
+        for(int i = 0; i < dataList.size(); ++i){
+            const QList<QVariant> &row = dataList[i];
+            // 作比较第二个字段和第三个字段与选中的tableWidget行数据
+            if(row[1].toString() == ui->tableWidget->item(selectedRow, 0)->text() &&
+               row[2].toString() == ui->tableWidget->item(selectedRow, 1)->text()){
+                // 如果匹配将第一个字段赋给index 也就是当前消息在数据库中的索引值
+                index1 = row[0].toInt();
+                break;
+            }
+        }
+        if (index1 != -1) {
+            qDebug() << "主键索引. Index: " << index1;
+        } else {
+            qDebug() << "No matching row found.";
+        }
+        // 将行数据传给Form1Fix界面
+        w1.setRowData(selectedRow, rowData);
+        connect(&w1, &Form1Fix::dataUpdated, this, [=](int updatedRow, const QString &newStreetData, const QString &newPressDate){
+            ui->tableWidget->item(updatedRow, 0)->setText(newStreetData);
+            ui->tableWidget->item(updatedRow, 1)->setText(newPressDate);
 
+            bool flags = PressStd::updateDataInTable(database, "proStds", index1, newStreetData, newPressDate);
+            if(flags)
+                qDebug() << "数据更新成功" << endl;
+        });
+        w1.show();
     });
 
 #endif
+
 }
 
 PressStd::~PressStd()
@@ -394,5 +432,54 @@ bool PressStd::deleteDataFromDatabase(QSqlDatabase &db, const QString &tableName
         return false;
     }
 
+    return true;
+}
+
+
+/**
+ * @brief 更新表
+ * @param db 数据库对象
+ * @param dbName 数据库文件名（如 "D1.db"）
+ * @param tableName 表名
+ * @return true 查询存入容器成功
+ * @return false 查询存入容器失败
+ */
+
+bool PressStd::updateDataInTable(QSqlDatabase &db, const QString &tableName, int rowId, const QString &newUserName, const QString &newPassword) {
+    // 检查数据库是否打开
+    if (!db.isOpen()) {
+        qDebug() << "Error: Database is not open.";
+        return false;
+    }
+
+    QSqlQuery query(db);
+
+    // 构建更新 SQL 语句，假设我们只更新 u_name 和 p_word 字段
+    QString updateSQL = QString("UPDATE %1 SET xuanName = :newUserName, press_std = :newPassword WHERE id = :id;")
+        .arg(tableName);
+
+    // 输出 SQL 查询文本，确认其正确性
+    qDebug() << "Executing SQL: " << updateSQL;
+
+    query.prepare(updateSQL);
+
+    // 绑定新数据到查询
+    query.bindValue(":newUserName", newUserName);  // 假设 newUserName 是要更新的 u_name
+    query.bindValue(":newPassword", newPassword);  // 假设 newPassword 是要更新的 p_word
+    query.bindValue(":id", rowId);  // 根据主键 id 更新数据
+
+    // 调试：输出绑定的参数
+    qDebug() << "Binding values:";
+    qDebug() << "New User Name: " << newUserName;
+    qDebug() << "New Password: " << newPassword;
+    qDebug() << "ID: " << rowId;
+
+    // 执行更新操作
+    if (!query.exec()) {
+        qDebug() << "Error executing update:" << query.lastError();
+        return false;
+    }
+
+    qDebug() << "Data updated successfully in table" << tableName;
     return true;
 }

@@ -12,6 +12,8 @@
 #include <QFontDatabase>
 #include <QListView>
 #include <QDateTime>
+#include "form2_1fix.h"
+
 namespace Ui {
 class UserCreate;
 }
@@ -30,6 +32,7 @@ public:
     QSqlDatabase database;
     QList<QList<QVariant>> dataList; //存储查询到的所有字段
     QList<QVariant> rowData; //存储单条消息
+    Form2_1Fix w1; // 弹窗修改
 public:
     QSqlDatabase getDatabaseConnection(const QString &dbName);
     bool ensureTableInDatabase(QSqlDatabase &db, const QString &dbName, const QString &tableName);

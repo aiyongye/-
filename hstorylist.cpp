@@ -363,7 +363,7 @@ void HstoryList::loadTable2(QTableWidget *tableWidget){
     // 1. 填充表格数据，跳过 'id' 列和最后一列
     for (int i = 0; i < rowCount; ++i) {
         const QList<QVariant> &row = dataList4[i];
-        for (int j = 1; j < row.size() - 1; ++j) {
+        for (int j = 1; j < row.size(); ++j) {
             tableWidget->setItem(i, j - 1, new QTableWidgetItem(row[j].toString()));
         }
     }

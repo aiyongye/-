@@ -47,7 +47,9 @@ SOURCES += main.cpp\
     loginset.cpp \
     styletools.cpp \
     wpdfwriter.cpp \
-    form3fix.cpp
+    form3fix.cpp \
+    form1fix.cpp \
+    form2_1fix.cpp
 
 HEADERS  += mainwindow.h \
     sqliteaction.h \
@@ -60,7 +62,9 @@ HEADERS  += mainwindow.h \
     usercreate.h \
     loginset.h \
     wpdfwriter.h \
-    form3fix.h
+    form3fix.h \
+    form1fix.h \
+    form2_1fix.h
 
 FORMS    += mainwindow.ui \
     hstorylist.ui \
@@ -69,7 +73,9 @@ FORMS    += mainwindow.ui \
     login.ui \
     usercreate.ui \
     loginset.ui \
-    form3fix.ui
+    form3fix.ui \
+    form1fix.ui \
+    form2_1fix.ui
 
 RESOURCES += \
     res.qrc
