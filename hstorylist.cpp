@@ -221,6 +221,48 @@ HstoryList::HstoryList(QWidget *parent) :
 //    palette.setColor(QPalette::Base, QColor(255,255,255));   //基底
 //    palette.setColor(QPalette::AlternateBase, QColor(250,250,250));  //交替基底
 //    ui->tableWidget2->setPalette(palette);
+
+#if 1 // 当选中某一行时将那一行中的所有数据存储
+    // 连接信号，响应表格行选择变化
+    connect(ui->tableWidget2, &QTableWidget::itemSelectionChanged, this, [=]() {
+        rowData.clear();  // 清空全局容器中的数据
+        // 获取选中的行索引
+        QList<QTableWidgetItem*> selectedItems = ui->tableWidget2->selectedItems();
+        if (selectedItems.isEmpty()) {
+            qDebug() << "No row selected";
+            return;
+        }
+
+        // 获取选中行的第一个单元格的行号
+        int selectedRow = selectedItems.first()->row();
+        qDebug() << "Selected row:" << selectedRow;
+
+        // 获取选中行所有列的内容
+
+        for (int col = 0; col < ui->tableWidget2->columnCount(); ++col) {
+            QTableWidgetItem* item = ui->tableWidget2->item(selectedRow, col);
+            if (item) {
+                // 获取每个单元格的内容，转换为 QVariant
+                rowData.append(item->text());
+            }
+        }
+        // 当前记录的值 和数据库中主数据表的值比较返回索引
+        QStringList columnNames = {"xuanName", "press_date", "operator", "inspector", "serial_number1", "pressData1",
+                                   "press_result1", "force_standard1", "serial_number2", "pressData2",
+                                   "press_result2", "force_standard2"};
+        QString buf = HstoryList::getLastRecordId(dataBaseConn, "mainListTb", rowData, columnNames);
+        qDebug() << buf << "--------" << endl;
+        // 在和曲线数据列表最后一个字段比较如果相同的行变为蓝色
+        // 便利ui->tableWidget2_2 最后一个字段 如果和QString buf相等 则那一条数据变红
+        HstoryList::highlightMatchingRow(buf);
+        // 打印选中行的所有数据
+        qDebug() << "Selected row data:";
+        for (const QVariant& data : rowData) {
+            qDebug() << data.toString();
+        }
+    });
+
+#endif
 }
 
 HstoryList::~HstoryList()
@@ -687,19 +729,15 @@ void HstoryList::onOption2() {
 //    数据插入容器成功
     dateFind = HstoryList::queryTableDate(dataBaseConn, "../qtModBus/D1.db", "mainListTb",startDateTime,endDateTime);
     ui->tableWidget2->clearContents();
-
 #if 1
     // 1.2 设置列的宽度，拉伸使表格充满窗口
     ui->tableWidget2->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-
     // 1.3 获取表格的行数和列数
     int rowCount = dateFind.size();
     int columnCount = (rowCount > 0) ? dateFind[0].size() : 0;
-
     // 1.4 设置表格的行数和列数
     ui->tableWidget2->setRowCount(rowCount);
     ui->tableWidget2->setColumnCount(columnCount - 1);  // 排除 id 列，减去 1
-
     // 1.5 填充表格数据，跳过 'id' 列（假设 'id' 是第一列）
     for (int i = 0; i < rowCount; ++i) {
         const QList<QVariant> &row = dateFind[i];
@@ -721,6 +759,41 @@ void HstoryList::onOption2() {
 
 #endif
 
+#if 1 // 按时间查询曲线数据
+       dateFind2 = HstoryList::queryTableDate(dataBaseConn, "../qtModBus/D1.db", "streetDataTb",startDateTime,endDateTime);
+       ui->tableWidget2_2->clearContents();
+      // 处理查询到的数据
+       ui->tableWidget2_2->setColumnCount(3);
+       QStringList heardList2;
+       heardList2<<"压装力值"<<"压装日期"<<"图表类型";
+       ui->tableWidget2_2->setHorizontalHeaderLabels(heardList2);
+       // 1.2 设置列的宽度，拉伸使表格充满窗口
+       ui->tableWidget2_2->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+       // 1.3 获取表格的行数和列数
+       int rowCount2 = dateFind2.size();
+       int columnCount2 = (rowCount2 > 0) ? dateFind2[0].size() : 0;
+       // 1.4 设置表格的行数和列数
+       ui->tableWidget2_2->setRowCount(rowCount2);
+       ui->tableWidget2_2->setColumnCount(columnCount2 - 1);  // 排除 id 列，减去 1
+       // 1.5 填充表格数据，跳过 'id' 列（假设 'id' 是第一列）
+       for (int i = 0; i < rowCount2; ++i) {
+           const QList<QVariant> &row = dateFind2[i];
+           for (int j = 1; j < columnCount2; ++j) {  // 从第2列开始填充，跳过 'id' 列
+               ui->tableWidget2_2->setItem(i, j - 1, new QTableWidgetItem(row[j].toString()));
+           }
+       }
+#endif
+       //去除选中虚线框
+       ui->tableWidget2->setFocusPolicy(Qt::NoFocus);
+       ui->tableWidget2->setEditTriggers(QAbstractItemView::NoEditTriggers);//只读 不允许编辑 (整表)
+       ui->tableWidget2_2->setFocusPolicy(Qt::NoFocus);
+       ui->tableWidget2_2->setEditTriggers(QAbstractItemView::NoEditTriggers);//只读 不允许编辑 (整表)
+       // 设置选中行的行为
+       ui->tableWidget2->setSelectionBehavior(QAbstractItemView::SelectRows);
+       ui->tableWidget2_2->setSelectionBehavior(QAbstractItemView::SelectRows);
+       // 还可以设置选择模式为单选
+       ui->tableWidget2->setSelectionMode(QAbstractItemView::SingleSelection);
+       ui->tableWidget2_2->setSelectionMode(QAbstractItemView::SingleSelection);
 
     qDebug() << startDateTime << "--" << endDateTime << endl;
 }
@@ -985,4 +1058,103 @@ void HstoryList::onOption2() {
 
         // 关闭文件并开始新的一页
         pdfWriter.newPage();  // 如果需要新页面，使用 newPage
+    }
+
+    /**
+     * @brief 查找主记录表主键id
+     */
+    QString HstoryList::getLastRecordId(QSqlDatabase &db, const QString &tableName, const QList<QVariant> &rowData, const QStringList &columnNames) {
+        // 检查数据库是否打开
+        if (!db.isOpen()) {
+            qDebug() << "Error: Database is not open.";
+            return QString();
+        }
+
+        // 确保 rowData 和 columnNames 数量一致
+        if (rowData.size() != columnNames.size()) {
+            qDebug() << "Error: Parameter count mismatch between rowData and columnNames.";
+            return QString();
+        }
+
+        // 构建查询条件
+        QString condition = "";
+        for (int i = 0; i < rowData.size(); ++i) {
+            if (i > 0) {
+                condition += " AND ";  // 添加 AND 连接条件
+            }
+            condition += QString("%1 = ?").arg(columnNames[i]);  // 用 ? 作为占位符
+        }
+
+        // 构建 SQL 查询语句，查找符合条件的记录
+        QString queryStr = QString(
+            "SELECT id FROM %1 WHERE %2 ORDER BY id DESC LIMIT 1;"
+        ).arg(tableName).arg(condition);
+
+        qDebug() << "Generated Query: " << queryStr;  // 打印查询语句，检查是否正确
+
+        // 创建 SQL 查询对象
+        QSqlQuery query(db);
+        query.prepare(queryStr);
+
+        // 绑定参数
+        for (int i = 0; i < rowData.size(); ++i) {
+            query.bindValue(i, rowData[i].toString());  // 绑定每一列的值（确保是字符串类型）
+            qDebug() << "Binding value: " << rowData[i].toString() << " to " << columnNames[i];  // 打印绑定的值和列名
+        }
+
+        // 执行查询
+        if (!query.exec()) {
+            qDebug() << "Error: Failed to execute query" << query.lastError();
+            return QString();
+        }
+
+        // 获取查询结果
+        if (query.next()) {
+            return query.value(0).toString();  // 返回 id
+        } else {
+            qDebug() << "Error: No records found in table" << tableName;
+            return QString();
+        }
+    }
+
+
+
+
+
+    /**
+     * @brief 单击主记录 曲线数据高亮
+     */
+    void HstoryList::highlightMatchingRow(const QString &buf) {
+        // 获取表格的行数
+        int rowCount = ui->tableWidget2_2->rowCount();
+
+        // 获取最后一列的索引（假设最后一列是我们要检查的列）
+        int lastColumnIndex = ui->tableWidget2_2->columnCount() - 1;
+
+        // 清除所有高亮
+        for (int row = 0; row < rowCount; ++row) {
+            for (int col = 0; col < ui->tableWidget2_2->columnCount(); ++col) {
+                QTableWidgetItem *cellItem = ui->tableWidget2_2->item(row, col);
+                if (cellItem) {
+                    cellItem->setBackground(QBrush(Qt::white));  // 恢复默认背景色
+                }
+            }
+        }
+
+        // 遍历每一行
+        for (int row = 0; row < rowCount; ++row) {
+            // 获取最后一列单元格的内容
+            QTableWidgetItem *item = ui->tableWidget2_2->item(row, lastColumnIndex);
+
+            // 如果该单元格存在且其文本与 buf 相等
+            if (item && item->text() == buf) {
+                // 设置整行背景色为红色
+                for (int col = 0; col < ui->tableWidget2_2->columnCount(); ++col) {
+                    QTableWidgetItem *cellItem = ui->tableWidget2_2->item(row, col);
+                    if (cellItem) {
+                        cellItem->setBackground(QBrush(Qt::blue));
+                    }
+                }
+            }
+        }
     }

@@ -53,6 +53,8 @@ public:
     void filePrintPreview();
 
         bool queryAllDataFromTableXuan(QSqlDatabase &db, const QString &tableName, QList<QList<QVariant>> &dataList) ;
+        QString getLastRecordId(QSqlDatabase &db, const QString &tableName, const QList<QVariant> &rowData, const QStringList &columnNames);
+        void highlightMatchingRow(const QString &buf);
 public:
  QSqlDatabase dataBaseConn;
 private slots:
@@ -71,7 +73,9 @@ public:
           QList<QList<QVariant>> dataList2; // 存储悬挂名称和标准数据库中的值
           QList<QList<QVariant>> dataList4; // 存储曲线记录
           QList<QList<QVariant>> mainJiLuList; // 存储主记录
-          QList<QList<QVariant>> dateFind;
+          QList<QList<QVariant>> dateFind; // 按时间查询主记录
+          QList<QList<QVariant>> dateFind2; // 按时间查询曲线记录
+          QList<QVariant> rowData; //存储单条主记录消息
 };
 
 #endif // HSTORYLIST_H
