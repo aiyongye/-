@@ -255,7 +255,7 @@ UserCreate::UserCreate(QWidget *parent) :
                     } else {
                         qDebug() << "No matching row found.";
                     }
-                    w1.setRowData(selectedRow, rowData,flagsBtn);
+                    w1.setRowData(selectedRow, rowData, flagsBtn);
                     connect(&w1, &Form2_1Fix::dataUpdated2, this, [=](int updatedRow, const QString &newStreetData) {
                         // Update the tableWidget with new data from Form3Fix
                         ui->tableWidget->item(updatedRow, 0)->setText(newStreetData);

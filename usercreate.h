@@ -39,6 +39,7 @@ public:
     bool insertDataIntoTable(QSqlDatabase &db, const QString &tableName, const QString &userName, const QString &upDate);
     bool queryAllDataFromTable(QSqlDatabase &db, const QString &tableName, QList<QList<QVariant>> &dataList);
     bool deleteDataFromDatabase(QSqlDatabase &db, const QString &tableName, const QList<QVariant> &rowData);
+    bool updateDataInTable(QSqlDatabase &db, const QString &tableName, int rowId, const QString &newUserName);
 private slots:
     void onOption1();
     void onOption2();
