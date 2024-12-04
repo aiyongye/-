@@ -23,7 +23,6 @@ MainWindow::MainWindow(QWidget *parent) :
             QString qss=file.readAll();
             file.close();
             applyStyles(this,qss);
-
             MainWindow::dataBaseConn = SqliteAction::getDatabaseConnection("./D1.db");
             MainWindow::initializeControls();
             MainWindow::initBuJu();
@@ -279,6 +278,14 @@ connect(startReBtn1, &QPushButton::clicked, this, [=]() {
             // 处理容器中的值插入到数据库中和主记录表关联
             chart1Container.clear();
             series1->setColor(Qt::red);
+
+//            startReBtn1->setEnabled(false);  // 确保按钮是启用的
+//            startReBtn1->setStyleSheet(
+//                "QPushButton { background-color: #E9EBFE; color: black; }"  // 启用时的背景色和文字颜色
+//                "QPushButton:disabled { background-color: rgba(233, 235, 254, 5); color: black; }"  // 禁用时透明背景，文字不变
+//            );
+
+
 
 });
 #endif
@@ -619,8 +626,8 @@ void MainWindow::initBuJu(){
     xiuZhengLine->setStyleSheet("QLineEdit { margin-top: 20px; margin-bottom: 5px; }");
     xiuZhengBtn->setStyleSheet("QPushButton { margin-top: 20px; margin-bottom: 5px; }");
     saoMiaoTime->setStyleSheet("QLabel { margin-top: 20px; margin-bottom: 5px; }");
-    saoMiaoData->setStyleSheet("QLineEdit { margin-top: 20px; margin-bottom: 15px; }");
-    danWeiMiao->setStyleSheet("QPushButton { margin-top: 20px; margin-bottom: 5px; }");
+    saoMiaoData->setStyleSheet("QSpinBox { margin-top: 20px; margin-bottom: 5px; }");
+    danWeiMiao->setStyleSheet("QLabel { margin-top: 20px; margin-bottom: 5px; }");
     saveBtn->setStyleSheet("QPushButton { margin-top: 20px; margin-bottom: 5px; }");
     tuBianSetLabel->setStyleSheet("QLabel { margin-top: 20px; margin-bottom: 5px; }");
     tuBianSet->setStyleSheet("QLineEdit { margin-top: 20px; margin-bottom: 5px; }");

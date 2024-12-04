@@ -45,6 +45,9 @@
         <layout class="QVBoxLayout" name="verticalLayout_4">
          <item>
           <widget class="QLabel" name="label_4">
+           <property name="styleSheet">
+            <string notr="true">background-color: #E9EBFE;</string>
+           </property>
            <property name="text">
             <string>主记录列表</string>
            </property>
@@ -120,6 +123,9 @@
            <layout class="QVBoxLayout" name="verticalLayout_3">
             <item>
              <widget class="QLabel" name="label_5">
+              <property name="styleSheet">
+               <string notr="true">background-color: #E9EBFE;</string>
+              </property>
               <property name="text">
                <string>曲线数据列表</string>
               </property>
@@ -309,6 +315,9 @@
             <width>0</width>
             <height>60</height>
            </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true"/>
           </property>
           <property name="text">
            <string>查询</string>

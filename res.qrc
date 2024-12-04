@@ -4,5 +4,6 @@
         <file>Tabs.qss</file>
         <file>elementForm.qss</file>
         <file>mainForm.qss</file>
+        <file>historyForm.qss</file>
     </qresource>
 </RCC>

@@ -14,13 +14,18 @@ HstoryList::HstoryList(QWidget *parent) :
     ui->setupUi(this);
     setWindowTitle("记录查询");
     resize(1200, 800);
+
+
     dataBaseConn = HstoryList::getDatabaseConnection("./D1.db");
 
-    QFile file(":/mainForm.qss");
+    QFile file(":/historyForm.qss");
     file.open(QFile::ReadOnly);
     QString qss=file.readAll();
     file.close();
     applyStyles(this,qss);
+
+    ui->label_4->setStyleSheet("background-color: #E9EBFE;");
+    ui->label_5->setStyleSheet("background-color: #E9EBFE;");
 
     //// 悬挂件标准同步
     bool flags = HstoryList::queryAllDataFromTableXuan(dataBaseConn, "proStds", dataList2);
@@ -286,7 +291,7 @@ void HstoryList::loadTable(QTableWidget *tableWidget){
     // 将数据库存入的数据 便利到tableWidget中
 
     // 查询数据库数据，注意这里查询结果中会包含 'id' 列
-    mainJiLuList = HstoryList::queryTable(dataBaseConn, "../qtModBus/D1.db", "mainListTb");
+    mainJiLuList = HstoryList::queryTable(dataBaseConn, "./D1.db", "mainListTb");
 
     // 1.2 设置列的宽度，拉伸使表格充满窗口
     tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
@@ -1246,7 +1251,8 @@ void HstoryList::onOption2() {
                 for (int col = 0; col < ui->tableWidget2_2->columnCount(); ++col) {
                     QTableWidgetItem *cellItem = ui->tableWidget2_2->item(row, col);
                     if (cellItem) {
-                        cellItem->setBackground(QBrush(Qt::blue));
+                        cellItem->setBackground(QBrush(QColor("#DCE2F1")));
+
                     }
                 }
             }

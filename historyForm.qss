@@ -16,12 +16,6 @@ QLineEdit {
 QLabel {
     font: 16px;
     color: black;
-    padding: 0 5px;
-}
-QCheckBox{
-    font: 16px;
-    color: black;
-    padding: 0 5px;
 }
 QSpinBox{
     font: 16px;
