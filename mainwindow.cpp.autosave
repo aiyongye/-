@@ -280,7 +280,7 @@ tuBianSet->setText("80");
             // 12)压装标准2也和xuanGuaNameQComboBox关联了可以省略
 
             // 上面是主记录处理下面是曲线处理
-
+            // chartsData 是QList<QVariant>类型
         });
 
 

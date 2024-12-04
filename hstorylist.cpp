@@ -213,6 +213,8 @@ HstoryList::HstoryList(QWidget *parent) :
         }
     });
 
+    //
+
 #endif
 
     //鼠标移过时，整行背景颜色变化
@@ -231,6 +233,7 @@ HstoryList::HstoryList(QWidget *parent) :
     // 连接信号，响应表格行选择变化
     connect(ui->tableWidget2, &QTableWidget::itemSelectionChanged, this, [=]() {
         rowData.clear();  // 清空全局容器中的数据
+        chartsData.clear();
         // 获取选中的行索引
         QList<QTableWidgetItem*> selectedItems = ui->tableWidget2->selectedItems();
         if (selectedItems.isEmpty()) {
@@ -240,7 +243,7 @@ HstoryList::HstoryList(QWidget *parent) :
 
         // 获取选中行的第一个单元格的行号
         int selectedRow = selectedItems.first()->row();
-        qDebug() << "Selected row:" << selectedRow;
+//        qDebug() << "Selected row:" << selectedRow;
 
         // 获取选中行所有列的内容
 
@@ -256,18 +259,32 @@ HstoryList::HstoryList(QWidget *parent) :
                                    "press_result1", "force_standard1", "serial_number2", "pressData2",
                                    "press_result2", "force_standard2"};
         QString buf = HstoryList::getLastRecordId(dataBaseConn, "mainListTb", rowData, columnNames);
-        qDebug() << buf << "--------" << endl;
+//        qDebug() << buf << "--------" << endl;
         // 在和曲线数据列表最后一个字段比较如果相同的行变为蓝色
         // 便利ui->tableWidget2_2 最后一个字段 如果和QString buf相等 则那一条数据变红
         HstoryList::highlightMatchingRow(buf);
         // 打印选中行的所有数据
-        qDebug() << "Selected row data:";
-        for (const QVariant& data : rowData) {
-            qDebug() << data.toString();
-        }
-    });
+//        qDebug() << "Selected row data:";
+//        for (const QVariant& data : rowData) {
+//            qDebug() << "main data：" <<data.toString();
+//        }
+
+#if 1 // 单击某一行 将表中的数据同步到主界面
+      // 处理从数据表streetDataTb中查询到最后一个字段等于buf的，存到QList<QVariant> chartsData容器中
+        bool flags = HstoryList::queryDataByBuf(dataBaseConn, "streetDataTb", chartsData, buf);
+        if(flags)
+            qDebug() << "查询streetDataTb存到容器成功" << endl;
+//        for (const QVariant& data1 : chartsData) {
+//            qDebug() << "charts data：" << data1.toString();
+//        }
+      // 将两个容器传入信号中 主记录容器 曲线记录容器
+        emit dataUpdated(rowData, chartsData);
 
 #endif
+    });
+#endif
+
+
 }
 
 HstoryList::~HstoryList()
@@ -1193,7 +1210,7 @@ void HstoryList::onOption2() {
             "SELECT id FROM %1 WHERE %2 ORDER BY id DESC LIMIT 1;"
         ).arg(tableName).arg(condition);
 
-        qDebug() << "Generated Query: " << queryStr;  // 打印查询语句，检查是否正确
+        qDebug() << "主键查询字段: " << queryStr;  // 打印查询语句，检查是否正确
 
         // 创建 SQL 查询对象
         QSqlQuery query(db);
@@ -1258,3 +1275,58 @@ void HstoryList::onOption2() {
             }
         }
     }
+    /**
+     * @brief 查询图表记录存储 图表记录最后一个字段和主记录主键id相同的
+     */
+    bool HstoryList::queryDataByBuf(QSqlDatabase &db, const QString &tableName, QList<QVariant> &chartsData, const QString &buf)
+    {
+        // 清空之前存储的数据
+        chartsData.clear();
+
+        // 确保数据库连接是打开的
+        if (!db.isOpen()) {
+            qDebug() << "Error: Database is not open.";
+            return false;  // 如果数据库未打开，返回 false
+        }
+
+        // 构造 SQL 查询语句，根据 mainId 查找记录
+        QString queryStr = QString("SELECT street_data, press_date, left_data FROM %1 WHERE mainId = :buf").arg(tableName);
+
+        // 创建查询对象
+        QSqlQuery query(db);
+        query.prepare(queryStr);
+
+        // 绑定参数
+        query.bindValue(":buf", buf);
+
+        // 执行查询
+        if (!query.exec()) {
+            qDebug() << "Error: Failed to execute query" << query.lastError();
+            return false;  // 如果查询执行失败，返回 false
+        }
+
+        // 获取查询结果并存储到 QList<QVariant> 中
+        while (query.next()) {
+            QList<QVariant> rowData;
+
+            // 获取每一行的字段数据
+            rowData.append(query.value("street_data"));
+            rowData.append(query.value("press_date"));
+            rowData.append(query.value("left_data"));
+
+            // 将每行的数据添加到 chartsData 容器中
+            chartsData.append(rowData);
+        }
+
+        // 如果 chartsData 非空，表示查询成功并找到匹配数据
+        if (!chartsData.isEmpty()) {
+            qDebug() << "Found " << chartsData.size() << " rows that match the criteria.";
+            return true;  // 如果找到了数据，返回 true
+        }
+
+        // 如果没有找到任何匹配的数据
+        qDebug() << "No data found for the given mainId value.";
+        return false;  // 如果没有数据匹配，返回 false
+    }
+
+

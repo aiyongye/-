@@ -57,6 +57,7 @@ public:
         bool queryAllDataFromTableXuan(QSqlDatabase &db, const QString &tableName, QList<QList<QVariant>> &dataList) ;
         QString getLastRecordId(QSqlDatabase &db, const QString &tableName, const QList<QVariant> &rowData, const QStringList &columnNames);
         void highlightMatchingRow(const QString &buf);
+            bool queryDataByBuf(QSqlDatabase &db, const QString &tableName, QList<QVariant> &chartsData, const QString &buf);
 public:
  QSqlDatabase dataBaseConn;
 private slots:
@@ -78,6 +79,12 @@ public:
           QList<QList<QVariant>> dateFind; // 按时间查询主记录
           QList<QList<QVariant>> dateFind2; // 按时间查询曲线记录
           QList<QVariant> rowData; //存储单条主记录消息
+          QList<QVariant> chartsData; // 存储单条曲线数据记录消息
+public: //处理数据返回给主界面
+
+signals:
+          void dataUpdated(QList<QVariant> mainData, QList<QVariant> chartsData);
+
 };
 
 #endif // HSTORYLIST_H
