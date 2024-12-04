@@ -14,7 +14,7 @@ PressStd::PressStd(QWidget *parent) :
     QString qss=file.readAll();
     file.close();
         applyStyles(this,qss);
-       database = PressStd::getDatabaseConnection("../qtModBus/D1.db");//数据库连接
+       database = PressStd::getDatabaseConnection("./D1.db");//数据库连接
 
             //去除选中虚线框
     ui->tableWidget->setFocusPolicy(Qt::NoFocus);
@@ -46,7 +46,7 @@ PressStd::PressStd(QWidget *parent) :
        QString crePressSE = ui->startStd->text() + "~" + ui->endStd->text();
        // 创建时间 Data 和 Time 也拼接在一起用 " " 连接
        QString credataTime =ui->dateEdit->text() + " " + ui->timeEdit->text();
-       bool flags = PressStd::ensureTableInDatabase(database, "../qtModBus/D1.db", "proStds");
+       bool flags = PressStd::ensureTableInDatabase(database, "./D1.db", "proStds");
        if(flags)
            qDebug() << "proStds表创建成功" << endl;
        flags = PressStd::insertDataIntoTable(database, "proStds", guaName, crePressSE, credataTime);

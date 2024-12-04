@@ -14,7 +14,7 @@ HstoryList::HstoryList(QWidget *parent) :
     ui->setupUi(this);
     setWindowTitle("记录查询");
     resize(1200, 800);
-    dataBaseConn = HstoryList::getDatabaseConnection("../qtModBus/D1.db");
+    dataBaseConn = HstoryList::getDatabaseConnection("./D1.db");
 
     QFile file(":/mainForm.qss");
     file.open(QFile::ReadOnly);
@@ -347,7 +347,7 @@ void HstoryList::loadTable2(QTableWidget *tableWidget){
     // 将数据库存入的数据 便利到tableWidget中
 
     // 查询数据库数据，注意这里查询结果中会包含 'id' 列
-    dataList4 = HstoryList::queryTable(dataBaseConn, "../qtModBus/D1.db", "streetDataTb");
+    dataList4 = HstoryList::queryTable(dataBaseConn, "./D1.db", "streetDataTb");
 
     // 1.2 设置列的宽度，拉伸使表格充满窗口
     tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
@@ -727,7 +727,7 @@ void HstoryList::onOption2() {
     QString startDateTime = ui->startDateEdit->text() + " " + ui->startTimeEdit->text();
     QString endDateTime = ui->endDateEdit->text() + " " + ui->endTimeEdit->text();
 //    数据插入容器成功
-    dateFind = HstoryList::queryTableDate(dataBaseConn, "../qtModBus/D1.db", "mainListTb",startDateTime,endDateTime);
+    dateFind = HstoryList::queryTableDate(dataBaseConn, "./D1.db", "mainListTb",startDateTime,endDateTime);
     ui->tableWidget2->clearContents();
 #if 1
     // 1.2 设置列的宽度，拉伸使表格充满窗口
@@ -760,7 +760,7 @@ void HstoryList::onOption2() {
 #endif
 
 #if 1 // 按时间查询曲线数据
-       dateFind2 = HstoryList::queryTableDate(dataBaseConn, "../qtModBus/D1.db", "streetDataTb",startDateTime,endDateTime);
+       dateFind2 = HstoryList::queryTableDate(dataBaseConn, "./D1.db", "streetDataTb",startDateTime,endDateTime);
        ui->tableWidget2_2->clearContents();
       // 处理查询到的数据
        ui->tableWidget2_2->setColumnCount(3);
@@ -823,6 +823,7 @@ void HstoryList::onOption2() {
     void HstoryList::printOnOption1() {
         qDebug("打印触发1");
          HstoryList::exportPdf(); // 主记录存成pdf
+         HstoryList::filePrintPreview2();
     }
     //打印曲线数据列表(Z)
     void HstoryList::printonOption2() {
@@ -846,8 +847,6 @@ void HstoryList::onOption2() {
         preview.exec();
     #endif
     }
-
-
     void HstoryList::printPreview(QPrinter *printer)
     {
     #ifdef QT_NO_PRINTER
@@ -928,6 +927,106 @@ void HstoryList::onOption2() {
     #endif
     }
 
+ #if 1
+
+    // 打印预览槽函数2
+    void HstoryList::filePrintPreview2()
+    {
+
+
+        // 53%
+    #if !defined(QT_NO_PRINTER) && !defined(QT_NO_PRINTDIALOG)
+        QPrinter printer(QPrinter::HighResolution);
+        QPrintPreviewDialog preview(&printer, this);
+        preview.resize(2400,1600);
+
+        connect(&preview, &QPrintPreviewDialog::paintRequested, this, &HstoryList::printPreview2);
+        preview.exec();
+    #endif
+    }
+    void HstoryList::printPreview2(QPrinter *printer)
+    {
+    #ifdef QT_NO_PRINTER
+        Q_UNUSED(printer);
+    #else
+        // 设置打印机页面为 A4 横向
+        printer->setPageSize(QPrinter::A4);
+        printer->setOrientation(QPrinter::Landscape);  // 设置为横向
+
+        QString filePath = QFileDialog::getOpenFileName(this, "选择PDF文件", "", "PDF Files (*.pdf)");
+        if (filePath.isEmpty()) {
+            return;
+        }
+
+        printer->setResolution(300);
+
+        // 创建 Poppler 文档
+        Poppler::Document *pdfDocument = Poppler::Document::load(filePath);
+        if (!pdfDocument) {
+            qWarning() << "Failed to load PDF:" << filePath;
+            return;
+        }
+
+        // 打印 PDF 的第一页
+        int pageNumber = 0;  // 0-based, 第一页
+        Poppler::Page *page = pdfDocument->page(pageNumber);
+        if (!page) {
+            qWarning() << "Failed to load page" << pageNumber;
+            delete pdfDocument;
+            return;
+        }
+
+        // 获取打印页面的大小（横向 A4）
+        QSize pageSize = printer->pageRect().size(); // 获取打印机页面的尺寸
+
+        // 设置渲染为高分辨率图像，600 DPI 或更高
+        QImage image = page->renderToImage(600, 600);  // 使用 600 DPI 渲染图像
+        if (image.isNull()) {
+            qWarning() << "Failed to render page to image";
+            delete pdfDocument;
+            return;
+        }
+
+        // 创建 QPainter 来绘制图像到打印机
+        QPainter painter(printer);
+        if (!painter.isActive()) {  // 确保 QPainter 初始化成功
+            qWarning() << "Failed to initialize QPainter";
+            delete pdfDocument;
+            return;
+        }
+
+        // 保存当前 QPainter 状态
+        painter.save();
+
+        // 设置打印页面上的目标区域
+        QRect targetRect(0, 0, pageSize.width(), pageSize.height());  // 使用整个页面宽高作为目标区域
+        painter.translate(targetRect.topLeft());
+
+        // 计算图像缩放比例（不保持比例，强制图像充满页面）
+        qreal scaleX = targetRect.width() / static_cast<qreal>(image.width());
+        qreal scaleY = targetRect.height() / static_cast<qreal>(image.height());
+
+        // 强制按页面大小缩放图像，使用最大的比例
+        qreal scale = qMax(scaleX, scaleY);  // 使用最大的缩放比例，确保图像充满页面
+
+        // 缩放绘制
+        painter.scale(scale, scale);
+
+        // 将 PDF 图像绘制到打印机上
+        painter.drawImage(0, 0, image);
+
+        // 恢复 QPainter 状态
+        painter.restore();
+
+        // 清理
+        delete pdfDocument;
+
+    #endif
+    }
+
+#endif
+
+
     /**
      * @brief 判断是否为指定的数据库文件，查询表中所有数据存入容器中
      * @param db 数据库对象
@@ -975,7 +1074,6 @@ void HstoryList::onOption2() {
         qDebug() << "Query executed successfully, retrieved" << dataList.size() << "rows of data.";
         return true;
     }
-
 
 
     /**
@@ -1116,10 +1214,6 @@ void HstoryList::onOption2() {
             return QString();
         }
     }
-
-
-
-
 
     /**
      * @brief 单击主记录 曲线数据高亮

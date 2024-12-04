@@ -24,7 +24,7 @@ MainWindow::MainWindow(QWidget *parent) :
             file.close();
             applyStyles(this,qss);
 
-            MainWindow::dataBaseConn = SqliteAction::getDatabaseConnection("../qtModBus/D1.db");
+            MainWindow::dataBaseConn = SqliteAction::getDatabaseConnection("./D1.db");
             MainWindow::initializeControls();
             MainWindow::initBuJu();
 
@@ -155,7 +155,7 @@ tuBianSet->setText("80");
     connect(createJiLu, QPushButton::clicked,this, [=]{
             qDebug() << "创建记录" << endl;
 
-        bool result1 = SqliteAction::ensureTableInDatabase(dataBaseConn, "../qtModBus/D1.db", "mainListTb");
+        bool result1 = SqliteAction::ensureTableInDatabase(dataBaseConn, "./D1.db", "mainListTb");
         if(result1)
             qDebug() << "Table创建成功!!!"<< endl;
         QList<QVariant> values;
@@ -190,7 +190,7 @@ tuBianSet->setText("80");
             "serial_number2", "pressData2", "press_result2", "force_standard2"
         };
 
-        bool result2 = SqliteAction::insertIntoTable(dataBaseConn, "../qtModBus/D1.db", "mainListTb", columns, values);
+        bool result2 = SqliteAction::insertIntoTable(dataBaseConn, "./D1.db", "mainListTb", columns, values);
 
         if(result2)
             qDebug() << "数据插入成功!!!"<< endl;
@@ -198,7 +198,7 @@ tuBianSet->setText("80");
         // 点击创建获取当前插入主记录中的id
         // streedataList存储了曲线1和2 的压力值曲线时间 标志位
         // 创建表
-        bool flags = SqliteAction::streetTableInDatabase(dataBaseConn, "../qtModBus/D1.db", "streetDataTb");
+        bool flags = SqliteAction::streetTableInDatabase(dataBaseConn, "./D1.db", "streetDataTb");
         if(flags)
             qDebug() << "创建streeDataTb成功" << endl;
         // 查询表mainListTb 将最后一条记录的主键值转QString返回
@@ -404,8 +404,8 @@ connect(daYinChartBtn1, QPushButton::clicked,this, [=]{
 
 //    QSize newSize1(450, 400);  // 新的图像大小
 //    QSize newSize2(450, 400);  // 新的图像大小
-    MainWindow::saveChartToImage(chartView1, "../qtModBus/chart1.png");
-    MainWindow::saveChartToImage(chartView2, "../qtModBus/chart2.png");
+    MainWindow::saveChartToImage(chartView1, "./chart1.png");
+    MainWindow::saveChartToImage(chartView2, "./chart2.png");
 
 
 
@@ -891,11 +891,11 @@ void MainWindow::exportPdf()
     m_html.append("<tr>");
 
     // 图片1
-    m_html.append("<td style='width: 48%;'><img src='../qtModBus/chart1.png' width='450' height='400'></td>");
+    m_html.append("<td style='width: 48%;'><img src='./chart1.png' width='450' height='400'></td>");
 
     // 图片2
     m_html.append("<td style='width: 4%;'></td>");  // 空隙列，调整宽度控制图片间距
-    m_html.append("<td style='width: 48%;'><img src='../qtModBus/chart2.png' width='450' height='400'></td>");
+    m_html.append("<td style='width: 48%;'><img src='./chart2.png' width='450' height='400'></td>");
 
     m_html.append("</tr>");
     m_html.append("</table><br />");

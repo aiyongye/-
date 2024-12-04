@@ -9,7 +9,7 @@ LoginSet::LoginSet(QWidget *parent) :
     ui(new Ui::LoginSet)
 {
     ui->setupUi(this);
-    database = LoginSet::getDatabaseConnection("../qtModBus/D1.db");//数据库连接
+    database = LoginSet::getDatabaseConnection("./D1.db");//数据库连接
     //去除选中虚线框
     ui->tableWidget->setFocusPolicy(Qt::NoFocus);
     ui->tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);//只读 不允许编辑 (整表)
@@ -29,7 +29,7 @@ LoginSet::LoginSet(QWidget *parent) :
         QString creDataTime = currentDateTime.toString("yyyy-MM-dd HH:mm:ss");
 
         qDebug() << "Formatted date and time: " <<userName <<"->"<< userpass<<"->" << creDataTime << endl;
-        bool flags = LoginSet::ensureTableInDatabase(database, "../qtModBus/D1.db", "userPass");
+        bool flags = LoginSet::ensureTableInDatabase(database, "./D1.db", "userPass");
         if(flags)
             qDebug() << "表创建成功" << endl;
         flags = LoginSet::insertDataIntoTable(database, "userPass", userName,userpass, creDataTime);

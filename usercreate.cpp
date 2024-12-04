@@ -8,7 +8,7 @@ UserCreate::UserCreate(QWidget *parent) :
     ui(new Ui::UserCreate)
 {
     ui->setupUi(this);
-    database = UserCreate::getDatabaseConnection("../qtModBus/D1.db"); //数据库连接
+    database = UserCreate::getDatabaseConnection("./D1.db"); //数据库连接
     //去除选中虚线框
     ui->tableWidget->setFocusPolicy(Qt::NoFocus);
     ui->tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);//只读 不允许编辑 (整表)
@@ -26,7 +26,7 @@ UserCreate::UserCreate(QWidget *parent) :
 
         // 格式化为 "yyyy-MM-dd HH:mm:ss" 形式（包括秒）
         QString creDataTime = currentDateTime.toString("yyyy-MM-dd HH:mm:ss");
-        bool flags = UserCreate::ensureTableInDatabase(database, "../qtModBus/D1.db", "operatorTb");
+        bool flags = UserCreate::ensureTableInDatabase(database, "./D1.db", "operatorTb");
         if(flags)
             qDebug() << "operatorTb 创建成功" << endl;
         flags = UserCreate::insertDataIntoTable(database, "operatorTb", caoZuoLine, creDataTime);
@@ -40,7 +40,7 @@ UserCreate::UserCreate(QWidget *parent) :
 
         // 格式化为 "yyyy-MM-dd HH:mm:ss" 形式（包括秒）
         QString creDataTime = currentDateTime.toString("yyyy-MM-dd HH:mm:ss");
-        bool flags = UserCreate::ensureTableInDatabase(database, "../qtModBus/D1.db", "inspectorTb");
+        bool flags = UserCreate::ensureTableInDatabase(database, "./D1.db", "inspectorTb");
         if(flags)
             qDebug() << "inspectorTb 创建成功" << endl;
         flags = UserCreate::insertDataIntoTable(database, "inspectorTb", jianChaLine, creDataTime);
@@ -255,7 +255,7 @@ UserCreate::UserCreate(QWidget *parent) :
                     } else {
                         qDebug() << "No matching row found.";
                     }
-                    w1.setRowData(selectedRow, rowData,flagsBtn);
+                    w1.setRowData(selectedRow, rowData, flagsBtn);
                     connect(&w1, &Form2_1Fix::dataUpdated2, this, [=](int updatedRow, const QString &newStreetData) {
                         // Update the tableWidget with new data from Form3Fix
                         ui->tableWidget->item(updatedRow, 0)->setText(newStreetData);

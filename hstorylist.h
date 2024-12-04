@@ -51,6 +51,8 @@ public:
                                                      const QString &startDateTime, const QString &endDateTime,const QStringList &columns = QStringList("*")) ;
     void printPreview(QPrinter *printer);
     void filePrintPreview();
+    void printPreview2(QPrinter *printer);
+    void filePrintPreview2();
 
         bool queryAllDataFromTableXuan(QSqlDatabase &db, const QString &tableName, QList<QList<QVariant>> &dataList) ;
         QString getLastRecordId(QSqlDatabase &db, const QString &tableName, const QList<QVariant> &rowData, const QStringList &columnNames);

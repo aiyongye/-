@@ -15,7 +15,7 @@ void MainWindow::startRefun1() {
     // 如果 Modbus 未处于连接状态，尝试连接
     if (modbusDevice->state() != QModbusDevice::ConnectedState) {
         modbusDevice->setConnectionParameter(QModbusDevice::NetworkPortParameter, 502);
-        modbusDevice->setConnectionParameter(QModbusDevice::NetworkAddressParameter, "192.168.0.170");
+        modbusDevice->setConnectionParameter(QModbusDevice::NetworkAddressParameter, "192.168.1.9");
         modbusDevice->setTimeout(2000);  // 设置超时时间
         modbusDevice->setNumberOfRetries(2);  // 设置重试次数
 
