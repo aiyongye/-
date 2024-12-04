@@ -177,7 +177,10 @@ public:
 //    void writePdf();
 //void addTable(const QString &title, const QString &subTitle,
 //                          int rows, int cols, QList<int> colWidth, const QList<QList<QString> > &values);
+    void processChartsData(const QList<QVariant> &chartsData);
    void exportPdf();
+   QMap<QString, QList<QString>> leftData;  // 存储左表数据
+   QMap<QString, QList<QString>> rightData; // 存储右表数据
 private:
      QString m_html;  // 用于存储生成的 HTML 内容
      QPdfWriter *m_pdfWriter;

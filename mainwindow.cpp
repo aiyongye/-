@@ -280,7 +280,63 @@ tuBianSet->setText("80");
             // 12)压装标准2也和xuanGuaNameQComboBox关联了可以省略
 
             // 上面是主记录处理下面是曲线处理
+            // chartsData 是QList<QVariant>类型
+            // 数据拆分成 左表数据 和右表数据
+            // leftData和rightData 前的两个值是一对存成容器中
+            // 左表和右表的数据容器
+            // 使用 QMap 来存储时间（包含时分秒）和多个压力值的键值对
+                MainWindow::processChartsData(chartsData);
+                // 绘制曲线
+#if 1
+                // 判断左边的数量如果小于等于4直接操作  如果大于四则之前第一个的数据不要后面的要一个这样递推
+                // 右侧判断也一样
+                // 处理左表数据
+                // 处理左表数据
+                    for (auto it = leftData.begin(); it != leftData.end(); ++it) {
+                        QList<QString> pressureValues = it.value(); // 获取压力值列表
 
+                        if (pressureValues.size() <= 4) {
+                            // 如果数据小于等于 4 个，直接使用所有数据
+                            qDebug() << "Left Data (less than or equal to 4): " << pressureValues;
+                        } else {
+                            // 如果数据大于 4 个，进行滑动窗口处理
+                            for (int i = pressureValues.size() - 4; i >= 0; --i) {
+                                QList<QString> selectedData;
+
+                                // 选择最后 4 个数据点
+                                selectedData.append(pressureValues[i]);
+                                selectedData.append(pressureValues[i + 1]);
+                                selectedData.append(pressureValues[i + 2]);
+                                selectedData.append(pressureValues[i + 3]);
+
+                                qDebug() << "Left Data (sliding window selected): " << selectedData;
+                            }
+                        }
+                    }
+
+                    // 处理右表数据
+                    for (auto it = rightData.begin(); it != rightData.end(); ++it) {
+                        QList<QString> pressureValues = it.value(); // 获取压力值列表
+
+                        if (pressureValues.size() <= 4) {
+                            // 如果数据小于等于 4 个，直接使用所有数据
+                            qDebug() << "Right Data (less than or equal to 4): " << pressureValues;
+                        } else {
+                            // 如果数据大于 4 个，进行滑动窗口处理
+                            for (int i = pressureValues.size() - 4; i >= 0; --i) {
+                                QList<QString> selectedData;
+
+                                // 选择最后 4 个数据点
+                                selectedData.append(pressureValues[i]);
+                                selectedData.append(pressureValues[i + 1]);
+                                selectedData.append(pressureValues[i + 2]);
+                                selectedData.append(pressureValues[i + 3]);
+
+                                qDebug() << "Right Data (sliding window selected): " << selectedData;
+                            }
+                        }
+                    }
+#endif
         });
 
 
@@ -1014,4 +1070,39 @@ void MainWindow::saveChartToImage(QChartView* chartView, const QString& filePath
     } else {
         qDebug() << "图像保存失败：" << filePath;
     }
+}
+
+
+void MainWindow::processChartsData(const QList<QVariant> &chartsData) {
+    // 使用 QMap 来存储时间（包含时分秒）和多个压力值的键值对
+    leftData.clear();
+    rightData.clear();
+    // 遍历 chartsData，按规则拆分数据
+    for (int i = 0; i < chartsData.size(); i += 3) {
+        // 每次取 3 个数据组成一组
+        QString pressureValue = chartsData[i].toString();   // 压力值
+        QString dateTime = chartsData[i + 1].toString();     // 日期时间
+        QString dataType = chartsData[i + 2].toString();     // 数据类型 (leftData 或 rightData)
+
+        // 将完整的日期时间 (包含时分秒) 作为键
+        QString fullDateTime = dateTime.split(" ").at(0) + " " + dateTime.split(" ").at(1);  // 保留日期和时分秒
+
+        // 将压力值和日期时间存入相应的容器
+        if (dataType == "leftData") {
+            leftData[fullDateTime].append(pressureValue);  // 将压力值添加到相应日期时间下
+        } else if (dataType == "rightData") {
+            rightData[fullDateTime].append(pressureValue);  // 将压力值添加到相应日期时间下
+        }
+    }
+
+//    // 打印左表和右表的数据
+//    qDebug() << "Left Data: ";
+//    for (auto it = leftData.begin(); it != leftData.end(); ++it) {
+//        qDebug() << it.key() << " : " << it.value();
+//    }
+
+//    qDebug() << "Right Data: ";
+//    for (auto it = rightData.begin(); it != rightData.end(); ++it) {
+//        qDebug() << it.key() << " : " << it.value();
+//    }
 }
