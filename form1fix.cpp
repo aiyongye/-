@@ -7,7 +7,7 @@ Form1Fix::Form1Fix(QWidget *parent) :
 {
     ui->setupUi(this);
     setFixedSize(300, 220);
-    qInstallMessageHandler(qDebugLogInfo::customMessageHandler); //打印日志
+//    qInstallMessageHandler(qDebugLogInfo::customMessageHandler); //打印日志
     connect(ui->liJiXiuGaiBtn, QPushButton::clicked, this, [=]{
         qDebug() << "立即修改" << endl;
         Form1Fix::on_updateBtn_clicked();

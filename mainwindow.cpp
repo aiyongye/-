@@ -13,7 +13,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
      setAttribute(Qt::WA_QuitOnClose, true);  // 主窗口关闭时退出应用程序
-     qInstallMessageHandler(qDebugLogInfo::customMessageHandler); //打印日志
+//     qInstallMessageHandler(qDebugLogInfo::customMessageHandler); //打印日志
      qDebug("This is a debug message");
     // 设置主窗口
             setWindowTitle("悬挂件压装力测试系统");
@@ -388,7 +388,14 @@ tuBianSet->setText("80");
      * @brief 绘制图表1
      */
 connect(startReBtn1, &QPushButton::clicked, this, [=]() {
-
+        if(jieDianSignLine1->text() == ""){
+            QMessageBox::warning(this, "开始失败", "节点序列号1不能为空！");
+            return;
+        }
+        if(yaZhuangStdLine1->text() == ""){
+            QMessageBox::warning(this, "开始失败", "请先选择悬挂名称！");
+            return;
+        }
             // 点击开始1清空 压力数据容器
             streedataList.clear();
             MainWindow::stopTimers();
@@ -400,7 +407,7 @@ connect(startReBtn1, &QPushButton::clicked, this, [=]() {
             yaZhuangSaultLine1->setText("");
             // 处理容器中的值插入到数据库中和主记录表关联
             chart1Container.clear();
-            series1->setColor(Qt::red);
+//            series1->setColor(Qt::red);
 
 //            startReBtn1->setEnabled(false);  // 确保按钮是启用的
 //            startReBtn1->setStyleSheet(
@@ -463,6 +470,15 @@ connect(jieShu1, &QPushButton::clicked, this, [=]() {
      * @brief 绘制图表2
      */
 connect(startReBtn2, &QPushButton::clicked,this,[=]{
+            if(jieDianSignLine2->text() == ""){
+                QMessageBox::warning(this, "开始失败", "节点序列号2不能为空！");
+                return;
+            }
+            if(yaZhuangStdLine2->text() == ""){
+                QMessageBox::warning(this, "开始失败", "请先选择悬挂名称！");
+                return;
+            }
+
             MainWindow::stopTimers();
             Timer2 = startTimer(1000);  // 每秒插入一次数据
             MainWindow::clearChart(chartView2);
@@ -471,7 +487,7 @@ connect(startReBtn2, &QPushButton::clicked,this,[=]{
             yaZhuang2->setText("");
             yaZhuangSaultLine2->setText("");
             chart2Container.clear();
-            series2->setColor(Qt::red);
+//            series2->setColor(Qt::red);
 });
 #endif
 

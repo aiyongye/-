@@ -8,7 +8,7 @@ PressStd::PressStd(QWidget *parent) :
     ui(new Ui::PressStd)
 {
     ui->setupUi(this);
-     qInstallMessageHandler(qDebugLogInfo::customMessageHandler); //打印日志
+//     qInstallMessageHandler(qDebugLogInfo::customMessageHandler); //打印日志
     QFile file(":/elementForm.qss");
     file.open(QFile::ReadOnly);
     QString qss=file.readAll();

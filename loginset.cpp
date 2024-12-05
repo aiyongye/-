@@ -9,7 +9,7 @@ LoginSet::LoginSet(QWidget *parent) :
     ui(new Ui::LoginSet)
 {
     ui->setupUi(this);
-     qInstallMessageHandler(qDebugLogInfo::customMessageHandler); //打印日志
+//     qInstallMessageHandler(qDebugLogInfo::customMessageHandler); //打印日志
     database = LoginSet::getDatabaseConnection("./D1.db");//数据库连接
     //去除选中虚线框
     ui->tableWidget->setFocusPolicy(Qt::NoFocus);
@@ -282,6 +282,7 @@ QSqlDatabase LoginSet::getDatabaseConnection(const QString &dbName) {
 
     return database;
 }
+
 /**
  * @brief 判断是否为指定的数据库文件，并在表不存在时创建表
  * @param db 数据库对象

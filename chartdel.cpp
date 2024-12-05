@@ -14,6 +14,7 @@ QChartView* MainWindow::createChartView(const QString &title, QDateTimeAxis *axi
     chart->createDefaultAxes();  // 创建默认坐标轴
 
     // 设置X轴为日期时间轴
+    axisX->setTitleText("时间");
     axisX->setFormat("yyyy-MM-dd HH:mm:ss");  // 设置日期时间格式
     axisX->setTickCount(2);  // 设置 X 轴刻度数量（显示两个刻度，即当前时间和下一秒）
 
@@ -27,14 +28,15 @@ QChartView* MainWindow::createChartView(const QString &title, QDateTimeAxis *axi
     axisY->setLabelFormat("%.0f");  // 设置Y轴标签格式，显示整数
 
     // 将坐标轴应用到图表
+    axisY->setTitleText("压力值");
     chart->setAxisX(axisX, series);
     chart->setAxisY(axisY, series);
 
     // 创建并返回QChartView
     QChartView *chartView = new QChartView(chart);
     chartView->setRenderHint(QPainter::Antialiasing);  // 启用抗锯齿
-    axisX->setLabelsFont(QFont("Arial", 10));  // 设置X轴的字体为Arial，大小为10
-    axisY->setLabelsFont(QFont("Arial", 12));  // 设置X轴的字体为Arial，大小为10
+//    axisX->setLabelsFont(QFont("Arial", 10));  // 设置X轴的字体为Arial，大小为10
+//    axisY->setLabelsFont(QFont("Arial", 12));  // 设置X轴的字体为Arial，大小为10
 
     startDataInsertion(axisX, series, chart, chartView);  // 传入chartView，确保更新
     return chartView;
@@ -71,6 +73,7 @@ QChartView* MainWindow::createChartView2(const QString &title, QDateTimeAxis *ax
     chart->createDefaultAxes();  // 创建默认坐标轴
 
     // 设置X轴为日期时间轴
+    axisX->setTitleText("时间");
     axisX->setFormat("yyyy-MM-dd HH:mm:ss");  // 设置日期时间格式
     axisX->setTickCount(2);  // 设置 X 轴刻度数量（显示两个刻度，即当前时间和下一秒）
 
@@ -79,6 +82,7 @@ QChartView* MainWindow::createChartView2(const QString &title, QDateTimeAxis *ax
     axisX->setMax(QDateTime::fromMSecsSinceEpoch(currentTime + 1000));  // 设置最大时间，当前时间 + 1秒
 
     // 设置Y轴范围和刻度
+    axisY->setTitleText("压力值");
     axisY->setRange(0, 450);        // 设置Y轴范围
     axisY->setTickCount(6);         // 设置Y轴刻度数量
     axisY->setLabelFormat("%.0f");  // 设置Y轴标签格式，显示整数
@@ -90,8 +94,8 @@ QChartView* MainWindow::createChartView2(const QString &title, QDateTimeAxis *ax
     // 创建并返回QChartView
     QChartView *chartView = new QChartView(chart);
     chartView->setRenderHint(QPainter::Antialiasing);  // 启用抗锯齿
-    axisX->setLabelsFont(QFont("Arial", 12));  // 设置X轴的字体为Arial，大小为10
-    axisY->setLabelsFont(QFont("Arial", 12));  // 设置X轴的字体为Arial，大小为10
+//    axisX->setLabelsFont(QFont("Arial", 12));  // 设置X轴的字体为Arial，大小为10
+//    axisY->setLabelsFont(QFont("Arial", 12));  // 设置X轴的字体为Arial，大小为10
     startDataInsertion2(axisX, series, chart, chartView);  // 传入chartView，确保更新
     return chartView;
 }

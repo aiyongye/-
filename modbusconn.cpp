@@ -1,5 +1,5 @@
 #include "modbusconn.h"
-
+#include <QSettings>
 ModbusConn::ModbusConn()
 {
 
@@ -12,11 +12,24 @@ void MainWindow::startRefun1() {
 
 //    qDebug() << "Current state:" << modbusDevice->state();
 
+#if 1 //读配置文件modbus.ini
+    // 打开modbus.ini文件并指定为ini格式
+    QSettings configIni("./modbus.ini", QSettings::IniFormat);
+
+    // 读取配置项
+    QString modbusHost = configIni.value("Modbus/host", "192.168.1.6").toString();  // 默认为 "192.168.1.1"
+    int modbusPort = configIni.value("Modbus/port", 502).toInt();  // 默认为 502
+    int modbusTimeout = configIni.value("Modbus/timeout", 3000).toInt();  // 默认为 3000
+
+
+
+
+#endif
     // 如果 Modbus 未处于连接状态，尝试连接
     if (modbusDevice->state() != QModbusDevice::ConnectedState) {
-        modbusDevice->setConnectionParameter(QModbusDevice::NetworkPortParameter, 502);
-        modbusDevice->setConnectionParameter(QModbusDevice::NetworkAddressParameter, "192.168.1.9");
-        modbusDevice->setTimeout(2000);  // 设置超时时间
+        modbusDevice->setConnectionParameter(QModbusDevice::NetworkPortParameter, modbusPort);
+        modbusDevice->setConnectionParameter(QModbusDevice::NetworkAddressParameter, modbusHost);
+        modbusDevice->setTimeout(modbusTimeout);  // 设置超时时间
         modbusDevice->setNumberOfRetries(2);  // 设置重试次数
 
 //        qDebug() << "Attempting to connect to:"
@@ -30,8 +43,12 @@ void MainWindow::startRefun1() {
         });
 
         // 捕获状态变化
-        connect(modbusDevice, &QModbusDevice::stateChanged, this, [](QModbusDevice::State state) {
-            qDebug() << "State changed to:" << state;
+        connect(modbusDevice, &QModbusDevice::stateChanged, this, [=](QModbusDevice::State state) {
+            qDebug() << "State changed to:" << state << endl;
+            // 输出读取的值（用于调试）
+            qDebug() << "Modbus Host:" << modbusHost << "->"
+                     << "Modbus Port:" << modbusPort << "->"
+                     << "Modbus Timeout:" << modbusTimeout << endl;
         });
 
         if (!modbusDevice->connectDevice()) {
