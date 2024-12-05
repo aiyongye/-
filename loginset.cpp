@@ -9,6 +9,7 @@ LoginSet::LoginSet(QWidget *parent) :
     ui(new Ui::LoginSet)
 {
     ui->setupUi(this);
+     qInstallMessageHandler(qDebugLogInfo::customMessageHandler); //打印日志
     database = LoginSet::getDatabaseConnection("./D1.db");//数据库连接
     //去除选中虚线框
     ui->tableWidget->setFocusPolicy(Qt::NoFocus);

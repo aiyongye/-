@@ -13,7 +13,7 @@
 #include <QListView>
 #include <QDateTime>
 #include "form3fix.h"
-
+#include "qdebugloginfo.h"
 namespace Ui {
 class LoginSet;
 }

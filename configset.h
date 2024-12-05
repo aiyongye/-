@@ -10,6 +10,7 @@
 #include "QGraphicsView"
 #include "QGraphicsLineItem"
 #include "QPaintEvent"
+#include "qdebugloginfo.h"
 namespace Ui {
 class ConfigSet;
 }

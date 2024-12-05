@@ -1,7 +1,7 @@
 #ifndef HOVEREDROWITEMDELEGATE_H
 #define HOVEREDROWITEMDELEGATE_H
 
-
+#include "qdebugloginfo.h"
 #include <QStyledItemDelegate>
 #include <QTableWidget>
 

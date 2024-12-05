@@ -2,7 +2,7 @@
 #define FORM3FIX_H
 
 #include <QMainWindow>
-
+#include "qdebugloginfo.h"
 namespace Ui {
 class Form3Fix;
 }

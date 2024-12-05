@@ -13,7 +13,7 @@
 #include <QListView>
 #include <QDateTime>
 #include "form2_1fix.h"
-
+#include "qdebugloginfo.h"
 namespace Ui {
 class UserCreate;
 }

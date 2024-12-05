@@ -48,7 +48,8 @@ SOURCES += main.cpp\
     wpdfwriter.cpp \
     form3fix.cpp \
     form1fix.cpp \
-    form2_1fix.cpp
+    form2_1fix.cpp \
+    qdebugloginfo.cpp
 
 HEADERS  += mainwindow.h \
     sqliteaction.h \
@@ -63,7 +64,8 @@ HEADERS  += mainwindow.h \
     wpdfwriter.h \
     form3fix.h \
     form1fix.h \
-    form2_1fix.h
+    form2_1fix.h \
+    qdebugloginfo.h
 
 FORMS    += mainwindow.ui \
     hstorylist.ui \

@@ -17,7 +17,7 @@
 #include<QPdfWriter>
 #include <QTextDocument>
 #include <QFile>
-
+#include "qdebugloginfo.h"
 #define HSTORYLIST_H
 
 namespace Ui {

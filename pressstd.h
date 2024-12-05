@@ -12,6 +12,7 @@
 #include <QFontDatabase>
 #include <QListView>
 #include "form1fix.h"
+#include "qdebugloginfo.h"
 namespace Ui {
 class PressStd;
 }

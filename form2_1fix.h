@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QDebug>
+#include "qdebugloginfo.h"
 namespace Ui {
 class Form2_1Fix;
 }

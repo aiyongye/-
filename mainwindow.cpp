@@ -13,6 +13,8 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
      setAttribute(Qt::WA_QuitOnClose, true);  // 主窗口关闭时退出应用程序
+     qInstallMessageHandler(qDebugLogInfo::customMessageHandler); //打印日志
+     qDebug("This is a debug message");
     // 设置主窗口
             setWindowTitle("悬挂件压装力测试系统");
             resize(1200, 800);
