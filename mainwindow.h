@@ -181,9 +181,16 @@ public:
    void exportPdf();
    QMap<QString, QList<QString>> leftData;  // 存储左表数据
    QMap<QString, QList<QString>> rightData; // 存储右表数据
+//   void processPressureData(QChartView *chartView, const QMap<QString, QList<QString>> &data, const QString &curveName);
+   void createChartView123(QChartView *chartView, const QList<QList<QString>> &data, const QString &curveName,
+                                       QLineSeries *series, QChart *chart, QDateTimeAxis *axisX, QValueAxis *axisY);
+                       QList<QList<QString>> selectedData;
+                       QList<QList<QString>> selectedData2;
 private:
      QString m_html;  // 用于存储生成的 HTML 内容
      QPdfWriter *m_pdfWriter;
+QValueAxis *axisY;
+QDateTimeAxis *axisX;
 
 };
 

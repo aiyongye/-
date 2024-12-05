@@ -291,51 +291,75 @@ tuBianSet->setText("80");
                 // 判断左边的数量如果小于等于4直接操作  如果大于四则之前第一个的数据不要后面的要一个这样递推
                 // 右侧判断也一样
                 // 处理左表数据
-                // 处理左表数据
-                    for (auto it = leftData.begin(); it != leftData.end(); ++it) {
-                        QList<QString> pressureValues = it.value(); // 获取压力值列表
 
-                        if (pressureValues.size() <= 4) {
-                            // 如果数据小于等于 4 个，直接使用所有数据
-                            qDebug() << "Left Data (less than or equal to 4): " << pressureValues;
-                        } else {
-                            // 如果数据大于 4 个，进行滑动窗口处理
-                            for (int i = pressureValues.size() - 4; i >= 0; --i) {
-                                QList<QString> selectedData;
+                // 左边数据处理
+                selectedData.clear();
+                for (auto it = leftData.begin(); it != leftData.end(); ++it) {
+                    QList<QString> pressureValues = it.value();
+                    QString dataValues = it.key();
 
-                                // 选择最后 4 个数据点
-                                selectedData.append(pressureValues[i]);
-                                selectedData.append(pressureValues[i + 1]);
-                                selectedData.append(pressureValues[i + 2]);
-                                selectedData.append(pressureValues[i + 3]);
+                    if (pressureValues.size() <= 4) {
 
-                                qDebug() << "Left Data (sliding window selected): " << selectedData;
+                        for (int i = 0; i < pressureValues.size(); ++i) {
+                            QList<QString> dataPair;
+                            dataPair.append(dataValues);
+                            dataPair.append(pressureValues[i]);
+                            selectedData.append(dataPair);
+//                            qDebug() << "Time: " << dataPair[0] << " Pressure: " << dataPair[1];
+                        }
+
+                    } else {
+
+                        for (int i = pressureValues.size() - 4; i >= 0; --i) {
+                            for (int j = i; j < i + 4; ++j) {
+                                QList<QString> dataPair;
+                                dataPair.append(dataValues);
+                                dataPair.append(pressureValues[j]);  // Add corresponding pressure value
+                                selectedData.append(dataPair); // Store the pair in selectedData
                             }
                         }
                     }
+                }
+                for (const auto &pair : selectedData) {
+                    qDebug() << "Time: " << pair[0] << " Pressure: " << pair[1];
+                }
+                createChartView123(chartView1, selectedData, "压力曲线1", series1, chart, axisX1, axisY1);
 
-                    // 处理右表数据
-                    for (auto it = rightData.begin(); it != rightData.end(); ++it) {
-                        QList<QString> pressureValues = it.value(); // 获取压力值列表
+#if 1
+                // 右边数据处理
+                selectedData.clear();
+                for (auto it = rightData.begin(); it != rightData.end(); ++it) {
+                    QList<QString> pressureValues = it.value();
+                    QString dataValues = it.key();
 
-                        if (pressureValues.size() <= 4) {
-                            // 如果数据小于等于 4 个，直接使用所有数据
-                            qDebug() << "Right Data (less than or equal to 4): " << pressureValues;
-                        } else {
-                            // 如果数据大于 4 个，进行滑动窗口处理
-                            for (int i = pressureValues.size() - 4; i >= 0; --i) {
-                                QList<QString> selectedData;
+                    if (pressureValues.size() <= 4) {
 
-                                // 选择最后 4 个数据点
-                                selectedData.append(pressureValues[i]);
-                                selectedData.append(pressureValues[i + 1]);
-                                selectedData.append(pressureValues[i + 2]);
-                                selectedData.append(pressureValues[i + 3]);
+                        for (int i = 0; i < pressureValues.size(); ++i) {
+                            QList<QString> dataPair;
+                            dataPair.append(dataValues);
+                            dataPair.append(pressureValues[i]);
+                            selectedData.append(dataPair);
+//                            qDebug() << "Time: " << dataPair[0] << " Pressure: " << dataPair[1];
+                        }
 
-                                qDebug() << "Right Data (sliding window selected): " << selectedData;
+                    } else {
+
+                        for (int i = pressureValues.size() - 4; i >= 0; --i) {
+                            for (int j = i; j < i + 4; ++j) {
+                                QList<QString> dataPair;
+                                dataPair.append(dataValues);
+                                dataPair.append(pressureValues[j]);  // Add corresponding pressure value
+                                selectedData.append(dataPair); // Store the pair in selectedData
                             }
                         }
                     }
+                }
+                for (const auto &pair : selectedData) {
+                    qDebug() << "Time: " << pair[0] << " Pressure: " << pair[1];
+                }
+                createChartView123(chartView2, selectedData, "压力曲线1", series2, chart02, axisX2, axisY2);
+#endif
+
 #endif
         });
 
@@ -1105,4 +1129,73 @@ void MainWindow::processChartsData(const QList<QVariant> &chartsData) {
 //    for (auto it = rightData.begin(); it != rightData.end(); ++it) {
 //        qDebug() << it.key() << " : " << it.value();
 //    }
+}
+
+
+
+
+void MainWindow::createChartView123(QChartView *chartView, const QList<QList<QString>> &data, const QString &curveName,
+                                    QLineSeries *series, QChart *chart, QDateTimeAxis *axisX, QValueAxis *axisY)
+{
+    if (!chart->series().contains(series)) {
+        chart->addSeries(series);
+    }
+
+    series->clear();  // 清空已有数据点
+
+    // 添加数据点到 series
+    for (int i = 0; i < data.size(); ++i) {
+        const QList<QString>& dataPair = data[i];  // 获取每个数据对（时间，压力值）
+
+        if (dataPair.size() == 2) {
+            QString timeString = dataPair[0];  // 时间
+            double pressureValue = dataPair[1].toDouble();  // 压力值
+
+            // 转换时间字符串为 QDateTime
+            QDateTime dateTime = QDateTime::fromString(timeString, "yyyy-MM-dd HH:mm:ss");
+
+            if (dateTime.isValid()) {
+                // 将数据点添加到 series，时间戳为 X 值，压力值为 Y 值
+                series->append(dateTime.toMSecsSinceEpoch(), pressureValue);
+            } else {
+                qDebug() << "Invalid time: " << timeString;
+            }
+        } else {
+            qDebug() << "Invalid data pair: " << dataPair;
+        }
+    }
+
+    // 设置 X 轴格式
+    axisX->setTitleText("时间");
+    axisX->setFormat("yyyy-MM-dd HH:mm:ss");
+
+    // 根据数据点设置 X 轴的范围
+    if (!series->points().isEmpty()) {
+        QDateTime minTime = QDateTime::fromMSecsSinceEpoch(series->points().first().x());
+        QDateTime maxTime = QDateTime::fromMSecsSinceEpoch(series->points().last().x());
+
+        // 设置 X 轴的范围，使其包含所有数据点
+        axisX->setRange(minTime, maxTime);
+
+        // 强制设置显示的刻度数量等于数据点的数量
+        axisX->setTickCount(data.size());  // 确保 X 轴有与数据点数量一致的刻度
+    }
+
+    // 设置 Y 轴范围
+    axisY->setRange(0, 450);
+    axisY->setTitleText("压力值");
+
+    // 将 X 轴和 Y 轴添加到图表
+    chart->addAxis(axisX, Qt::AlignBottom);
+    series->attachAxis(axisX);
+    chart->addAxis(axisY, Qt::AlignLeft);
+    series->attachAxis(axisY);
+
+    // 设置图表标题
+    chart->setTitle(curveName);
+
+    // 更新并显示图表
+    chart->update();
+    chartView->setChart(chart);
+    chartView->setRenderHint(QPainter::Antialiasing);
 }
