@@ -32,7 +32,7 @@
       <item>
        <widget class="QLabel" name="label_3">
         <property name="styleSheet">
-         <string notr="true">    font-size: 40px;
+         <string notr="true">    font-size: 50px;
     color: #5e6d82;
     line-height: 1.5em;</string>
         </property>
@@ -51,7 +51,7 @@
       <item>
        <widget class="QLabel" name="label_4">
         <property name="styleSheet">
-         <string notr="true">font-size: 22px;
+         <string notr="true">font-size: 35px;
 background-color: #F5F5F5;  /* 修正为 background-color */
 line-height: 1.5em;
 color: rgb(85, 0, 0);  /* 设置文本颜色为白色 */
@@ -72,8 +72,56 @@ color: rgb(85, 0, 0);  /* 设置文本颜色为白色 */
       <property name="leftMargin">
        <number>5</number>
       </property>
-      <item row="0" column="0">
-       <spacer name="horizontalSpacer">
+      <item row="1" column="2">
+       <spacer name="verticalSpacer">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Fixed</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>7</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="styleSheet">
+         <string notr="true">font-size: 25px;
+line-height: 1.5em;
+</string>
+        </property>
+        <property name="text">
+         <string>密码:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="2">
+       <layout class="QHBoxLayout" name="horizontalLayout_4">
+        <item>
+         <widget class="QCheckBox" name="checkBox">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>20</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">font-size:18px</string>
+          </property>
+          <property name="text">
+           <string>记住密码</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="0" column="4">
+       <spacer name="horizontalSpacer_2">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
         </property>
@@ -82,16 +130,16 @@ color: rgb(85, 0, 0);  /* 设置文本颜色为白色 */
         </property>
         <property name="sizeHint" stdset="0">
          <size>
-          <width>25</width>
+          <width>80</width>
           <height>20</height>
          </size>
         </property>
        </spacer>
       </item>
-      <item row="0" column="1">
+      <item row="0" column="0">
        <widget class="QLabel" name="label">
         <property name="styleSheet">
-         <string notr="true">font-size: 12px;
+         <string notr="true">font-size: 25px;
 
 line-height: 1.5em;
 </string>
@@ -101,7 +149,7 @@ line-height: 1.5em;
         </property>
        </widget>
       </item>
-      <item row="1" column="4">
+      <item row="2" column="3">
        <layout class="QHBoxLayout" name="horizontalLayout_6">
         <property name="spacing">
          <number>6</number>
@@ -117,7 +165,7 @@ line-height: 1.5em;
         </property>
        </layout>
       </item>
-      <item row="0" column="3">
+      <item row="0" column="2">
        <layout class="QVBoxLayout" name="verticalLayout_5">
         <item>
          <widget class="QComboBox" name="userComBox">
@@ -131,10 +179,10 @@ line-height: 1.5em;
         </item>
        </layout>
       </item>
-      <item row="0" column="4">
+      <item row="0" column="3">
        <layout class="QHBoxLayout" name="horizontalLayout_8"/>
       </item>
-      <item row="3" column="3">
+      <item row="5" column="2">
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
          <widget class="QPushButton" name="loginBtn">
@@ -145,7 +193,7 @@ line-height: 1.5em;
            </size>
           </property>
           <property name="styleSheet">
-           <string notr="true">font-size:16px;</string>
+           <string notr="true">font-size:25px;</string>
           </property>
           <property name="text">
            <string>登录</string>
@@ -164,7 +212,7 @@ line-height: 1.5em;
            </size>
           </property>
           <property name="styleSheet">
-           <string notr="true">font-size:16px;</string>
+           <string notr="true">font-size:25px;</string>
           </property>
           <property name="text">
            <string>取消</string>
@@ -173,7 +221,7 @@ line-height: 1.5em;
         </item>
        </layout>
       </item>
-      <item row="1" column="3">
+      <item row="2" column="2">
        <widget class="QLineEdit" name="passLine">
         <property name="minimumSize">
          <size>
@@ -192,50 +240,18 @@ line-height: 1.5em;
         </property>
        </widget>
       </item>
-      <item row="1" column="1">
-       <widget class="QLabel" name="label_2">
-        <property name="styleSheet">
-         <string notr="true">font-size: 12px;
-line-height: 1.5em;
-</string>
-        </property>
-        <property name="text">
-         <string>密码:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="3">
-       <layout class="QHBoxLayout" name="horizontalLayout_4">
-        <item>
-         <widget class="QCheckBox" name="checkBox">
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>20</height>
-           </size>
-          </property>
-          <property name="styleSheet">
-           <string notr="true">font-size:10px</string>
-          </property>
-          <property name="text">
-           <string>记住密码</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item row="0" column="5">
-       <spacer name="horizontalSpacer_2">
+      <item row="4" column="2">
+       <spacer name="verticalSpacer_2">
         <property name="orientation">
-         <enum>Qt::Horizontal</enum>
+         <enum>Qt::Vertical</enum>
         </property>
         <property name="sizeType">
          <enum>QSizePolicy::Fixed</enum>
         </property>
         <property name="sizeHint" stdset="0">
          <size>
-          <width>80</width>
-          <height>20</height>
+          <width>20</width>
+          <height>15</height>
          </size>
         </property>
        </spacer>

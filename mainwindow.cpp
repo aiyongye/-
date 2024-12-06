@@ -13,7 +13,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
      setAttribute(Qt::WA_QuitOnClose, true);  // 主窗口关闭时退出应用程序
-//     qInstallMessageHandler(qDebugLogInfo::customMessageHandler); //打印日志
+     qInstallMessageHandler(qDebugLogInfo::customMessageHandler); //打印日志
      qDebug("This is a debug message");
     // 设置主窗口
             setWindowTitle("悬挂件压装力测试系统");
@@ -219,6 +219,7 @@ tuBianSet->setText("80");
     connect(recordQueryButton, &QPushButton::clicked, this, [=] {
         qDebug() << "即将跳转历史页面......";
         // 在新窗体中显示查询结果
+        w1.setWindowModality(Qt::ApplicationModal);
         MainWindow::w1.show();
 #if 1 // 处理历史界面点击table行时 重写主界面数据
         connect(&w1, &HstoryList::dataUpdated, this, [=](QList<QVariant> mainData, QList<QVariant> chartsData){
@@ -376,6 +377,7 @@ tuBianSet->setText("80");
      */
     connect(standardButton, QPushButton::clicked,this,[=]{
        qDebug() << "即将跳转工艺标准界面" << endl;
+       w2.setWindowModality(Qt::ApplicationModal);
        MainWindow::w2.show();
     });
 #endif
@@ -682,11 +684,11 @@ void MainWindow::initBuJu(){
     // 创建菜单栏
     menuBar = new QMenuBar(this);
     setMenuBar(menuBar);
-    menuBar->addMenu("系统(&V)");
-    menuBar->addMenu("设置(&Y)");
-    menuBar->addMenu("维护(&P)");
-    menuBar->addMenu("工具(&T)");
-    menuBar->addMenu("帮助(&Z)");
+    menuBar->addMenu("`");
+//    menuBar->addMenu("设置(&Y)");
+//    menuBar->addMenu("维护(&P)");
+//    menuBar->addMenu("工具(&T)");
+//    menuBar->addMenu("帮助(&Z)");
 
     // 设置菜单栏样式
     menuBar->setStyleSheet("QMenuBar { background-color: #2c3e50; color: white; font-size: 16px; }"
@@ -761,16 +763,16 @@ void MainWindow::initBuJu(){
     mainLayout->addWidget(tuBianSetLabel, 1, 8);
     mainLayout->addWidget(tuBianSet, 1, 9);
     mainLayout->addWidget(saveTuBianBtn, 1, 10);
-    xiuZhengLabel->setStyleSheet("QLabel { margin-top: 20px; margin-bottom: 5px; }");
-    xiuZhengLine->setStyleSheet("QLineEdit { margin-top: 20px; margin-bottom: 5px; }");
-    xiuZhengBtn->setStyleSheet("QPushButton { margin-top: 20px; margin-bottom: 5px; }");
-    saoMiaoTime->setStyleSheet("QLabel { margin-top: 20px; margin-bottom: 5px; }");
-    saoMiaoData->setStyleSheet("QSpinBox { margin-top: 20px; margin-bottom: 5px; }");
-    danWeiMiao->setStyleSheet("QLabel { margin-top: 20px; margin-bottom: 5px; }");
-    saveBtn->setStyleSheet("QPushButton { margin-top: 20px; margin-bottom: 5px; }");
-    tuBianSetLabel->setStyleSheet("QLabel { margin-top: 20px; margin-bottom: 5px; }");
-    tuBianSet->setStyleSheet("QLineEdit { margin-top: 20px; margin-bottom: 5px; }");
-    saveTuBianBtn->setStyleSheet("QPushButton { margin-top: 20px; margin-bottom: 5px; }");
+    xiuZhengLabel->setStyleSheet("QLabel { margin-top: 32px; margin-bottom: 17px; }");
+    xiuZhengLine->setStyleSheet("QLineEdit { margin-top: 32px; margin-bottom: 17px; }");
+    xiuZhengBtn->setStyleSheet("QPushButton { margin-top: 32px; margin-bottom: 17px; }");
+    saoMiaoTime->setStyleSheet("QLabel { margin-top: 32px; margin-bottom: 17px; }");
+    saoMiaoData->setStyleSheet("QSpinBox { margin-top: 32px; margin-bottom: 17px; }");
+    danWeiMiao->setStyleSheet("QLabel { margin-top: 32px; margin-bottom: 17px; }");
+    saveBtn->setStyleSheet("QPushButton { margin-top: 32px; margin-bottom: 17px; }");
+    tuBianSetLabel->setStyleSheet("QLabel { margin-top: 32px; margin-bottom: 17px; }");
+    tuBianSet->setStyleSheet("QLineEdit { margin-top: 32px; margin-bottom: 17px; }");
+    saveTuBianBtn->setStyleSheet("QPushButton { margin-top: 32px; margin-bottom: 17px; }");
 
 
     // 添加创建记录区
@@ -831,8 +833,8 @@ void MainWindow::initBuJu(){
     chartLayout->addWidget(shuJuBox, 0, 0);          // Column 0: 数据点 selection box
     chartLayout->addWidget(startReBtn1, 0, 1);       // Column 1: Start Receive Button 1
     chartLayout->addWidget(jieShu1, 0, 2);           // Column 2: Stop Button 1
-    chartLayout->addWidget(startReBtn2, 0, 3);       // Column 3: Start Receive Button 2
-    chartLayout->addWidget(jieShu2, 0, 4);           // Column 4: Stop Button 2
+    chartLayout->addWidget(startReBtn2, 0, 4);       // Column 3: Start Receive Button 2
+    chartLayout->addWidget(jieShu2, 0, 5);           // Column 4: Stop Button 2
 
     // Add widgets to the grid layout (Row 1: Charts)
     chartLayout->addWidget(chartView1, 1, 0, 1, 3);  // Chart 1: Spans 2 columns (Column 0-1)

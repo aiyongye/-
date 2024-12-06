@@ -12,7 +12,7 @@ Login::Login(QWidget *parent) :
 
     connect(ui->loginBtn, QPushButton::clicked, this, [=]{
         qDebug() << "登录界面即将跳转主界面" << endl;
-        Login::findTableToConBox();
+//        Login::findTableToConBox();
 
         QString enteredUserName = ui->userComBox->currentText();
         QString enteredPassword = ui->passLine->text();

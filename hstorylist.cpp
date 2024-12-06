@@ -69,11 +69,7 @@ HstoryList::HstoryList(QWidget *parent) :
 
     QMenuBar *menuBar = new QMenuBar(this);
     setMenuBar(menuBar);
-    menuBar->addMenu("系统(&V)");
-    menuBar->addMenu("设置(&Y)");
-    menuBar->addMenu("维护(&P)");
-    menuBar->addMenu("工具(&T)");
-    menuBar->addMenu("帮助(&Z)");
+    menuBar->addMenu("'");
 
     // 设置菜单栏样式
     menuBar->setStyleSheet("QMenuBar { background-color: #2c3e50; color: white; font-size: 16px; }"
@@ -320,7 +316,7 @@ void HstoryList::loadTable(QTableWidget *tableWidget){
     // 1.4 设置表格的行数和列数
     tableWidget->setRowCount(rowCount);
     tableWidget->setColumnCount(columnCount - 1);  // 排除 id 列，减去 1
-
+    tableWidget->setStyleSheet("QTableWidget::item { text-align: center; }");
     // 1.5 填充表格数据，跳过 'id' 列（假设 'id' 是第一列）
     for (int i = 0; i < rowCount; ++i) {
         const QList<QVariant> &row = mainJiLuList[i];
@@ -351,6 +347,22 @@ void HstoryList::loadTable(QTableWidget *tableWidget){
 //    headerView->setSectionResizeMode(0, QHeaderView::Fixed); // 固定大小模式
     headerView->setMinimumHeight(48); //设置头的高度
     tableWidget->verticalHeader()->setVisible(false);//第一列序号不显示
+
+    // 假设 tableWidget 已经被初始化并设置好行列数
+
+    // 遍历所有的行和列
+    for (int row = 0; row < tableWidget->rowCount(); ++row) {
+        for (int col = 0; col < tableWidget->columnCount(); ++col) {
+            QTableWidgetItem *item = tableWidget->item(row, col);
+            if (!item) {
+                // 如果当前单元格没有内容，创建一个新的 QTableWidgetItem
+                item = new QTableWidgetItem();
+                tableWidget->setItem(row, col, item);
+            }
+            item->setTextAlignment(Qt::AlignCenter);  // 设置居中对齐
+        }
+    }
+
     #endif
 }
 
@@ -361,7 +373,8 @@ void HstoryList::loadTable2(QTableWidget *tableWidget){
 #if 1
     tableWidget->setColumnCount(3);
     QStringList heardList;
-    heardList<<"压力值"<<"时期时间"<<"图表类型";
+    heardList<<"压力值"<<"时期时间"<<"图表类型"<< "视图" << "视图标志";
+
     tableWidget->setHorizontalHeaderLabels(heardList);
 
 
@@ -389,6 +402,21 @@ void HstoryList::loadTable2(QTableWidget *tableWidget){
             tableWidget->setItem(i, j - 1, new QTableWidgetItem(row[j].toString()));
         }
     }
+    // 假设 tableWidget 已经被初始化并设置好行列数
+
+    // 遍历所有的行和列
+    for (int row = 0; row < tableWidget->rowCount(); ++row) {
+        for (int col = 0; col < tableWidget->columnCount(); ++col) {
+            QTableWidgetItem *item = tableWidget->item(row, col);
+            if (!item) {
+                // 如果当前单元格没有内容，创建一个新的 QTableWidgetItem
+                item = new QTableWidgetItem();
+                tableWidget->setItem(row, col, item);
+            }
+            item->setTextAlignment(Qt::AlignCenter);  // 设置居中对齐
+        }
+    }
+
 
     //去除选中虚线框
     tableWidget->setFocusPolicy(Qt::NoFocus);
@@ -406,10 +434,10 @@ void HstoryList::loadTable2(QTableWidget *tableWidget){
     QHeaderView *headerView = tableWidget->horizontalHeader();
 
     headerView->setMinimumHeight(48); //设置头的高度
-
+    tableWidget->setStyleSheet("QTableWidget::item { text-align: center; }");
     tableWidget->verticalHeader()->setVisible(false);//第一列序号不显示
     tableWidget->verticalHeader()->setDefaultSectionSize(48); // 设置默认行高
-    tableWidget->setShowGrid(false);//设置item无边框
+    tableWidget->setShowGrid(true);//设置item无边框
     #endif
 }
 
@@ -770,14 +798,20 @@ void HstoryList::onOption2() {
     // 时间查询时将容器存入主容器中因为打印pdf处调用的是主容器
     mainJiLuList.clear();
     mainJiLuList.append(dateFind);
+    // 假设 tableWidget 已经被初始化并设置好行列数
 
-//    // 1.6 末尾行添加统计行，显示数量
-//    ui->tableWidget2->setRowCount(rowCount + 1);  // 增加一行用于显示统计信息
-//    ui->tableWidget2->setItem(rowCount, 0, new QTableWidgetItem("总计"));
-//    ui->tableWidget2->setItem(rowCount, 1, new QTableWidgetItem(QString::number(rowCount)));
-//    // 合并第二列到最后一列，形成一个跨度
-//    int columnCount1 = ui->tableWidget2->columnCount();
-//    ui->tableWidget2->setSpan(rowCount, 1, 1, columnCount1 - 1);  // 合并第二列到最后一列
+    // 居中行
+    for (int row = 0; row < ui->tableWidget2->rowCount(); ++row) {
+        for (int col = 0; col < ui->tableWidget2->columnCount(); ++col) {
+            QTableWidgetItem *item = ui->tableWidget2->item(row, col);
+            if (!item) {
+                // 如果当前单元格没有内容，创建一个新的 QTableWidgetItem
+                item = new QTableWidgetItem();
+                ui->tableWidget2->setItem(row, col, item);
+            }
+            item->setTextAlignment(Qt::AlignCenter);  // 设置居中对齐
+        }
+    }
 
 #endif
 
@@ -816,6 +850,22 @@ void HstoryList::onOption2() {
        // 还可以设置选择模式为单选
        ui->tableWidget2->setSelectionMode(QAbstractItemView::SingleSelection);
        ui->tableWidget2_2->setSelectionMode(QAbstractItemView::SingleSelection);
+       ui->tableWidget2_2->setStyleSheet("QTableWidget::item { text-align: center; }");
+
+       // 假设 tableWidget 已经被初始化并设置好行列数
+
+       // 居中
+       for (int row = 0; row < ui->tableWidget2_2->rowCount(); ++row) {
+           for (int col = 0; col < ui->tableWidget2_2->columnCount(); ++col) {
+               QTableWidgetItem *item = ui->tableWidget2_2->item(row, col);
+               if (!item) {
+                   // 如果当前单元格没有内容，创建一个新的 QTableWidgetItem
+                   item = new QTableWidgetItem();
+                   ui->tableWidget2_2->setItem(row, col, item);
+               }
+               item->setTextAlignment(Qt::AlignCenter);  // 设置居中对齐
+           }
+       }
 
     qDebug() << startDateTime << "--" << endDateTime << endl;
 }

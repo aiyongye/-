@@ -141,17 +141,22 @@
               </property>
               <column>
                <property name="text">
-                <string>日期时间</string>
+                <string>压力值</string>
                </property>
               </column>
               <column>
                <property name="text">
-                <string>测量值</string>
+                <string>时期时间</string>
                </property>
               </column>
               <column>
                <property name="text">
-                <string>修正值</string>
+                <string>视图</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>视图标志</string>
                </property>
               </column>
              </widget>

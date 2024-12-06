@@ -17,10 +17,10 @@ void MainWindow::startRefun1() {
     QSettings configIni("./modbus.ini", QSettings::IniFormat);
 
     // 读取配置项
-    QString modbusHost = configIni.value("Modbus/host", "192.168.1.6").toString();  // 默认为 "192.168.1.1"
+    QString modbusHost = configIni.value("Modbus/host", "192.168.1.11").toString();  // 默认为 "192.168.1.1"
     int modbusPort = configIni.value("Modbus/port", 502).toInt();  // 默认为 502
     int modbusTimeout = configIni.value("Modbus/timeout", 3000).toInt();  // 默认为 3000
-
+    int readdata  = configIni.value("Modbus/readdata", 1).toInt();  // 默认为 1
 
 
 
@@ -62,7 +62,7 @@ void MainWindow::startRefun1() {
 //        qDebug() << "Already connected. Proceeding to read.";
     }
     // 准备读取操作
-    QModbusDataUnit readUnit(QModbusDataUnit::HoldingRegisters, 1, 1);  // 寄存器起始地址3，读取1个寄存器
+    QModbusDataUnit readUnit(QModbusDataUnit::HoldingRegisters, readdata, 1);  // 寄存器起始地址3，读取1个寄存器
 //    qDebug() << "device. State:-------------" << modbusDevice->state();
 
 
