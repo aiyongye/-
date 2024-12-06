@@ -5,5 +5,7 @@
         <file>elementForm.qss</file>
         <file>mainForm.qss</file>
         <file>historyForm.qss</file>
+        <file>adminboot.manifest</file>
+        <file>adminboot.rc</file>
     </qresource>
 </RCC>

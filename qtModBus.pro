@@ -18,7 +18,10 @@ TEMPLATE = app
 INCLUDEPATH += $$PWD/poppler
 LIBS += -L$$PWD/poppler -llibpoppler
 LIBS += -L$$PWD/poppler -llibpoppler-qt5
-
+RC_FILE = adminboot.rc
+DISTFILES += \
+    adminboot.rc \
+    adminboot.manifest
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which as been marked as deprecated (the exact warnings

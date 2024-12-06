@@ -175,6 +175,9 @@ line-height: 1.5em;
             <height>60</height>
            </size>
           </property>
+          <property name="styleSheet">
+           <string notr="true">font-size:25px</string>
+          </property>
          </widget>
         </item>
        </layout>
@@ -234,6 +237,9 @@ line-height: 1.5em;
           <width>999999</width>
           <height>16777215</height>
          </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">font-size:25px</string>
         </property>
         <property name="echoMode">
          <enum>QLineEdit::Password</enum>

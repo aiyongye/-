@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<n1:assembly xmlns:n1="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+    <n2:trustInfo xmlns:n2="urn:schemas-microsoft-com:asm.v3">
+        <n2:security>
+            <n2:requestedPrivileges>
+                <n2:requestedExecutionLevel level="requireAdministrator" uiAccess="false"/>
+            </n2:requestedPrivileges>
+        </n2:security>
+    </n2:trustInfo>
+</n1:assembly>
