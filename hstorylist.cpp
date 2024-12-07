@@ -1292,25 +1292,51 @@ void HstoryList::onOption2() {
         int num = mainJiLuList.size()+1;
         HstoryList::addTable(num,12,width,values);
     }
-    void HstoryList::addTable(int rows, int cols, QList<int> colWidth, const QList<QList<QString> > &values)
+    void HstoryList::addTable(int rows, int cols, QList<int> colWidth, const QList<QList<QString>> &values)
     {
-        m_html.append("<table border='0.5' cellspacing='0' cellpadding='3' width:100%>");
+        // 表格头部（表头可能需要每页重新显示）
+        QString tableHeader = "<table  border='0.5' cellspacing='0' cellpadding='3' width:100%>";
+        tableHeader += "<tr>";
 
-        //添加字段/字段值
-        for(int i = 0;i < rows;i++)
+
+        tableHeader += QString("<td colspan='12' text-align:left  border-top: none border-left: none border-right:none vertical-align: middle font-size:20px>");
+
+
+            tableHeader +=  "<h3 style='text-align: left;'>统计时间:    " +
+        ui->startDateEdit->text() + " => " + ui->endDateEdit->text() +
+                " 23:59:59</h3>"   +"</td>";  // You can replace this with real column names
+//            m_html.append("<h3 style='text-align: left;'>统计时间:    " + ui->startDateEdit->text() + " => " + ui->endDateEdit->text() + " 23:59:59</h3>");
+
+        tableHeader += "</tr>";
+        m_html.append(tableHeader);
+
+        // 设置每页最大行数
+        const int maxRowsPerPage = 20;  // 每页最大行数，可以根据实际需求调整
+
+        // 添加数据行
+        for (int i = 0; i < rows; i++)
         {
+            // 每超出 maxRowsPerPage 行，插入分页符并重新渲染表头
+            if (i > 0 && i % maxRowsPerPage == 0) {
+                m_html.append("<div page-break-before:always;></div>");  // 强制分页
+//                m_html.append(tableHeader);  // 每页重新显示表头
+            }
+
             m_html.append("<tr>");
-            QList<QString> rowValues = values.at(i);
-            for(int j = 0;j < cols;j++)
-            {
-                m_html.append(QString("<td width=%1% valign='center' style='vertical-align:middle;font-size:100px;'>").arg(colWidth.at(j)));
+            QList<QString> rowValues = values.at(i);  // 获取当前行的数据
+            for (int j = 0; j < cols; j++) {
+                m_html.append(QString("<td width='%1%' valign='center' vertical-align:middle font-size:120px;>").arg(colWidth.at(j)));
                 m_html.append(rowValues.at(j));
                 m_html.append("</td>");
             }
             m_html.append("</tr>");
         }
 
+        m_html.append("</table><br /><br />");
     }
+
+
+
     void HstoryList::exportPdf()
     {
         m_html.clear();
@@ -1326,7 +1352,9 @@ void HstoryList::onOption2() {
         // 创建 QPdfWriter 对象并设置 PDF 输出路径
         QPdfWriter pdfWriter(defaultPath);
         pdfWriter.setPageSize(QPagedPaintDevice::A4);
-        pdfWriter.setResolution(QPrinter::ScreenResolution);
+//        pdfWriter.setResolution(QPrinter::ScreenResolution);
+        //pdfWriter.setOrientation(QPrinter::Portrait);  // Explicitly set to Portrait (A4 vertical)
+        pdfWriter.setPageSizeMM(QSizeF(297, 210));
 
         // 添加标题
         m_html.append("<h1 style='text-align:center;'>主记录列表</h1><br />");
