@@ -269,6 +269,7 @@ UserCreate::UserCreate(QWidget *parent) :
                 }else{
                     qDebug() << "请先查询" << endl;
                 }
+                w1.setWindowModality(Qt::ApplicationModal);
                 w1.show();
             });
 

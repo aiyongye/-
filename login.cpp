@@ -7,6 +7,8 @@ Login::Login(QWidget *parent) :
     ui(new Ui::Login)
 {
     ui->setupUi(this);
+    setWindowIcon(QIcon(":/img/LoginImg.svg"));
+    setWindowTitle("登录");
     database = Login::getDatabaseConnection("./D1.db");
     Login::findTableToConBox();
 

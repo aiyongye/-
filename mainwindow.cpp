@@ -13,6 +13,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
      setAttribute(Qt::WA_QuitOnClose, true);  // 主窗口关闭时退出应用程序
+     setWindowIcon(QIcon(":/img/QmodBusImg.svg"));
      qInstallMessageHandler(qDebugLogInfo::customMessageHandler); //打印日志
      qDebug("This is a debug message");
     // 设置主窗口
@@ -911,6 +912,7 @@ void MainWindow::initBuJu(){
     QPushButton *wanCheng = new QPushButton("完成并保存曲线", this);
     QPushButton *daYinChart2 = new QPushButton("打印图表2", this);
     QPushButton *zhiJieExit = new QPushButton("直接退出", this);
+    QPushButton *fengMingQi = new QPushButton("蜂鸣器", this);
     wanCheng->setStyleSheet(buttonStyle);
     daYinChart2->setStyleSheet(buttonStyle);
     zhiJieExit->setStyleSheet(buttonStyle);
@@ -918,6 +920,7 @@ void MainWindow::initBuJu(){
     controlLayout->addWidget(wanCheng, 2, 0);
     controlLayout->addWidget(daYinChart2, 2, 2);
     controlLayout->addWidget(zhiJieExit, 2, 4);
+    controlLayout->addWidget(fengMingQi, 2, 6);
 
     // 设置大小策略
     jieDianSignLine1->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);

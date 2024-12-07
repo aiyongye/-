@@ -14,7 +14,7 @@ HstoryList::HstoryList(QWidget *parent) :
     ui->setupUi(this);
     setWindowTitle("记录查询");
     resize(1200, 800);
-
+    setWindowIcon(QIcon(":/img/HistoryImg.svg"));
 
     dataBaseConn = HstoryList::getDatabaseConnection("./D1.db");
 
@@ -921,82 +921,84 @@ void HstoryList::onOption2() {
     }
     void HstoryList::printPreview(QPrinter *printer)
     {
-    #ifdef QT_NO_PRINTER
-        Q_UNUSED(printer);
-    #else
-        // 设置打印机页面为 A4 横向
-        printer->setPageSize(QPrinter::A4);
-        printer->setOrientation(QPrinter::Landscape);  // 设置为横向
+#ifdef QT_NO_PRINTER
+    Q_UNUSED(printer);
+#else
+    // Choose PDF file to load
+    QString filePath = QFileDialog::getOpenFileName(this, "选择PDF文件", "", "PDF Files (*.pdf)");
+    if (filePath.isEmpty()) {
+        return;
+    }
 
-        QString filePath = QFileDialog::getOpenFileName(this, "选择PDF文件", "", "PDF Files (*.pdf)");
-        if (filePath.isEmpty()) {
-            return;
-        }
+    // Load Poppler document
+    Poppler::Document *pdfDocument = Poppler::Document::load(filePath);
+    if (!pdfDocument) {
+        qWarning() << "Failed to load PDF:" << filePath;
+        return;
+    }
 
-        printer->setResolution(300);
-
-        // 创建 Poppler 文档
-        Poppler::Document *pdfDocument = Poppler::Document::load(filePath);
-        if (!pdfDocument) {
-            qWarning() << "Failed to load PDF:" << filePath;
-            return;
-        }
-
-        // 打印 PDF 的第一页
-        int pageNumber = 0;  // 0-based, 第一页
-        Poppler::Page *page = pdfDocument->page(pageNumber);
-        if (!page) {
-            qWarning() << "Failed to load page" << pageNumber;
-            delete pdfDocument;
-            return;
-        }
-
-        // 获取打印页面的大小（横向 A4）
-        QSize pageSize = printer->pageRect().size(); // 获取打印机页面的尺寸
-
-        // 设置渲染为高分辨率图像，600 DPI 或更高
-        QImage image = page->renderToImage(600, 600);  // 使用 600 DPI 渲染图像
-        if (image.isNull()) {
-            qWarning() << "Failed to render page to image";
-            delete pdfDocument;
-            return;
-        }
-
-        // 创建 QPainter 来绘制图像到打印机
-        QPainter painter(printer);
-        if (!painter.isActive()) {  // 确保 QPainter 初始化成功
-            qWarning() << "Failed to initialize QPainter";
-            delete pdfDocument;
-            return;
-        }
-
-        // 保存当前 QPainter 状态
-        painter.save();
-
-        // 设置打印页面上的目标区域
-        QRect targetRect(0, 0, pageSize.width(), pageSize.height());  // 使用整个页面宽高作为目标区域
-        painter.translate(targetRect.topLeft());
-
-        // 计算图像缩放比例（不保持比例，强制图像充满页面）
-        qreal scaleX = targetRect.width() / static_cast<qreal>(image.width());
-        qreal scaleY = targetRect.height() / static_cast<qreal>(image.height());
-
-        // 强制按页面大小缩放图像，使用最大的比例
-        qreal scale = qMax(scaleX, scaleY);  // 使用最大的缩放比例，确保图像充满页面
-
-        // 缩放绘制
-        painter.scale(scale, scale);
-
-        // 将 PDF 图像绘制到打印机上
-        painter.drawImage(0, 0, image);
-
-        // 恢复 QPainter 状态
-        painter.restore();
-
-        // 清理
+    // Check if the PDF page is in landscape or portrait orientation
+    Poppler::Page *page = pdfDocument->page(0);  // Load the first page
+    if (!page) {
+        qWarning() << "Failed to load page";
         delete pdfDocument;
+        return;
+    }
 
-    #endif
+    QSizeF pageSize = page->pageSize();  // Get the page size
+    bool isLandscape = pageSize.width() > pageSize.height();  // Check if the page is landscape
+
+    // Set the printer orientation based on the PDF orientation
+    if (isLandscape) {
+        printer->setOrientation(QPrinter::Landscape);  // Set printer to Landscape if the PDF is Landscape
+    } else {
+        printer->setOrientation(QPrinter::Portrait);  // Set printer to Portrait if the PDF is Portrait
+    }
+
+    // Set printer resolution and size
+    printer->setPageSize(QPrinter::A4);
+    printer->setResolution(300);
+
+    // Render the PDF to image
+    QImage image = page->renderToImage(600, 600);  // Render page at 600 DPI
+    if (image.isNull()) {
+        qWarning() << "Failed to render page to image";
+        delete pdfDocument;
+        return;
+    }
+
+    // Create QPainter for printing
+    QPainter painter(printer);
+    if (!painter.isActive()) {
+        qWarning() << "Failed to initialize QPainter";
+        delete pdfDocument;
+        return;
+    }
+
+    // Print the image onto the page
+    painter.save();
+
+    // Get the print page size
+    QSize printSize = printer->pageRect().size();
+    QRect targetRect(0, 0, printSize.width(), printSize.height());
+
+    // Compute scaling factors
+    qreal scaleX = targetRect.width() / static_cast<qreal>(image.width());
+    qreal scaleY = targetRect.height() / static_cast<qreal>(image.height());
+    qreal scale = qMax(scaleX, scaleY);
+
+    // Apply scaling
+    painter.scale(scale, scale);
+
+    // Draw the image on the printer
+    painter.drawImage(0, 0, image);
+
+    // Restore the painter state
+    painter.restore();
+
+    // Clean up
+    delete pdfDocument;
+#endif
     }
 
  #if 1
@@ -1016,85 +1018,94 @@ void HstoryList::onOption2() {
         preview.exec();
     #endif
     }
+
+
     void HstoryList::printPreview2(QPrinter *printer)
     {
     #ifdef QT_NO_PRINTER
         Q_UNUSED(printer);
     #else
-        // 设置打印机页面为 A4 横向
-        printer->setPageSize(QPrinter::A4);
-        printer->setOrientation(QPrinter::Landscape);  // 设置为横向
-
+        // Choose PDF file to load
         QString filePath = QFileDialog::getOpenFileName(this, "选择PDF文件", "", "PDF Files (*.pdf)");
         if (filePath.isEmpty()) {
             return;
         }
 
-        printer->setResolution(300);
-
-        // 创建 Poppler 文档
+        // Load Poppler document
         Poppler::Document *pdfDocument = Poppler::Document::load(filePath);
         if (!pdfDocument) {
             qWarning() << "Failed to load PDF:" << filePath;
             return;
         }
 
-        // 打印 PDF 的第一页
-        int pageNumber = 0;  // 0-based, 第一页
-        Poppler::Page *page = pdfDocument->page(pageNumber);
+        // Get the first page to check its orientation
+        Poppler::Page *page = pdfDocument->page(0);  // Load the first page
         if (!page) {
-            qWarning() << "Failed to load page" << pageNumber;
+            qWarning() << "Failed to load page";
             delete pdfDocument;
             return;
         }
 
-        // 获取打印页面的大小（横向 A4）
-        QSize pageSize = printer->pageRect().size(); // 获取打印机页面的尺寸
+        QSizeF pageSize = page->pageSize();  // Get the page size
+        bool isLandscape = pageSize.width() > pageSize.height();  // Check if the page is landscape
 
-        // 设置渲染为高分辨率图像，600 DPI 或更高
-        QImage image = page->renderToImage(600, 600);  // 使用 600 DPI 渲染图像
+        // Set the printer orientation based on the PDF orientation
+        if (isLandscape) {
+            printer->setOrientation(QPrinter::Landscape);  // Set printer to Landscape if the PDF is Landscape
+        } else {
+            printer->setOrientation(QPrinter::Portrait);  // Set printer to Portrait if the PDF is Portrait
+        }
+
+        // Set printer resolution and size
+        printer->setPageSize(QPrinter::A4);
+        printer->setResolution(300);
+
+        // Render the PDF to image
+        QImage image = page->renderToImage(600, 600);  // Render page at 600 DPI
         if (image.isNull()) {
             qWarning() << "Failed to render page to image";
             delete pdfDocument;
             return;
         }
 
-        // 创建 QPainter 来绘制图像到打印机
+        // Create QPainter for printing
         QPainter painter(printer);
-        if (!painter.isActive()) {  // 确保 QPainter 初始化成功
+        if (!painter.isActive()) {
             qWarning() << "Failed to initialize QPainter";
             delete pdfDocument;
             return;
         }
 
-        // 保存当前 QPainter 状态
+        // Print the image onto the page
         painter.save();
 
-        // 设置打印页面上的目标区域
-        QRect targetRect(0, 0, pageSize.width(), pageSize.height());  // 使用整个页面宽高作为目标区域
-        painter.translate(targetRect.topLeft());
+        // Get the print page size
+        QSize printSize = printer->pageRect().size();
+        QRect targetRect(0, 0, printSize.width(), printSize.height());
 
-        // 计算图像缩放比例（不保持比例，强制图像充满页面）
+        // Compute scaling factors
         qreal scaleX = targetRect.width() / static_cast<qreal>(image.width());
         qreal scaleY = targetRect.height() / static_cast<qreal>(image.height());
+        qreal scale = qMax(scaleX, scaleY);  // Scale the image to fit the page, keeping the aspect ratio
 
-        // 强制按页面大小缩放图像，使用最大的比例
-        qreal scale = qMax(scaleX, scaleY);  // 使用最大的缩放比例，确保图像充满页面
-
-        // 缩放绘制
+        // Apply scaling
         painter.scale(scale, scale);
 
-        // 将 PDF 图像绘制到打印机上
+        // Draw the image on the printer
         painter.drawImage(0, 0, image);
 
-        // 恢复 QPainter 状态
+        // Restore the painter state
         painter.restore();
 
-        // 清理
+        // Clean up
         delete pdfDocument;
-
     #endif
     }
+
+
+
+
+
 
 #endif
 
@@ -1151,6 +1162,7 @@ void HstoryList::onOption2() {
     /**
      * @brief 判导出主记录表
      */
+#if 0
     void HstoryList::exportPdf()
     {
         // 设置默认保存路径
@@ -1185,18 +1197,18 @@ void HstoryList::onOption2() {
         m_html.append("<table border='0.5' cellspacing='0' cellpadding='3' width='100%'>");
         // 添加第一行的表头
         m_html.append("<tr>"
-                      "<th>悬挂名称</th>"
-                      "<th>压装日期</th>"
-                      "<th>操作者</th>"
-                      "<th>检查者</th>"
-                      "<th>节点序列号1</th>"
-                      "<th>压装值力1</th>"
-                      "<th>压装结果1</th>"
-                      "<th>压装力标准1</th>"
-                      "<th>节点序列号2</th>"
-                      "<th>压装值力2</th>"
-                      "<th>压装结果2</th>"
-                      "<th>压装力标准2</th>"
+                      "<th style='width: 120px;'>悬挂名称</th>"
+                      "<th style='width: 120px;'>压装日期</th>"
+                      "<th style='width: 120px;'>操作者</th>"
+                      "<th style='width: 120px;'>检查者</th>"
+                      "<th style='width: 360px;'>节点序列号1</th>"
+                      "<th style='width: 120px;'>压装值力1</th>"
+                      "<th style='width: 120px;'>压装结果1</th>"
+                      "<th style='width: 120px;'>压装力标准1</th>"
+                      "<th style='width: 360px;'>节点序列号2</th>"
+                      "<th style='width: 120px;'>压装值力2</th>"
+                      "<th style='width: 120px;'>压装结果2</th>"
+                      "<th style='width: 120px;'>压装力标准2</th>"
                       "</tr>");
 
         // 逐行添加记录到表格
@@ -1229,6 +1241,110 @@ void HstoryList::onOption2() {
         // 关闭文件并开始新的一页
         pdfWriter.newPage();  // 如果需要新页面，使用 newPage
     }
+#endif
+
+#if 1
+    void HstoryList::writePdf()
+    {
+        ///添加基本信息
+        QList<QString> rowsValues;
+        QList<QList<QString>> values;
+
+        //导出t1
+        rowsValues.append("悬挂名称");
+        rowsValues.append("压装日期");
+        rowsValues.append("操作者");
+        rowsValues.append("检查者");
+        rowsValues.append("节点序列号1");
+        rowsValues.append("压装值力1");
+        rowsValues.append("压装结果1");
+        rowsValues.append("压装力标准1");
+        rowsValues.append("节点序列号2");
+        rowsValues.append("压装值力2");
+        rowsValues.append("压装结果2");
+        rowsValues.append("压装力标准2");
+        values.append(rowsValues);
+
+        // 逐行添加记录到表格
+        for (const auto& recordList : mainJiLuList) {
+
+            rowsValues.clear();
+            // 跳过第一个元素
+            for (int i = 1; i < recordList.size(); ++i) {
+                rowsValues.append(recordList[i].toString());
+            }
+            values.append(rowsValues);
+        }
+
+        QList<int> width;
+        width.append(6);
+        width.append(6);
+        width.append(6);
+        width.append(6);
+        width.append(20);
+        width.append(6);
+        width.append(6);
+        width.append(6);
+        width.append(20);
+        width.append(6);
+        width.append(6);
+        width.append(6);
+        int num = mainJiLuList.size()+1;
+        HstoryList::addTable(num,12,width,values);
+    }
+    void HstoryList::addTable(int rows, int cols, QList<int> colWidth, const QList<QList<QString> > &values)
+    {
+        m_html.append("<table border='0.5' cellspacing='0' cellpadding='3' width:100%>");
+
+        //添加字段/字段值
+        for(int i = 0;i < rows;i++)
+        {
+            m_html.append("<tr>");
+            QList<QString> rowValues = values.at(i);
+            for(int j = 0;j < cols;j++)
+            {
+                m_html.append(QString("<td width=%1% valign='center' style='vertical-align:middle;font-size:100px;'>").arg(colWidth.at(j)));
+                m_html.append(rowValues.at(j));
+                m_html.append("</td>");
+            }
+            m_html.append("</tr>");
+        }
+
+    }
+    void HstoryList::exportPdf()
+    {
+        m_html.clear();
+        // 设置默认保存路径
+        QString defaultPath = QCoreApplication::applicationDirPath() + "/mainJiLu.pdf";  // 默认保存路径为应用程序目录下
+
+        // 如果文件没有后缀，则添加 .pdf 后缀
+        if (QFileInfo(defaultPath).suffix().isEmpty()) {
+            defaultPath.append(".pdf");
+            qDebug() << defaultPath << endl;
+        }
+
+        // 创建 QPdfWriter 对象并设置 PDF 输出路径
+        QPdfWriter pdfWriter(defaultPath);
+        pdfWriter.setPageSize(QPagedPaintDevice::A4);
+        pdfWriter.setResolution(QPrinter::ScreenResolution);
+
+        // 添加标题
+        m_html.append("<h1 style='text-align:center;'>主记录列表</h1><br />");
+
+        writePdf();  // Assuming this function appends content to m_html
+
+        // 使用 QTextDocument 输出 PDF 内容
+        QTextDocument textDocument;
+        textDocument.setHtml(m_html);
+        textDocument.print(&pdfWriter);
+
+        // 结束 PDF 文件
+        textDocument.end();
+    }
+
+
+#endif
+
 
     /**
      * @brief 查找主记录表主键id

@@ -18,6 +18,10 @@
 #include <QTextDocument>
 #include <QFile>
 #include "qdebugloginfo.h"
+
+#include <QTextDocument>
+#include <QTextBlock>
+
 #define HSTORYLIST_H
 
 namespace Ui {
@@ -72,6 +76,8 @@ private slots:
           void printonOption2() ;
           void loadTable2(QTableWidget *tableWidget);
           void exportPdf();
+          void writePdf();
+          void addTable(int rows, int cols, QList<int> colWidth, const QList<QList<QString> > &values);
 public:
           QList<QList<QVariant>> dataList2; // 存储悬挂名称和标准数据库中的值
           QList<QList<QVariant>> dataList4; // 存储曲线记录
@@ -80,8 +86,8 @@ public:
           QList<QList<QVariant>> dateFind2; // 按时间查询曲线记录
           QList<QVariant> rowData; //存储单条主记录消息
           QList<QVariant> chartsData; // 存储单条曲线数据记录消息
-public: //处理数据返回给主界面
-
+public:
+          QString m_html;
 signals:
           void dataUpdated(QList<QVariant> mainData, QList<QVariant> chartsData);
 

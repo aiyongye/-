@@ -7,5 +7,10 @@
         <file>historyForm.qss</file>
         <file>adminboot.manifest</file>
         <file>adminboot.rc</file>
+        <file>img/HistoryImg.svg</file>
+        <file>img/LoginImg.svg</file>
+        <file>img/QiTaImg.svg</file>
+        <file>img/QmodBusImg.svg</file>
+        <file>img/SetImg.svg</file>
     </qresource>
 </RCC>

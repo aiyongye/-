@@ -211,6 +211,7 @@ PressStd::PressStd(QWidget *parent) :
             if(flags)
                 qDebug() << "数据更新成功" << endl;
         });
+        w1.setWindowModality(Qt::ApplicationModal);
         w1.show();
     });
 

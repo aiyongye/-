@@ -239,6 +239,7 @@ LoginSet::LoginSet(QWidget *parent) :
                 qDebug()  << "更新成功" << endl;
         });
         // Show Form3Fix to modify the selected row data
+        w1.setWindowModality(Qt::ApplicationModal);
         w1.show();
 //        bool flags = LoginSet::updateDataInTable(database, "userPass" , index, const QList<QVariant> &newData);
 

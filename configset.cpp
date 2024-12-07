@@ -8,6 +8,8 @@ ConfigSet::ConfigSet(QWidget *parent) :
     setAttribute(Qt::WA_QuitOnClose, false);  // 其他窗口关闭时不退出应用程序
     ui->setupUi(this);
     setFixedSize(1200,800);
+    setWindowIcon(QIcon(":/img/SetImg.svg"));
+    setWindowTitle("配置");
 //    qInstallMessageHandler(qDebugLogInfo::customMessageHandler); //打印日志
     QFile file(":/Tabs.qss");
     file.open(QFile::ReadOnly);

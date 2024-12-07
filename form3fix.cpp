@@ -9,6 +9,8 @@ Form3Fix::Form3Fix(QWidget *parent) :
 {
     ui->setupUi(this);
     setFixedSize(300, 220);
+    setWindowIcon(QIcon(":/img/QiTaImg.svg"));
+    setWindowTitle("修改");
 //     qInstallMessageHandler(qDebugLogInfo::customMessageHandler); //打印日志
     connect(ui->liJiFixBtn, QPushButton::clicked, this, [=]{
         Form3Fix::on_updateBtn_clicked();
