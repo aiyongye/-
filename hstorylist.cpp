@@ -1352,8 +1352,6 @@ void HstoryList::onOption2() {
         // 创建 QPdfWriter 对象并设置 PDF 输出路径
         QPdfWriter pdfWriter(defaultPath);
         pdfWriter.setPageSize(QPagedPaintDevice::A4);
-//        pdfWriter.setResolution(QPrinter::ScreenResolution);
-        //pdfWriter.setOrientation(QPrinter::Portrait);  // Explicitly set to Portrait (A4 vertical)
         pdfWriter.setPageSizeMM(QSizeF(297, 210));
 
         // 添加标题
@@ -1365,7 +1363,7 @@ void HstoryList::onOption2() {
         QTextDocument textDocument;
         textDocument.setHtml(m_html);
         textDocument.print(&pdfWriter);
-
+//        pdfWriter.newPage();  // 如果需要新页面，使用 newPage
         // 结束 PDF 文件
         textDocument.end();
     }

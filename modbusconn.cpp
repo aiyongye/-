@@ -15,7 +15,6 @@ void MainWindow::startRefun1() {
 #if 1 //读配置文件modbus.ini
     // 打开modbus.ini文件并指定为ini格式
     QSettings configIni("./modbus.ini", QSettings::IniFormat);
-
     // 读取配置项
     QString modbusHost = configIni.value("Modbus/host", "192.168.1.11").toString();  // 默认为 "192.168.1.1"
     int modbusPort = configIni.value("Modbus/port", 502).toInt();  // 默认为 502

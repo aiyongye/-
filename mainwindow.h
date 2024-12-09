@@ -44,7 +44,7 @@
 #include <wpdfwriter.h>
 #include "qdebugloginfo.h"
 #include <QMessageBox>
-
+#include <QSettings>
 QT_CHARTS_USE_NAMESPACE // 如果使用Qt Charts模块
 namespace Ui {
 class MainWindow;

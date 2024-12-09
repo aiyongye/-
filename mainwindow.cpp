@@ -993,6 +993,7 @@ void MainWindow::applyStyles(QWidget *widget,QString stylesheet)
 /**
  * @brief 导出pdf
  */
+#if 1
 void MainWindow::exportPdf()
 {
     // 获取数据
@@ -1023,7 +1024,15 @@ void MainWindow::exportPdf()
     // 创建 QPdfWriter 对象并设置 PDF 输出路径
     QPdfWriter pdfWriter(defaultPath);
     pdfWriter.setPageSize(QPagedPaintDevice::A4);
-    pdfWriter.setResolution(QPrinter::ScreenResolution);
+    pdfWriter.setPageSizeMM(QSizeF(297, 210));
+
+    // 打开modbus.ini文件并指定为ini格式
+    QSettings configIni("./chartsSize.ini", QSettings::IniFormat);
+    // 读取配置项
+    int chartsW = configIni.value("Charts/W", 720).toInt();  // 默认为 "192.168.1.1"
+    int chartsH = configIni.value("Charts/H", 640).toInt();  // 默认为 502
+    int tableW2 = configIni.value("Charts/W2", 165).toInt();  // 默认为 3000
+
 
     // 创建 QTextDocument 来保存 HTML 内容
     QTextDocument textDocument;
@@ -1032,8 +1041,8 @@ void MainWindow::exportPdf()
     QString m_html;
     m_html.append("<h1 style='text-align:center;'>转向架悬挂件节点压装力曲线</h1><br />");
 
-    // 添加 T1 表格
-    m_html.append("<table border='0.5' cellspacing='0' cellpadding='3' width='100%'>");
+    // 添加 T1
+    m_html.append("<table border='1' cellspacing='0' cellpadding='3' width='100%'>");
     m_html.append("<tr><td width='14%' valign='center'>悬挂名称</td><td width='14%' valign='center'>" + _xuanGuaName + "</td><td width='14%' valign='center'>" + _yaZhuangData + "</td><td width='14%' valign='center'>操作者</td><td width='14%' valign='center'>" + _caoZuoName + "</td><td width='14%' valign='center'>检查者</td><td width='14%' valign='center'>" + _jianChaName + "</td></tr>");
     m_html.append("</table><br /><br />");
 
@@ -1041,14 +1050,14 @@ void MainWindow::exportPdf()
     m_html.append("<table border='0' cellspacing='0' cellpadding='0' style='width: 100%;'>");
     m_html.append("<tr>");
 
-    // 图片1
-    m_html.append("<td style='width: 48%;'><img src='./chart1.png' width='450' height='400'></td>");
+    // 图片1 动态设置宽度和固定高度
+      m_html.append("<td style='width: 48%;'><img src='./chart1.png' width='" + QString::number(chartsW) + "' height='" + QString::number(chartsH) + "'></td>");
 
-    // 图片2
-    m_html.append("<td style='width: 4%;'></td>");  // 空隙列，调整宽度控制图片间距
-    m_html.append("<td style='width: 48%;'><img src='./chart2.png' width='450' height='400'></td>");
+      // 图片2 动态设置宽度和固定高度
+      m_html.append("<td style='width: 4%;'></td>");  // 空隙列，调整宽度控制图片间距
+      m_html.append("<td style='width: 48%;'><img src='./chart2.png' width='" + QString::number(chartsW) + "' height='" + QString::number(chartsH) + "'></td>");
 
-    m_html.append("</tr>");
+      m_html.append("</tr>");
     m_html.append("</table><br />");
 
     // 使用父表格来排列 T2 和 T3 横向显示
@@ -1056,10 +1065,10 @@ void MainWindow::exportPdf()
     m_html.append("<tr>");
 
     // T2 表格
-    m_html.append("<td style='width: 48%; padding-left: 15%; padding-right: 400%'>");
-    m_html.append("<table border='0.5' cellspacing='0' cellpadding='3' width='100%'>");
-    m_html.append("<tr><td style='width: 12.5%;' valign='center'>节点序列号</td><td style='width: 12.5%;' valign='center'>" + _jieDianSignLine1 + "</td><td style='width: 12.5%;' valign='center'>压装力值</td><td style='width: 12.5%;' valign='center'>" + _yaZhuang1 + "</td></tr>");
-    m_html.append("<tr><td style='width: 12.5%;' valign='center'>压装结果</td><td style='width: 12.5%;' valign='center'>" + _yaZhuangSaultLine1 + "</td><td style='width: 12.5%;' valign='center'>压装力标准</td><td style='width: 12.5%;' valign='center'>" + _yaZhuangStdLine1 + "</td></tr>");
+    m_html.append("<td style='width: 48%; padding-left: 15%; padding-right: 50%'>");
+    m_html.append("<table border='1' cellspacing='0' cellpadding='3' width='100%'>");
+    m_html.append("<tr><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>节点序列号</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>" + _jieDianSignLine1 + "</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>压装力值</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>" + _yaZhuang1 + "</td></tr>");
+    m_html.append("<tr><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>压装结果</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>" + _yaZhuangSaultLine1 + "</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>压装力标准</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>" + _yaZhuangStdLine1 + "</td></tr>");
     m_html.append("</table>");
     m_html.append("</td>");
 
@@ -1068,9 +1077,9 @@ void MainWindow::exportPdf()
 
     // T3 表格
     m_html.append("<td style='width: 48%;'>");
-    m_html.append("<table border='0.5' cellspacing='0' cellpadding='3' width='100%'>");
-    m_html.append("<tr><td style='width: 12.5%;' valign='center'>节点序列号</td><td style='width: 12.5%;' valign='center'>" + _jieDianSignLine2 + "</td><td style='width: 12.5%;' valign='center'>压装力值</td><td style='width: 12.5%;' valign='center'>" + _yaZhuang2 + "</td></tr>");
-    m_html.append("<tr><td style='width: 12.5%;' valign='center'>压装结果</td><td style='width: 12.5%;' valign='center'>" + _yaZhuangSaultLine2 + "</td><td style='width: 12.5%;' valign='center'>压装力标准</td><td style='width: 12.5%;' valign='center'>" + _yaZhuangStdLine2 + "</td></tr>");
+    m_html.append("<table border='1' cellspacing='0' cellpadding='3' width='100%'>");
+    m_html.append("<tr><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>节点序列号</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>" + _jieDianSignLine2 + "</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>压装力值</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>" + _yaZhuang2 + "</td></tr>");
+    m_html.append("<tr><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>压装结果</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>" + _yaZhuangSaultLine2 + "</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>压装力标准</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>" + _yaZhuangStdLine2 + "</td></tr>");
     m_html.append("</table>");
     m_html.append("</td>");
 
@@ -1086,6 +1095,9 @@ void MainWindow::exportPdf()
     // 关闭文件
     pdfWriter.newPage();  // 如果需要新页面，使用 newPage
 }
+#endif
+
+
 
 
 
@@ -1222,3 +1234,99 @@ void MainWindow::createChartView123(QChartView *chartView, const QList<QList<QSt
     chartView->setChart(chart);
     chartView->setRenderHint(QPainter::Antialiasing);
 }
+
+
+#if 0
+void MainWindow::exportPdf()
+{
+    // 获取数据
+    QString _xuanGuaName = xuanGuaName->currentText(); // 悬挂名称
+    QString _yaZhuangData = yaZhuangData->text();      // 压装时期
+    QString _caoZuoName = caoZuoName->currentText();   // 操作者名称
+    QString _jianChaName = jianChaName->currentText(); // 检查者名称
+
+    QString _jieDianSignLine1 = jieDianSignLine1->text(); // 节点序列号
+    QString _yaZhuang1 = yaZhuang1->text();               // 压装力值
+    QString _yaZhuangSaultLine1 = yaZhuangSaultLine1->text(); // 压装结果
+    QString _yaZhuangStdLine1 = yaZhuangStdLine1->text(); // 压装力标准
+
+    QString _jieDianSignLine2 = jieDianSignLine2->text(); // 节点序列号
+    QString _yaZhuang2 = yaZhuang2->text();               // 压装力值
+    QString _yaZhuangSaultLine2 = yaZhuangSaultLine2->text(); // 压装结果
+    QString _yaZhuangStdLine2 = yaZhuangStdLine2->text(); // 压装力标准
+
+    // 设置默认保存路径
+    QString defaultPath = QCoreApplication::applicationDirPath() + "/Chart12.pdf";  // 默认保存路径
+    if (QFileInfo(defaultPath).suffix().isEmpty()) {
+        defaultPath.append(".pdf");
+    }
+
+    // 创建 QPdfWriter 对象并设置 PDF 输出路径
+    QPdfWriter pdfWriter(defaultPath);
+    pdfWriter.setPageSize(QPagedPaintDevice::A4);
+    pdfWriter.setPageSizeMM(QSizeF(297, 210));  // A4 size in mm
+
+    // 创建 QTextDocument 来保存 HTML 内容
+    QTextDocument textDocument;
+
+    // 清空 HTML 内容，准备添加新内容
+    QString m_html;
+    m_html.append("<h1 style='text-align:center;'>转向架悬挂件节点压装力曲线</h1><br />");
+
+    // 添加 T1
+    m_html.append("<table border='0.5' cellspacing='0' cellpadding='3' width='100%'>");
+    m_html.append("<tr><td width='14%' valign='center'>悬挂名称</td><td width='14%' valign='center'>" + _xuanGuaName + "</td><td width='14%' valign='center'>" + _yaZhuangData + "</td><td width='14%' valign='center'>操作者</td><td width='14%' valign='center'>" + _caoZuoName + "</td><td width='14%' valign='center'>检查者</td><td width='14%' valign='center'>" + _jianChaName + "</td></tr>");
+    m_html.append("</table><br /><br />");
+
+    // 横向排布图片1和图片2 在 T2 和 T3 之前
+    m_html.append("<table border='0' cellspacing='0' cellpadding='0' style='width: 100%;'>");
+    m_html.append("<tr>");
+
+    // 图片1 固定大小，直接设置宽度和高度
+    m_html.append("<td style='padding: 10px;'>"
+                  "<img src='./chart1.png' style='width: 100mm; height: 80mm;'></td>");
+
+    // 图片2 固定大小，直接设置宽度和高度
+    m_html.append("<td style='padding: 10px;'>"
+                  "<img src='./chart2.png' style='width: 100mm; height: 80mm;'></td>");
+
+//    m_html.append("<td style='width: 4%;'></td>");  // 空隙列，调整宽度控制图片间距
+    m_html.append("</tr>");
+    m_html.append("</table><br />");
+
+    // 使用父表格来排列 T2 和 T3 横向显示
+    m_html.append("<table border='0' cellspacing='0' cellpadding='0' style='width: 100%;'>");
+    m_html.append("<tr>");
+
+    // T2 表格
+    m_html.append("<td style='width: 48%; padding-left: 15%; padding-right: 400%'>");
+    m_html.append("<table border='0.5' cellspacing='0' cellpadding='3' width='100%'>");
+    m_html.append("<tr><td style='width: 12.5%;' valign='center'>节点序列号</td><td style='width: 12.5%;' valign='center'>" + _jieDianSignLine1 + "</td><td style='width: 12.5%;' valign='center'>压装力值</td><td style='width: 12.5%;' valign='center'>" + _yaZhuang1 + "</td></tr>");
+    m_html.append("<tr><td style='width: 12.5%;' valign='center'>压装结果</td><td style='width: 12.5%;' valign='center'>" + _yaZhuangSaultLine1 + "</td><td style='width: 12.5%;' valign='center'>压装力标准</td><td style='width: 12.5%;' valign='center'>" + _yaZhuangStdLine1 + "</td></tr>");
+    m_html.append("</table>");
+    m_html.append("</td>");
+
+    // 空隙列（增大宽度来加大间距）
+    m_html.append("<td style='width: 4%;'></td>");  // 增加间距，控制T2与T3之间的距离
+
+    // T3 表格
+    m_html.append("<td style='width: 48%;'>");
+    m_html.append("<table border='0.5' cellspacing='0' cellpadding='3' width='100%'>");
+    m_html.append("<tr><td style='width: 12.5%;' valign='center'>节点序列号</td><td style='width: 12.5%;' valign='center'>" + _jieDianSignLine2 + "</td><td style='width: 12.5%;' valign='center'>压装力值</td><td style='width: 12.5%;' valign='center'>" + _yaZhuang2 + "</td></tr>");
+    m_html.append("<tr><td style='width: 12.5%;' valign='center'>压装结果</td><td style='width: 12.5%;' valign='center'>" + _yaZhuangSaultLine2 + "</td><td style='width: 12.5%;' valign='center'>压装力标准</td><td style='width: 12.5%;' valign='center'>" + _yaZhuangStdLine2 + "</td></tr>");
+    m_html.append("</table>");
+    m_html.append("</td>");
+
+    m_html.append("</tr>");
+    m_html.append("</table>");
+
+    // 将 HTML 内容设置到 QTextDocument
+    textDocument.setHtml(m_html);
+
+    // 使用 QPdfWriter 打印 PDF
+    textDocument.print(&pdfWriter);
+
+    // 关闭文件
+    pdfWriter.newPage();  // 如果需要新页面，使用 newPage
+}
+#endif
