@@ -19,14 +19,33 @@ ConfigSet::ConfigSet(QWidget *parent) :
     applyStyles(this,qss);
 
     loadTabWidget1(ui->tabWidget->currentIndex());
-
-
+            /***********************bash-20241210*******************/
+    // 当接收到来自 AWidget 的数据时，将其转发给 CWidget
+    PressStd *aWidget = findChild<PressStd *>();
+    // 如果找到了 AWidget，连接信号到槽
+    if (aWidget) {
+        connect(aWidget, &PressStd::sendDataToBWidget, this, &ConfigSet::onReceiveDataFromAWidget);
+    }
+        /***********************bash-20241210*******************/
 }
+            /***********************bash-20241210*******************/
+//void ConfigSet::forwardDataToCWidget(const QString &data){
+//    // 转发信号给 CWidget (这里应该将信号发往 CWidget)
+//    emit sendDataToCWidget(data);
+//}
+            /***********************bash-20241210*******************/
 
 ConfigSet::~ConfigSet()
 {
     delete ui;
 }
+// ConfigSet.cpp
+void ConfigSet::onReceiveDataFromAWidget(const QString &data) {
+    qDebug() << "Received data in ConfigSet:" << data;
+    emit sendDataBToCWidget(data);
+    // 更新界面或执行其他操作
+}
+
 
 void ConfigSet::applyStyles(QWidget *widget,QString stylesheet)
 {

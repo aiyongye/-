@@ -59,6 +59,10 @@ PressStd::PressStd(QWidget *parent) :
     // 每次点击按钮时清空之前的数据并重新插入
     connect(ui->findBtn, QPushButton::clicked, this, [=]() {
         qDebug() << "查询开始" << endl;
+        /***********************bash-20241210*******************/
+        // 当按钮点击时，发送信号给 BWidget
+                emit sendDataToBWidget("Data from AWidget");
+        /***********************bash-20241210*******************/
         // 假设 dataList 是你的查询结果
         bool flags = PressStd::queryAllDataFromTable(database, "proStds", dataList);
         if (flags)

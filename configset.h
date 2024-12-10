@@ -11,6 +11,9 @@
 #include "QGraphicsLineItem"
 #include "QPaintEvent"
 #include "qdebugloginfo.h"
+            /***********************bash-20241210*******************/
+#include "pressstd.h"
+            /***********************bash-20241210*******************/
 namespace Ui {
 class ConfigSet;
 }
@@ -46,6 +49,13 @@ private:
 
 protected:
     void paintEvent(QPaintEvent *event) override;
+            /***********************bash-20241210*******************/
+public slots:
+    void onReceiveDataFromAWidget(const QString &data);
+signals:
+     void sendDataBToCWidget(const QString &data);
+            /***********************bash-20241210*******************/
+
 };
 
 #endif // CONFIGSET_H

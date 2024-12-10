@@ -915,10 +915,11 @@ void HstoryList::onOption2() {
         QPrintPreviewDialog preview(&printer, this);
         preview.resize(2400,1600);
 
-        connect(&preview, &QPrintPreviewDialog::paintRequested, this, &HstoryList::printPreview);
+        connect(&preview, &QPrintPreviewDialog::paintRequested, this, &HstoryList::printPreview2);
         preview.exec();
     #endif
     }
+#if 0
     void HstoryList::printPreview(QPrinter *printer)
     {
 #ifdef QT_NO_PRINTER
@@ -1000,14 +1001,12 @@ void HstoryList::onOption2() {
     delete pdfDocument;
 #endif
     }
+#endif
 
- #if 1
 
     // 打印预览槽函数2
     void HstoryList::filePrintPreview2()
     {
-
-
         // 53%
     #if !defined(QT_NO_PRINTER) && !defined(QT_NO_PRINTDIALOG)
         QPrinter printer(QPrinter::HighResolution);
@@ -1019,7 +1018,7 @@ void HstoryList::onOption2() {
     #endif
     }
 
-
+ #if 0
     void HstoryList::printPreview2(QPrinter *printer)
     {
     #ifdef QT_NO_PRINTER
@@ -1038,7 +1037,8 @@ void HstoryList::onOption2() {
             return;
         }
 
-        // Get the first page to check its orientation
+
+#if 1
         Poppler::Page *page = pdfDocument->page(0);  // Load the first page
         if (!page) {
             qWarning() << "Failed to load page";
@@ -1047,8 +1047,8 @@ void HstoryList::onOption2() {
         }
 
         QSizeF pageSize = page->pageSize();  // Get the page size
+#endif
         bool isLandscape = pageSize.width() > pageSize.height();  // Check if the page is landscape
-
         // Set the printer orientation based on the PDF orientation
         if (isLandscape) {
             printer->setOrientation(QPrinter::Landscape);  // Set printer to Landscape if the PDF is Landscape
@@ -1083,7 +1083,7 @@ void HstoryList::onOption2() {
         QSize printSize = printer->pageRect().size();
         QRect targetRect(0, 0, printSize.width(), printSize.height());
 
-        // Compute scaling factors
+
         qreal scaleX = targetRect.width() / static_cast<qreal>(image.width());
         qreal scaleY = targetRect.height() / static_cast<qreal>(image.height());
         qreal scale = qMax(scaleX, scaleY);  // Scale the image to fit the page, keeping the aspect ratio
@@ -1101,14 +1101,102 @@ void HstoryList::onOption2() {
         delete pdfDocument;
     #endif
     }
-
-
-
-
-
-
 #endif
 
+#if 1
+    void HstoryList::printPreview2(QPrinter *printer)
+    {
+    #ifdef QT_NO_PRINTER
+        Q_UNUSED(printer);
+    #else
+        // Choose PDF file to load
+        QString filePath = QFileDialog::getOpenFileName(this, "选择PDF文件", "", "PDF Files (*.pdf)");
+        if (filePath.isEmpty()) {
+            return;
+        }
+
+        // Load Poppler document
+        Poppler::Document *pdfDocument = Poppler::Document::load(filePath);
+        if (!pdfDocument) {
+            qWarning() << "Failed to load PDF:" << filePath;
+            return;
+        }
+
+        int numPages = pdfDocument->numPages();  // Get the number of pages in the PDF document
+
+        // Create QPainter for printing
+        QPainter painter(printer);
+        if (!painter.isActive()) {
+            qWarning() << "Failed to initialize QPainter";
+            delete pdfDocument;
+            return;
+        }
+
+        // Iterate through all pages
+        for (int pageIndex = 0; pageIndex < numPages; ++pageIndex) {
+            Poppler::Page *page = pdfDocument->page(pageIndex);  // Load the current page
+            if (!page) {
+                qWarning() << "Failed to load page:" << pageIndex;
+                continue;
+            }
+
+            QSizeF pageSize = page->pageSize();  // Get the page size
+            bool isLandscape = pageSize.width() > pageSize.height();  // Check if the page is landscape
+            // Set the printer orientation based on the PDF page orientation
+            if (isLandscape) {
+                printer->setOrientation(QPrinter::Landscape);
+            } else {
+                printer->setOrientation(QPrinter::Portrait);
+            }
+
+            // Set printer resolution and size (A4 size)
+            printer->setPageSize(QPrinter::A4);
+            printer->setResolution(300);
+
+            // Render the current page to an image
+            QImage image = page->renderToImage(600, 600);  // Render page at 600 DPI
+            if (image.isNull()) {
+                qWarning() << "Failed to render page to image";
+                delete page;
+                continue;
+            }
+
+            // Start new page in the printer for each PDF page
+            if (pageIndex > 0) {
+                printer->newPage();  // Begin a new page in the printer if it's not the first page
+            }
+
+            // Print the image onto the page
+            painter.save();
+
+            // Get the print page size
+            QSize printSize = printer->pageRect().size();
+            QRect targetRect(0, 0, printSize.width(), printSize.height());
+
+            qreal scaleX = targetRect.width() / static_cast<qreal>(image.width());
+            qreal scaleY = targetRect.height() / static_cast<qreal>(image.height());
+            qreal scale = qMax(scaleX, scaleY);  // Scale the image to fit the page, keeping the aspect ratio
+
+            // Apply scaling
+            painter.scale(scale, scale);
+
+            // Draw the image on the printer
+            painter.drawImage(0, 0, image);
+
+            // Restore the painter state
+            painter.restore();
+
+            // Clean up the current page
+            delete page;
+        }
+
+        // Clean up the PDF document
+        delete pdfDocument;
+
+    #endif
+    }
+
+#endif
 
     /**
      * @brief 判断是否为指定的数据库文件，查询表中所有数据存入容器中
@@ -1295,7 +1383,7 @@ void HstoryList::onOption2() {
     void HstoryList::addTable(int rows, int cols, QList<int> colWidth, const QList<QList<QString>> &values)
     {
         // 表格头部（表头可能需要每页重新显示）
-        QString tableHeader = "<table  border='0.5' cellspacing='0' cellpadding='3' width:100%>";
+        QString tableHeader = "<table  border='2' cellspacing='0' cellpadding='3' width:100%>";
         tableHeader += "<tr>";
 
 
@@ -1331,6 +1419,13 @@ void HstoryList::onOption2() {
             }
             m_html.append("</tr>");
         }
+
+        // 在最后一行加一行统计行 合计|数据条数 数据条数和后面的列合并
+//        m_html.append("<tr><td width='%1%' valign='center' vertical-align:middle font-size:120px;></td></tr>");
+
+m_html.append("<tr><td  style='text-align: right;'><strong>合计:</strong></td> "
+                   "<td style='text-align: right;'><strong>" + QString::number(rows) + "</strong></td>"
+                   "<td colspan='10'></td> </tr>");
 
         m_html.append("</table><br /><br />");
     }

@@ -11,6 +11,8 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+//    MainWindow::b =-1;
+
     ui->setupUi(this);
      setAttribute(Qt::WA_QuitOnClose, true);  // 主窗口关闭时退出应用程序
      setWindowIcon(QIcon(":/img/QmodBusImg.svg"));
@@ -379,6 +381,10 @@ tuBianSet->setText("80");
     connect(standardButton, QPushButton::clicked,this,[=]{
        qDebug() << "即将跳转工艺标准界面" << endl;
        w2.setWindowModality(Qt::ApplicationModal);
+       /***********************bash-20241210*******************/
+       connect(&w2, &ConfigSet::sendDataBToCWidget, this, &MainWindow::onReceiveDataFromBWidget);
+       /***********************bash-20241210*******************/
+
        MainWindow::w2.show();
     });
 #endif
@@ -571,6 +577,37 @@ connect(daYinChartBtn1, QPushButton::clicked,this, [=]{
 });
 #endif
 
+
+
+
+//fengMingQi->hide();
+#if 1
+connect(fengMingQi, QPushButton::clicked, this, [=]{
+
+     MainWindow::startRefun2();
+     b = dex;
+     if(b == 1){
+         MainWindow::on_writeTor();
+         qDebug() << "蜂鸣器已被关闭" << b << endl;
+         dex = 0;
+         return;
+     }else if(b == 0){
+         MainWindow::on_writeTor();
+         dex = 1;
+         qDebug() << "蜂鸣器已被开启" << b << endl;
+         return;
+     }else{
+         qDebug() << b << ":" << endl;
+         return;
+     }
+});
+#endif
+
+
+// 数据点高亮显示在曲线上
+connect(shuJuBox, &QCheckBox::toggled, this, &MainWindow::onCheckBoxToggled);
+
+
 // 状态栏
 QStatusBar *statusBar = new QStatusBar(this);
 setStatusBar(statusBar);
@@ -578,6 +615,12 @@ setStatusBar(statusBar);
 // 设置状态栏样式
 statusBar->setStyleSheet("QStatusBar { background-color: #34495e; color: white; font-size: 12px; }");
 #endif
+}
+
+void MainWindow::onReceiveDataFromBWidget(const QString &data) {
+    qDebug() << "Received data 11111in ConfigSet:" << data;
+//    emit sendDataBToCWidget(data);
+    // 更新界面或执行其他操作
 }
 
 MainWindow::~MainWindow()
@@ -659,6 +702,7 @@ void MainWindow::initializeControls()
      dataMaintenanceButton = new QPushButton("数据维护", this);
      exitButton = new QPushButton("退出", this);
      zhanKaiLine = new QLineEdit("0", this);  // 展开值
+     zhanKaiLine->setReadOnly(true); // 只读
      zhanKaiLine->setStyleSheet("QLineEdit {"
                                  "font-size: 30pt; "  // 设置字体大小
                                  "font-family: Arial; "  // 设置字体类型
@@ -912,15 +956,16 @@ void MainWindow::initBuJu(){
     QPushButton *wanCheng = new QPushButton("完成并保存曲线", this);
     QPushButton *daYinChart2 = new QPushButton("打印图表2", this);
     QPushButton *zhiJieExit = new QPushButton("直接退出", this);
-    QPushButton *fengMingQi = new QPushButton("蜂鸣器", this);
+    fengMingQi = new QPushButton("蜂鸣器", this);
     wanCheng->setStyleSheet(buttonStyle);
     daYinChart2->setStyleSheet(buttonStyle);
     zhiJieExit->setStyleSheet(buttonStyle);
+    fengMingQi->setStyleSheet(buttonStyle);
 
     controlLayout->addWidget(wanCheng, 2, 0);
     controlLayout->addWidget(daYinChart2, 2, 2);
     controlLayout->addWidget(zhiJieExit, 2, 4);
-    controlLayout->addWidget(fengMingQi, 2, 6);
+    controlLayout->addWidget(fengMingQi, 2, 7);
 
     // 设置大小策略
     jieDianSignLine1->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
@@ -1042,7 +1087,7 @@ void MainWindow::exportPdf()
     m_html.append("<h1 style='text-align:center;'>转向架悬挂件节点压装力曲线</h1><br />");
 
     // 添加 T1
-    m_html.append("<table border='1' cellspacing='0' cellpadding='3' width='100%'>");
+    m_html.append("<table border='2' cellspacing='0' cellpadding='3' width='100%'>");
     m_html.append("<tr><td width='14%' valign='center'>悬挂名称</td><td width='14%' valign='center'>" + _xuanGuaName + "</td><td width='14%' valign='center'>" + _yaZhuangData + "</td><td width='14%' valign='center'>操作者</td><td width='14%' valign='center'>" + _caoZuoName + "</td><td width='14%' valign='center'>检查者</td><td width='14%' valign='center'>" + _jianChaName + "</td></tr>");
     m_html.append("</table><br /><br />");
 
@@ -1066,7 +1111,7 @@ void MainWindow::exportPdf()
 
     // T2 表格
     m_html.append("<td style='width: 48%; padding-left: 15%; padding-right: 50%'>");
-    m_html.append("<table border='1' cellspacing='0' cellpadding='3' width='100%'>");
+    m_html.append("<table border='2' cellspacing='0' cellpadding='3' width='100%'>");
     m_html.append("<tr><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>节点序列号</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>" + _jieDianSignLine1 + "</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>压装力值</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>" + _yaZhuang1 + "</td></tr>");
     m_html.append("<tr><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>压装结果</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>" + _yaZhuangSaultLine1 + "</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>压装力标准</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>" + _yaZhuangStdLine1 + "</td></tr>");
     m_html.append("</table>");
@@ -1077,7 +1122,7 @@ void MainWindow::exportPdf()
 
     // T3 表格
     m_html.append("<td style='width: 48%;'>");
-    m_html.append("<table border='1' cellspacing='0' cellpadding='3' width='100%'>");
+    m_html.append("<table border='2' cellspacing='0' cellpadding='3' width='100%'>");
     m_html.append("<tr><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>节点序列号</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>" + _jieDianSignLine2 + "</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>压装力值</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>" + _yaZhuang2 + "</td></tr>");
     m_html.append("<tr><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>压装结果</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>" + _yaZhuangSaultLine2 + "</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>压装力标准</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>" + _yaZhuangStdLine2 + "</td></tr>");
     m_html.append("</table>");
@@ -1102,7 +1147,7 @@ void MainWindow::exportPdf()
 
 
 /**
- * @brief 保存图表1/2
+ * @brief 保存图表1、2
  */
 void MainWindow::saveChartToImage(QChartView* chartView, const QString& filePath)
 {
@@ -1130,6 +1175,8 @@ void MainWindow::saveChartToImage(QChartView* chartView, const QString& filePath
         qDebug() << "图像保存失败：" << filePath;
     }
 }
+
+
 
 
 void MainWindow::processChartsData(const QList<QVariant> &chartsData) {
@@ -1165,8 +1212,6 @@ void MainWindow::processChartsData(const QList<QVariant> &chartsData) {
 //        qDebug() << it.key() << " : " << it.value();
 //    }
 }
-
-
 
 
 void MainWindow::createChartView123(QChartView *chartView, const QList<QList<QString>> &data, const QString &curveName,
@@ -1330,3 +1375,37 @@ void MainWindow::exportPdf()
     pdfWriter.newPage();  // 如果需要新页面，使用 newPage
 }
 #endif
+
+
+// 数据点处理函数
+void MainWindow::onCheckBoxToggled(bool checked)
+{
+    if (checked) {
+        // 执行勾选时的操作
+
+        // 显示数据点
+        series1->setPointsVisible(true);
+        series2->setPointsVisible(true);
+
+        // 设置数据点的颜色为红色
+        series1->setPointLabelsColor(Qt::red);
+
+        series2->setPointLabelsColor(Qt::red);
+
+    } else {
+        // 执行取消勾选时的操作
+
+        // 隐藏数据点
+        series1->setPointsVisible(false);
+        series2->setPointsVisible(false);
+
+        // 设置数据点的颜色为默认颜色
+        series1->setPointLabelsColor(Qt::black);
+        series2->setPointLabelsColor(Qt::black);
+    }
+
+    // 更新图表，确保颜色和数据点的变化生效
+    chart->update();
+    chart02->update();
+}
+

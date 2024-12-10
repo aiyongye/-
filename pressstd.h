@@ -36,6 +36,12 @@ public:
         QList<QList<QVariant>> dataList; //存储查询到的所有字段
         QList<QVariant> rowData; //存储单条消息
         Form1Fix w1; // 修改弹窗
+
+        /***********************bash-20241210*******************/
+signals:
+    // 发送数据到 BWidget
+    void sendDataToBWidget(const QString &data);
+        /***********************bash-20241210*******************/
 private:
     Ui::PressStd *ui;
         void applyStyles(QWidget *widget,QString stylesheet);

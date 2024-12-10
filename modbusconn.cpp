@@ -4,6 +4,7 @@ ModbusConn::ModbusConn()
 {
 
 }
+
 void MainWindow::startRefun1() {
     if (!modbusDevice) {
         qDebug() << "modbusDevice is not initialized!";
@@ -106,3 +107,150 @@ void MainWindow::toReadReady()
 
     }
 }
+
+
+
+// 控制蜂鸣器
+#if 1
+void MainWindow::startRefun2() {
+    if (!modbusDevice) {
+        qDebug() << "modbusDevice is not initialized!";
+        return;
+    }
+
+        QSettings configIni("./modbus.ini", QSettings::IniFormat);
+            int modbusWrite = configIni.value("Modbus/Write", 3).toInt();  // 默认为 502
+
+//    qDebug() << "Current state:" << modbusDevice->state();
+
+
+    // 如果 Modbus 未处于连接状态，尝试连接
+    if (modbusDevice->state() != QModbusDevice::ConnectedState) {
+        modbusDevice->setConnectionParameter(QModbusDevice::NetworkPortParameter, 502);
+        modbusDevice->setConnectionParameter(QModbusDevice::NetworkAddressParameter, "192.168.1.11");
+        modbusDevice->setTimeout(1000);  // 设置超时时间
+        modbusDevice->setNumberOfRetries(2);  // 设置重试次数
+
+        // 捕获连接过程中的错误
+        connect(modbusDevice, &QModbusDevice::errorOccurred, this, [this](QModbusDevice::Error error) {
+            qDebug() << "Error occurred:" << error << " - " << modbusDevice->errorString();
+        });
+
+        if (!modbusDevice->connectDevice()) {
+            qDebug() << "Connection attempt failed immediately: " << modbusDevice->errorString();
+            return;
+        }
+    } else {
+//        qDebug() << "Already connected. Proceeding to read.";
+    }
+    // 准备读取操作
+    QModbusDataUnit readUnit(QModbusDataUnit::HoldingRegisters, modbusWrite, 1);  // 寄存器起始地址3，读取1个寄存器
+//    qDebug() << "device. State:-------------" << modbusDevice->state();
+
+
+    if (auto *reply = modbusDevice->sendReadRequest(readUnit, 1)) {  // 设备地址为1
+        if (!reply->isFinished()) {
+//            qDebug() << "reoly -------" << endl;
+            connect(reply, &QModbusReply::finished, this, &MainWindow::toReadReady2);
+        } else {
+//            qDebug() << "Broadcast reply finished immediately.";
+            reply->deleteLater();  // 广播请求立即完成时，清理回复对象
+        }
+    } else {
+        qDebug() << "Send read request failed: " << modbusDevice->errorString();
+    }
+
+//    QThread::msleep(1);  // 延时1ms（一般不需要，避免使用可能导致非必要的性能问题）
+}
+
+
+void MainWindow::toReadReady2()
+{
+//QModbusReply这个类存储了来自client的数据,sender()返回发送信号的对象的指针
+    auto reply = qobject_cast<QModbusReply *>(sender());
+    if (!reply)
+    {
+        return;
+    }
+    if (reply->error() == QModbusDevice::NoError)
+    {
+        //处理成功返回的数据
+       const QModbusDataUnit unit = reply->result();
+        //quint16 stat = unit.value(1);  //状态（位与关系）
+
+         MainWindow::b = unit.value(0);
+    }
+}
+
+
+
+void MainWindow::on_writeTor()
+{
+
+    QSettings configIni("./modbus.ini", QSettings::IniFormat);
+        int modbusWrite = configIni.value("Modbus/Write", 3).toInt();  // 默认为 502
+
+    QModbusDataUnit writeUnit(QModbusDataUnit::HoldingRegisters, modbusWrite, 1);
+    writeUnit.setValue(0, MainWindow::dex);
+    if (auto *reply = modbusDevice->sendWriteRequest(writeUnit, 1))
+    //发送写请求
+    {
+        if (!reply->isFinished())
+        {
+            qDebug() << "test" << endl;
+            connect(reply, &QModbusReply::finished, this, [this, reply]()
+            {
+                if (reply->error() != QModbusDevice::NoError)
+
+                    reply->deleteLater();
+                });
+        }
+        else
+        {
+            if (reply->error() != QModbusDevice::NoError)
+            reply->deleteLater();
+        }
+    }
+    else
+    {
+        // error in request
+    }
+
+
+}
+
+void MainWindow::on_writeTor2()
+{
+
+    QSettings configIni("./modbus.ini", QSettings::IniFormat);
+        int modbusWrite = configIni.value("Modbus/Write", 3).toInt();  // 默认为 502
+
+    QModbusDataUnit writeUnit(QModbusDataUnit::HoldingRegisters, modbusWrite, 1);
+    writeUnit.setValue(0, MainWindow::dex);
+    if (auto *reply = modbusDevice->sendWriteRequest(writeUnit, 1))
+    //发送写请求
+    {
+        if (!reply->isFinished())
+        {
+            qDebug() << "test" << endl;
+            connect(reply, &QModbusReply::finished, this, [this, reply]()
+            {
+                if (reply->error() != QModbusDevice::NoError)
+
+                    reply->deleteLater();
+                });
+        }
+        else
+        {
+            if (reply->error() != QModbusDevice::NoError)
+            reply->deleteLater();
+        }
+    }
+    else
+    {
+        // error in request
+    }
+
+
+}
+#endif

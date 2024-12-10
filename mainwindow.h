@@ -164,6 +164,7 @@ public:
     int Timer1; //处理图表1
 public:
     int a;
+    int b;
     HstoryList w1;//历史界面
     ConfigSet w2; //工艺标准界面
     QList<QList<QVariant>> dataList; //存储operator数据库中的值
@@ -194,6 +195,20 @@ private:
 QValueAxis *axisY;
 QDateTimeAxis *axisX;
 
+
+public:
+void toReadReady2();
+void startRefun2();
+QPushButton *fengMingQi ;
+void on_writeTor();
+void on_writeTor2();
+unsigned char dex;
+void onCheckBoxToggled(bool checked);
+
+/***********************bash-20241210*******************/
+public slots:
+void onReceiveDataFromBWidget(const QString &data);
+/***********************bash-20241210*******************/
 };
 
 #endif // MAINWINDOW_H
