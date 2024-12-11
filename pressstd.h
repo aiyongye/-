@@ -40,7 +40,7 @@ public:
         /***********************bash-20241210*******************/
 signals:
     // 发送数据到 BWidget
-    void sendDataToBWidget(const QString &data);
+    void sendDataToBWidget(const int &data);
         /***********************bash-20241210*******************/
 private:
     Ui::PressStd *ui;

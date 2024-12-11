@@ -28,20 +28,14 @@ ConfigSet::ConfigSet(QWidget *parent) :
     }
         /***********************bash-20241210*******************/
 }
-            /***********************bash-20241210*******************/
-//void ConfigSet::forwardDataToCWidget(const QString &data){
-//    // 转发信号给 CWidget (这里应该将信号发往 CWidget)
-//    emit sendDataToCWidget(data);
-//}
-            /***********************bash-20241210*******************/
 
 ConfigSet::~ConfigSet()
 {
     delete ui;
 }
 // ConfigSet.cpp
-void ConfigSet::onReceiveDataFromAWidget(const QString &data) {
-    qDebug() << "Received data in ConfigSet:" << data;
+void ConfigSet::onReceiveDataFromAWidget(const int &data) {
+//    qDebug() << "Received data in ConfigSet:" << data;
     emit sendDataBToCWidget(data);
     // 更新界面或执行其他操作
 }

@@ -103,6 +103,7 @@ tuBianSet->setText("80");
             }
         }
     }
+            /***********************bash-20241211*******************/
     //// 悬挂件标准同步
     flags = SqliteAction::queryAllDataFromTableXuan(dataBaseConn, "proStds", dataList2);
         if(flags){
@@ -119,6 +120,7 @@ tuBianSet->setText("80");
                 }
             }
         }
+           /***********************bash-20241211*******************/
 #endif
 
 #if 1
@@ -133,10 +135,14 @@ tuBianSet->setText("80");
         yaZhuangSaultLine1->setText("");
         yaZhuang2->setText("");
         yaZhuangSaultLine2->setText("");
+        /***********************bash-20241211*******************/
         // 如果索引有效
         if (index >= 0 && index < dataList2.size()) {
+
             // 获取当前选中的项对应的数据行
             const QList<QVariant>& selectedRow = dataList2.at(index);
+            // 打印数据库中对应的主键id
+            qDebug() << "单击悬挂名称索引:" << selectedRow.at(0).toString() << endl;
 
             // 假设 selectedRow 的结构是：[xuanName, pressStd1, pressStd2]
             if (selectedRow.size() >= 3) {
@@ -149,6 +155,8 @@ tuBianSet->setText("80");
                 yaZhuangStdLine2->setText(pressStd2);
             }
         }
+        /***********************bash-20241211*******************/
+
     });
 #endif
 
@@ -617,10 +625,26 @@ statusBar->setStyleSheet("QStatusBar { background-color: #34495e; color: white; 
 #endif
 }
 
-void MainWindow::onReceiveDataFromBWidget(const QString &data) {
+void MainWindow::onReceiveDataFromBWidget(const int &data) {
     qDebug() << "Received data 11111in ConfigSet:" << data;
-//    emit sendDataBToCWidget(data);
-    // 更新界面或执行其他操作
+    /***********************bash-20241211*******************/
+//// 通过信号悬挂件标准同步
+bool flags = SqliteAction::queryAllDataFromTableXuan(dataBaseConn, "proStds", dataList2);
+if(flags){
+    qDebug() << "查询 inspectorTb 成功!!!";
+
+    // 清空 QComboBox，准备添加新的项
+    xuanGuaName->clear();  // 清空 QComboBox 中的所有项
+    // 遍历 dataList 将每一行的 xuanName 列添加到 QComboBox 中
+    for (const QList<QVariant>& row : dataList2) {
+        if (!row.isEmpty()) {
+            // 假设 xuanName 是 dataList 每行的第一列（根据你的表结构调整列索引）
+            QString xuanName = row.at(1).toString();  // 获取 xuanName 的值
+            xuanGuaName->addItem(xuanName);  // 将该值添加到 QComboBox
+        }
+    }
+}
+   /***********************bash-20241211*******************/
 }
 
 MainWindow::~MainWindow()

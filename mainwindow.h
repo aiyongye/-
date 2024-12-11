@@ -207,7 +207,7 @@ void onCheckBoxToggled(bool checked);
 
 /***********************bash-20241210*******************/
 public slots:
-void onReceiveDataFromBWidget(const QString &data);
+void onReceiveDataFromBWidget(const int &data);
 /***********************bash-20241210*******************/
 };
 

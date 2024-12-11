@@ -51,9 +51,9 @@ protected:
     void paintEvent(QPaintEvent *event) override;
             /***********************bash-20241210*******************/
 public slots:
-    void onReceiveDataFromAWidget(const QString &data);
+    void onReceiveDataFromAWidget(const int &data);
 signals:
-     void sendDataBToCWidget(const QString &data);
+     void sendDataBToCWidget(const int &data);
             /***********************bash-20241210*******************/
 
 };

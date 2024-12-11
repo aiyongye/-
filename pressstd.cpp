@@ -50,8 +50,13 @@ PressStd::PressStd(QWidget *parent) :
        if(flags)
            qDebug() << "proStds表创建成功" << endl;
        flags = PressStd::insertDataIntoTable(database, "proStds", guaName, crePressSE, credataTime);
-       if(flags)
+       if(flags){
             qDebug() << "创建成功"<< guaName << "->" << crePressSE << "->" << credataTime << endl;
+            /***********************bash-20241210*******************/
+            // 当按钮点击时，发送信号给 BWidget
+                    emit sendDataToBWidget(123);
+            /***********************bash-20241210*******************/
+       }
     });
 #endif
 
@@ -59,10 +64,7 @@ PressStd::PressStd(QWidget *parent) :
     // 每次点击按钮时清空之前的数据并重新插入
     connect(ui->findBtn, QPushButton::clicked, this, [=]() {
         qDebug() << "查询开始" << endl;
-        /***********************bash-20241210*******************/
-        // 当按钮点击时，发送信号给 BWidget
-                emit sendDataToBWidget("Data from AWidget");
-        /***********************bash-20241210*******************/
+
         // 假设 dataList 是你的查询结果
         bool flags = PressStd::queryAllDataFromTable(database, "proStds", dataList);
         if (flags)
@@ -166,6 +168,10 @@ PressStd::PressStd(QWidget *parent) :
         bool success = deleteDataFromDatabase(database, "proStds", rowData);
         if (success) {
             qDebug() << "删除行成功!!!";
+            /***********************bash-20241210*******************/
+            // 当按钮点击时，发送信号给 BWidget
+                    emit sendDataToBWidget(123);
+            /***********************bash-20241210*******************/
         } else {
             qDebug() << "删除失败";
         }
@@ -212,8 +218,13 @@ PressStd::PressStd(QWidget *parent) :
             ui->tableWidget->item(updatedRow, 1)->setText(newPressDate);
 
             bool flags = PressStd::updateDataInTable(database, "proStds", index1, newStreetData, newPressDate);
-            if(flags)
+            if(flags){
                 qDebug() << "数据更新成功" << endl;
+                /***********************bash-20241210*******************/
+                // 当按钮点击时，发送信号给 BWidget
+                        emit sendDataToBWidget(123);
+                /***********************bash-20241210*******************/
+            }
         });
         w1.setWindowModality(Qt::ApplicationModal);
         w1.show();
