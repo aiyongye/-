@@ -43,6 +43,12 @@ public:
 private slots:
     void onOption1();
     void onOption2();
+
+    /***********************bash-20241212*******************/
+signals:
+// 发送数据到 BWidget
+void sendDataToBWidget(const int &data);
+    /***********************bash-20241212*******************/
 };
 
 #endif // USERCREATE_H

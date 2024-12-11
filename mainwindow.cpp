@@ -72,6 +72,7 @@ tuBianSet->setText("80");
      * @brief 处理数据库与控件同步
      * 操作者同步
      */
+                /***********************bash-20241212*******************/
     bool flags = SqliteAction::queryAllDataFromTable(dataBaseConn,"operatorTb", dataList);
     if(flags){
         qDebug() << "查询 operatorTb 成功!!!";
@@ -87,6 +88,9 @@ tuBianSet->setText("80");
             }
         }
     }
+                /***********************bash-20241212*******************/
+
+                /***********************bash-20241212*******************/
     //// 检查者同步
     flags = SqliteAction::queryAllDataFromTable(dataBaseConn,"inspectorTb", dataList1);
     if(flags){
@@ -103,6 +107,8 @@ tuBianSet->setText("80");
             }
         }
     }
+             /***********************bash-20241212*******************/
+
             /***********************bash-20241211*******************/
     //// 悬挂件标准同步
     flags = SqliteAction::queryAllDataFromTableXuan(dataBaseConn, "proStds", dataList2);
@@ -393,6 +399,9 @@ tuBianSet->setText("80");
        connect(&w2, &ConfigSet::sendDataBToCWidget, this, &MainWindow::onReceiveDataFromBWidget);
        /***********************bash-20241210*******************/
 
+       /***********************bash-20241212*******************/
+       connect(&w2, &ConfigSet::sendDataBToCWidget2, this, &MainWindow::onReceiveDataFromBWidget2);
+       /***********************bash-20241212*******************/
        MainWindow::w2.show();
     });
 #endif
@@ -646,6 +655,47 @@ if(flags){
 }
    /***********************bash-20241211*******************/
 }
+
+void MainWindow::onReceiveDataFromBWidget2(const int &data) {
+    qDebug() << "接到UserCreate界面信号:" << data << endl;
+    /***********************bash-20241212*******************/
+bool flags = SqliteAction::queryAllDataFromTable(dataBaseConn,"operatorTb", dataList);
+if(flags){
+qDebug() << "查询 operatorTb 成功!!!";
+
+// 清空 QComboBox，准备添加新的项
+caoZuoName->clear();  // 清空 QComboBox 中的所有项
+// 遍历 dataList 将每一行的 xuanName 列添加到 QComboBox 中
+    for (const QList<QVariant>& row : dataList) {
+        if (!row.isEmpty()) {
+            // 假设 xuanName 是 dataList 每行的第一列（根据你的表结构调整列索引）
+            QString xuanName = row.at(1).toString();  // 获取 xuanName 的值
+            caoZuoName->addItem(xuanName);  // 将该值添加到 QComboBox
+        }
+    }
+}
+    /***********************bash-20241212*******************/
+
+    /***********************bash-20241212*******************/
+//// 检查者同步
+flags = SqliteAction::queryAllDataFromTable(dataBaseConn,"inspectorTb", dataList1);
+if(flags){
+qDebug() << "查询 inspectorTb 成功!!!";
+
+// 清空 QComboBox，准备添加新的项
+jianChaName->clear();  // 清空 QComboBox 中的所有项
+// 遍历 dataList 将每一行的 xuanName 列添加到 QComboBox 中
+    for (const QList<QVariant>& row : dataList1) {
+        if (!row.isEmpty()) {
+            // 假设 xuanName 是 dataList 每行的第一列（根据你的表结构调整列索引）
+            QString xuanName = row.at(1).toString();  // 获取 xuanName 的值
+            jianChaName->addItem(xuanName);  // 将该值添加到 QComboBox
+        }
+    }
+}
+ /***********************bash-20241212*******************/
+}
+
 
 MainWindow::~MainWindow()
 {
@@ -1062,7 +1112,7 @@ void MainWindow::applyStyles(QWidget *widget,QString stylesheet)
 /**
  * @brief 导出pdf
  */
-#if 1
+#if 0
 void MainWindow::exportPdf()
 {
     // 获取数据
@@ -1165,10 +1215,6 @@ void MainWindow::exportPdf()
     pdfWriter.newPage();  // 如果需要新页面，使用 newPage
 }
 #endif
-
-
-
-
 
 /**
  * @brief 保存图表1、2
@@ -1305,7 +1351,7 @@ void MainWindow::createChartView123(QChartView *chartView, const QList<QList<QSt
 }
 
 
-#if 0
+#if 1
 void MainWindow::exportPdf()
 {
     // 获取数据
@@ -1325,15 +1371,26 @@ void MainWindow::exportPdf()
     QString _yaZhuangStdLine2 = yaZhuangStdLine2->text(); // 压装力标准
 
     // 设置默认保存路径
-    QString defaultPath = QCoreApplication::applicationDirPath() + "/Chart12.pdf";  // 默认保存路径
+    QString defaultPath = QCoreApplication::applicationDirPath() + "/Chart12.pdf";  // 默认保存路径为应用程序目录下
+
+    // 如果文件没有后缀，则添加 .pdf 后缀
     if (QFileInfo(defaultPath).suffix().isEmpty()) {
         defaultPath.append(".pdf");
+        qDebug() << defaultPath.append(".pdf") << endl;
     }
 
     // 创建 QPdfWriter 对象并设置 PDF 输出路径
     QPdfWriter pdfWriter(defaultPath);
     pdfWriter.setPageSize(QPagedPaintDevice::A4);
-    pdfWriter.setPageSizeMM(QSizeF(297, 210));  // A4 size in mm
+    pdfWriter.setPageSizeMM(QSizeF(297, 210));
+
+    // 打开modbus.ini文件并指定为ini格式
+    QSettings configIni("./chartsSize.ini", QSettings::IniFormat);
+    // 读取配置项
+    int chartsW = configIni.value("Charts/W", 720).toInt();  // 默认为 "192.168.1.1"
+    int chartsH = configIni.value("Charts/H", 640).toInt();  // 默认为 502
+    int tableW2 = configIni.value("Charts/W2", 165).toInt();  // 默认为 3000
+    int tableH2 = configIni.value("Charts/H2", 180).toInt();  // 默认为 3000
 
     // 创建 QTextDocument 来保存 HTML 内容
     QTextDocument textDocument;
@@ -1343,24 +1400,30 @@ void MainWindow::exportPdf()
     m_html.append("<h1 style='text-align:center;'>转向架悬挂件节点压装力曲线</h1><br />");
 
     // 添加 T1
-    m_html.append("<table border='0.5' cellspacing='0' cellpadding='3' width='100%'>");
-    m_html.append("<tr><td width='14%' valign='center'>悬挂名称</td><td width='14%' valign='center'>" + _xuanGuaName + "</td><td width='14%' valign='center'>" + _yaZhuangData + "</td><td width='14%' valign='center'>操作者</td><td width='14%' valign='center'>" + _caoZuoName + "</td><td width='14%' valign='center'>检查者</td><td width='14%' valign='center'>" + _jianChaName + "</td></tr>");
+    m_html.append("<table border='2' cellspacing='0' cellpadding='3' width='100%'>");
+    m_html.append("<tr>");
+    m_html.append("<td width='14%' style='font-size: " + QString::number(tableH2) + "px' valign='center'>悬挂名称</td>");
+    m_html.append("<td width='14%' style='font-size: " + QString::number(tableH2) + "px' valign='center'>" + _xuanGuaName + "</td>");
+    m_html.append("<td width='14%' style='font-size: " + QString::number(tableH2) + "px' valign='center'>" + _yaZhuangData + "</td>");
+    m_html.append("<td width='14%' style='font-size: " + QString::number(tableH2) + "px' valign='center'>操作者</td>");
+    m_html.append("<td width='14%' style='font-size: " + QString::number(tableH2) + "px' valign='center'>" + _caoZuoName + "</td>");
+    m_html.append("<td width='14%' style='font-size: " + QString::number(tableH2) + "px' valign='center'>检查者</td>");
+    m_html.append("<td width='14%' style='font-size: " + QString::number(tableH2) + "px' valign='center'>" + _jianChaName + "</td>");
+    m_html.append("</tr>");
+
     m_html.append("</table><br /><br />");
 
     // 横向排布图片1和图片2 在 T2 和 T3 之前
     m_html.append("<table border='0' cellspacing='0' cellpadding='0' style='width: 100%;'>");
     m_html.append("<tr>");
 
-    // 图片1 固定大小，直接设置宽度和高度
-    m_html.append("<td style='padding: 10px;'>"
-                  "<img src='./chart1.png' style='width: 100mm; height: 80mm;'></td>");
+    // 图片1 动态设置宽度和固定高度
+      m_html.append("<td style='width: 48%;'><img src='./chart1.png' width='" + QString::number(chartsW) + "' height='" + QString::number(chartsH) + "'></td>");
+      // 图片2 动态设置宽度和固定高度
+      m_html.append("<td style='width: 4%;'></td>");  // 空隙列，调整宽度控制图片间距
+      m_html.append("<td style='width: 48%;'><img src='./chart2.png' width='" + QString::number(chartsW) + "' height='" + QString::number(chartsH) + "'></td>");
 
-    // 图片2 固定大小，直接设置宽度和高度
-    m_html.append("<td style='padding: 10px;'>"
-                  "<img src='./chart2.png' style='width: 100mm; height: 80mm;'></td>");
-
-//    m_html.append("<td style='width: 4%;'></td>");  // 空隙列，调整宽度控制图片间距
-    m_html.append("</tr>");
+      m_html.append("</tr>");
     m_html.append("</table><br />");
 
     // 使用父表格来排列 T2 和 T3 横向显示
@@ -1368,10 +1431,10 @@ void MainWindow::exportPdf()
     m_html.append("<tr>");
 
     // T2 表格
-    m_html.append("<td style='width: 48%; padding-left: 15%; padding-right: 400%'>");
-    m_html.append("<table border='0.5' cellspacing='0' cellpadding='3' width='100%'>");
-    m_html.append("<tr><td style='width: 12.5%;' valign='center'>节点序列号</td><td style='width: 12.5%;' valign='center'>" + _jieDianSignLine1 + "</td><td style='width: 12.5%;' valign='center'>压装力值</td><td style='width: 12.5%;' valign='center'>" + _yaZhuang1 + "</td></tr>");
-    m_html.append("<tr><td style='width: 12.5%;' valign='center'>压装结果</td><td style='width: 12.5%;' valign='center'>" + _yaZhuangSaultLine1 + "</td><td style='width: 12.5%;' valign='center'>压装力标准</td><td style='width: 12.5%;' valign='center'>" + _yaZhuangStdLine1 + "</td></tr>");
+    m_html.append("<td style='width: 48%; padding-left: 15%; padding-right: 50%'>");
+    m_html.append("<table border='2' cellspacing='0' cellpadding='3' width='100%'>");
+    m_html.append("<tr><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>节点序列号</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>" + _jieDianSignLine1 + "</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>压装力值</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>" + _yaZhuang1 + "</td></tr>");
+    m_html.append("<tr><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>压装结果</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>" + _yaZhuangSaultLine1 + "</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>压装力标准</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>" + _yaZhuangStdLine1 + "</td></tr>");
     m_html.append("</table>");
     m_html.append("</td>");
 
@@ -1380,9 +1443,9 @@ void MainWindow::exportPdf()
 
     // T3 表格
     m_html.append("<td style='width: 48%;'>");
-    m_html.append("<table border='0.5' cellspacing='0' cellpadding='3' width='100%'>");
-    m_html.append("<tr><td style='width: 12.5%;' valign='center'>节点序列号</td><td style='width: 12.5%;' valign='center'>" + _jieDianSignLine2 + "</td><td style='width: 12.5%;' valign='center'>压装力值</td><td style='width: 12.5%;' valign='center'>" + _yaZhuang2 + "</td></tr>");
-    m_html.append("<tr><td style='width: 12.5%;' valign='center'>压装结果</td><td style='width: 12.5%;' valign='center'>" + _yaZhuangSaultLine2 + "</td><td style='width: 12.5%;' valign='center'>压装力标准</td><td style='width: 12.5%;' valign='center'>" + _yaZhuangStdLine2 + "</td></tr>");
+    m_html.append("<table border='2' cellspacing='0' cellpadding='3' width='100%'>");
+    m_html.append("<tr><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>节点序列号</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>" + _jieDianSignLine2 + "</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>压装力值</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>" + _yaZhuang2 + "</td></tr>");
+    m_html.append("<tr><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>压装结果</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>" + _yaZhuangSaultLine2 + "</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>压装力标准</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>" + _yaZhuangStdLine2 + "</td></tr>");
     m_html.append("</table>");
     m_html.append("</td>");
 

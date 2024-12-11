@@ -209,6 +209,12 @@ void onCheckBoxToggled(bool checked);
 public slots:
 void onReceiveDataFromBWidget(const int &data);
 /***********************bash-20241210*******************/
+
+
+/***********************bash-20241210*******************/
+public slots:
+void onReceiveDataFromBWidget2(const int &data);
+/***********************bash-20241210*******************/
 };
 
 #endif // MAINWINDOW_H

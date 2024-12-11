@@ -3,6 +3,7 @@
 # Project created by QtCreator 2024-11-22T15:02:41
 #
 #-------------------------------------------------
+QMAKE_CXXFLAGS -= -fpch
 
 QT       += core gui
 QT   += serialbus serialport

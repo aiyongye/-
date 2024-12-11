@@ -21,6 +21,7 @@
 
 #include <QTextDocument>
 #include <QTextBlock>
+#include <QSettings>
 
 #define HSTORYLIST_H
 

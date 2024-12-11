@@ -1339,16 +1339,16 @@ void HstoryList::onOption2() {
         QList<QList<QString>> values;
 
         //导出t1
-        rowsValues.append("悬挂名称");
+        rowsValues.append("悬挂件名称");
         rowsValues.append("压装日期");
         rowsValues.append("操作者");
         rowsValues.append("检查者");
         rowsValues.append("节点序列号1");
-        rowsValues.append("压装值力1");
+        rowsValues.append("压装力值1");
         rowsValues.append("压装结果1");
         rowsValues.append("压装力标准1");
         rowsValues.append("节点序列号2");
-        rowsValues.append("压装值力2");
+        rowsValues.append("压装力值2");
         rowsValues.append("压装结果2");
         rowsValues.append("压装力标准2");
         values.append(rowsValues);
@@ -1365,41 +1365,45 @@ void HstoryList::onOption2() {
         }
 
         QList<int> width;
+        width.append(8);
+        width.append(8);
         width.append(6);
         width.append(6);
+        width.append(16);
         width.append(6);
         width.append(6);
-        width.append(20);
+        width.append(8);
+        width.append(16);
         width.append(6);
         width.append(6);
-        width.append(6);
-        width.append(20);
-        width.append(6);
-        width.append(6);
-        width.append(6);
+        width.append(8);
         int num = mainJiLuList.size()+1;
         HstoryList::addTable(num,12,width,values);
     }
+
+
     void HstoryList::addTable(int rows, int cols, QList<int> colWidth, const QList<QList<QString>> &values)
     {
+        // 打开modbus.ini文件并指定为ini格式
+        QSettings configIni("./chartsSize.ini", QSettings::IniFormat);
+        // 读取配置项
+        int tableH2 = configIni.value("Charts/H2", 180).toInt();  // 默认为 3000
+
         // 表格头部（表头可能需要每页重新显示）
         QString tableHeader = "<table  border='2' cellspacing='0' cellpadding='3' width:100%>";
         tableHeader += "<tr>";
 
 
-        tableHeader += QString("<td colspan='12' text-align:left  border-top: none border-left: none border-right:none vertical-align: middle font-size:20px>");
-
-
-            tableHeader +=  "<h3 style='text-align: left;'>统计时间:    " +
-        ui->startDateEdit->text() + " => " + ui->endDateEdit->text() +
-                " 23:59:59</h3>"   +"</td>";  // You can replace this with real column names
-//            m_html.append("<h3 style='text-align: left;'>统计时间:    " + ui->startDateEdit->text() + " => " + ui->endDateEdit->text() + " 23:59:59</h3>");
+        tableHeader += QString("<td colspan='12' style='font-size:%1px;' text-align:left  border-top: none border-left: none border-right:none vertical-align: middle").arg(tableH2);
+        tableHeader += QString("统计时间: %1 => %2 23:59:59</td>")
+                          .arg(ui->startDateEdit->text())
+                          .arg(ui->endDateEdit->text());
 
         tableHeader += "</tr>";
         m_html.append(tableHeader);
 
         // 设置每页最大行数
-        const int maxRowsPerPage = 20;  // 每页最大行数，可以根据实际需求调整
+        const int maxRowsPerPage = 17;  // 每页最大行数，可以根据实际需求调整
 
         // 添加数据行
         for (int i = 0; i < rows; i++)
@@ -1407,13 +1411,13 @@ void HstoryList::onOption2() {
             // 每超出 maxRowsPerPage 行，插入分页符并重新渲染表头
             if (i > 0 && i % maxRowsPerPage == 0) {
                 m_html.append("<div page-break-before:always;></div>");  // 强制分页
-//                m_html.append(tableHeader);  // 每页重新显示表头
             }
 
             m_html.append("<tr>");
             QList<QString> rowValues = values.at(i);  // 获取当前行的数据
             for (int j = 0; j < cols; j++) {
-                m_html.append(QString("<td width='%1%' valign='center' vertical-align:middle font-size:120px;>").arg(colWidth.at(j)));
+                m_html.append(QString("<td width='%1%' valign='center' style='font-size:%2px; text-align: center; vertical-align:middle;'>").arg(colWidth.at(j)).arg(tableH2));
+
                 m_html.append(rowValues.at(j));
                 m_html.append("</td>");
             }
@@ -1421,11 +1425,10 @@ void HstoryList::onOption2() {
         }
 
         // 在最后一行加一行统计行 合计|数据条数 数据条数和后面的列合并
-//        m_html.append("<tr><td width='%1%' valign='center' vertical-align:middle font-size:120px;></td></tr>");
+        m_html.append(QString("<tr><td style='text-align: center; font-size:%1px'><strong>合计:</strong></td>"
+                              "<td style='text-align: center; font-size:%1px'><strong>%2</strong></td>"
+                              "<td colspan='10'></td></tr>").arg(tableH2).arg(QString::number(rows)));
 
-m_html.append("<tr><td  style='text-align: right;'><strong>合计:</strong></td> "
-                   "<td style='text-align: right;'><strong>" + QString::number(rows) + "</strong></td>"
-                   "<td colspan='10'></td> </tr>");
 
         m_html.append("</table><br /><br />");
     }
@@ -1450,7 +1453,8 @@ m_html.append("<tr><td  style='text-align: right;'><strong>合计:</strong></td>
         pdfWriter.setPageSizeMM(QSizeF(297, 210));
 
         // 添加标题
-        m_html.append("<h1 style='text-align:center;'>主记录列表</h1><br />");
+        m_html.append("<h1 style='text-align:center; font-size:220px !important;'>主记录列表</h1><br />");
+
 
         writePdf();  // Assuming this function appends content to m_html
 

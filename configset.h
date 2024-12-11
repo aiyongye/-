@@ -14,6 +14,11 @@
             /***********************bash-20241210*******************/
 #include "pressstd.h"
             /***********************bash-20241210*******************/
+
+            /***********************bash-20241212*******************/
+#include "usercreate.h"
+            /***********************bash-20241212*******************/
+
 namespace Ui {
 class ConfigSet;
 }
@@ -56,6 +61,12 @@ signals:
      void sendDataBToCWidget(const int &data);
             /***********************bash-20241210*******************/
 
+     /***********************bash-20241210*******************/
+public slots:
+void onReceiveDataFromAWidget2(const int &data);
+signals:
+void sendDataBToCWidget2(const int &data);
+     /***********************bash-20241210*******************/
 };
 
 #endif // CONFIGSET_H

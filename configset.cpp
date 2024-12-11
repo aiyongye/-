@@ -26,20 +26,39 @@ ConfigSet::ConfigSet(QWidget *parent) :
     if (aWidget) {
         connect(aWidget, &PressStd::sendDataToBWidget, this, &ConfigSet::onReceiveDataFromAWidget);
     }
-        /***********************bash-20241210*******************/
+        /***********************bash-20241212*******************/
+
+        /***********************bash-20241212*******************/
+    // 当接收到来自 AWidget 的数据时，将其转发给 CWidget
+    UserCreate *aWidget2 = findChild<UserCreate *>();
+    // 如果找到了 AWidget，连接信号到槽
+    if (aWidget2) {
+    connect(aWidget2, &UserCreate::sendDataToBWidget, this, &ConfigSet::onReceiveDataFromAWidget2);
+    }
+    /***********************bash-20241212*******************/
 }
 
 ConfigSet::~ConfigSet()
 {
     delete ui;
 }
+            /***********************bash-20241211*******************/
 // ConfigSet.cpp
 void ConfigSet::onReceiveDataFromAWidget(const int &data) {
 //    qDebug() << "Received data in ConfigSet:" << data;
     emit sendDataBToCWidget(data);
     // 更新界面或执行其他操作
 }
+            /***********************bash-20241211*******************/
 
+            /***********************bash-20241212*******************/
+// ConfigSet.cpp
+void ConfigSet::onReceiveDataFromAWidget2(const int &data) {
+//    qDebug() << "Received data in ConfigSet:" << data;
+emit sendDataBToCWidget2(data);
+// 更新界面或执行其他操作
+}
+            /***********************bash-20241212*******************/
 
 void ConfigSet::applyStyles(QWidget *widget,QString stylesheet)
 {

@@ -31,6 +31,10 @@ UserCreate::UserCreate(QWidget *parent) :
         if(flags)
             qDebug() << "operatorTb 创建成功" << endl;
         flags = UserCreate::insertDataIntoTable(database, "operatorTb", caoZuoLine, creDataTime);
+        /***********************bash-20241212*******************/
+        // 当按钮点击时，发送信号给 BWidget
+                emit sendDataToBWidget(123);
+        /***********************bash-20241212*******************/
     });
     // 用于创建检查者表
     connect(ui->liJiCreateBtn_2,QPushButton::clicked, this, [=]{
@@ -45,6 +49,10 @@ UserCreate::UserCreate(QWidget *parent) :
         if(flags)
             qDebug() << "inspectorTb 创建成功" << endl;
         flags = UserCreate::insertDataIntoTable(database, "inspectorTb", jianChaLine, creDataTime);
+        /***********************bash-20241212*******************/
+        // 当按钮点击时，发送信号给 BWidget
+                emit sendDataToBWidget(123);
+        /***********************bash-20241212*******************/
     });
     // 查询按钮里面包含菜单，菜单里包含检查者、创建者
 #if 1
@@ -142,6 +150,10 @@ UserCreate::UserCreate(QWidget *parent) :
                     // 删除数据库中的相同数据
                     bool success = deleteDataFromDatabase(database, "operatorTb", rowData);
                     if (success) {
+                        /***********************bash-20241212*******************/
+                        // 当按钮点击时，发送信号给 BWidget
+                                emit sendDataToBWidget(123);
+                        /***********************bash-20241212*******************/
                         qDebug() << "删除行成功!!!";
                     } else {
                         qDebug() << "删除失败";
@@ -183,6 +195,10 @@ UserCreate::UserCreate(QWidget *parent) :
                     // 删除数据库中的相同数据
                     bool success = deleteDataFromDatabase(database, "inspectorTb", rowData);
                     if (success) {
+                        /***********************bash-20241212*******************/
+                        // 当按钮点击时，发送信号给 BWidget
+                                emit sendDataToBWidget(123);
+                        /***********************bash-20241212*******************/
                         qDebug() << "删除行成功!!!";
                     } else {
                         qDebug() << "删除失败";
@@ -200,6 +216,7 @@ UserCreate::UserCreate(QWidget *parent) :
 #endif
 #if 1 // 修改数据按钮
             connect(ui->fixBtn, QPushButton::clicked, this, [=]{
+
                 qDebug() << "修改数据" << endl;
                 if(flagsBtn == 0){
                     qDebug() << "操作者" << endl;
@@ -230,8 +247,13 @@ UserCreate::UserCreate(QWidget *parent) :
                         ui->tableWidget->item(updatedRow, 0)->setText(newStreetData);
                         QString _userName = newStreetData;
                         bool flags = UserCreate::updateDataInTable(database, "operatorTb", index3, _userName);
-                        if(flags)
+                        if(flags){
                             qDebug()  << "更新成功" << endl;
+                            /***********************bash-20241212*******************/
+                            // 当按钮点击时，发送信号给 BWidget
+                                    emit sendDataToBWidget(123);
+                            /***********************bash-20241212*******************/
+                        }
                     });
                 }else if(flagsBtn == 1){
                     qDebug() << "检查者" << endl;
@@ -262,8 +284,13 @@ UserCreate::UserCreate(QWidget *parent) :
                         ui->tableWidget->item(updatedRow, 0)->setText(newStreetData);
                         QString _userName = newStreetData;
                         bool flags = UserCreate::updateDataInTable(database, "inspectorTb", index3, _userName);
-                        if(flags)
+                        if(flags){
+                            /***********************bash-20241212*******************/
+                            // 当按钮点击时，发送信号给 BWidget
+                                    emit sendDataToBWidget(123);
+                            /***********************bash-20241212*******************/
                             qDebug()  << "更新成功" << endl;
+                        }
                     });
 
                 }else{
