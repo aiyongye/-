@@ -1434,7 +1434,6 @@ void HstoryList::onOption2() {
     }
 
 
-
     void HstoryList::exportPdf()
     {
         m_html.clear();

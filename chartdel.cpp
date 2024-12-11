@@ -18,14 +18,29 @@ QChartView* MainWindow::createChartView(const QString &title, QDateTimeAxis *axi
     axisX->setFormat("yyyy-MM-dd HH:mm:ss");  // 设置日期时间格式
     axisX->setTickCount(2);  // 设置 X 轴刻度数量（显示两个刻度，即当前时间和下一秒）
 
+
     // 设置初始X轴范围，确保显示当前时间及之前5秒的数据
     axisX->setMin(QDateTime::fromMSecsSinceEpoch(currentTime - 5000));  // 设置最小时间，5秒前
     axisX->setMax(QDateTime::fromMSecsSinceEpoch(currentTime + 1000));  // 设置最大时间，当前时间 + 1秒
 
     // 设置Y轴范围和刻度
     axisY->setRange(0, 450);        // 设置Y轴范围
-    axisY->setTickCount(6);         // 设置Y轴刻度数量
+    axisY->setTickCount(10);         // 设置Y轴刻度数量
     axisY->setLabelFormat("%.0f");  // 设置Y轴标签格式，显示整数
+    // 设置坐标轴X的线条样式
+    QPen axisXPen;
+    axisXPen.setWidth(3);  // 设置线条宽度为3
+    axisXPen.setColor(QColor(211, 211, 211));   // 设置线条颜色为黑色
+    axisX->setLinePen(axisXPen);  // 应用线条样式
+    QPen axisYPen;
+    axisYPen.setWidth(3);  // 设置线条宽度为3
+    axisYPen.setColor(QColor(211, 211, 211));    // 设置线条颜色为黑色
+    axisY->setLinePen(axisYPen);  // 应用线条样式
+    QFont fontX("Arial", 6);QFont fontY("Arial", 6);
+    fontX.setBold(true);  // 设置字体加粗
+    fontY.setBold(true);  // 设置字体加粗
+    axisX->setLabelsFont(fontX);  // 应用加粗字体
+    axisY->setLabelsFont(fontY);  // 应用加粗字体
 
     // 将坐标轴应用到图表
     axisY->setTitleText("压力值");
@@ -76,6 +91,11 @@ QChartView* MainWindow::createChartView2(const QString &title, QDateTimeAxis *ax
     axisX->setTitleText("时间");
     axisX->setFormat("yyyy-MM-dd HH:mm:ss");  // 设置日期时间格式
     axisX->setTickCount(2);  // 设置 X 轴刻度数量（显示两个刻度，即当前时间和下一秒）
+    // 设置坐标轴X的线条样式
+    QPen axisXPen;
+    axisXPen.setWidth(3);  // 设置线条宽度为3
+    axisXPen.setColor(QColor(211, 211, 211));   // 设置线条颜色为黑色
+    axisX->setLinePen(axisXPen);  // 应用线条样式
 
     // 设置初始X轴范围，确保显示当前时间及之前5秒的数据
     axisX->setMin(QDateTime::fromMSecsSinceEpoch(currentTime - 5000));  // 设置最小时间，5秒前
@@ -84,8 +104,12 @@ QChartView* MainWindow::createChartView2(const QString &title, QDateTimeAxis *ax
     // 设置Y轴范围和刻度
     axisY->setTitleText("压力值");
     axisY->setRange(0, 450);        // 设置Y轴范围
-    axisY->setTickCount(6);         // 设置Y轴刻度数量
+    axisY->setTickCount(10);         // 设置Y轴刻度数量
     axisY->setLabelFormat("%.0f");  // 设置Y轴标签格式，显示整数
+    QPen axisYPen;
+    axisYPen.setWidth(3);  // 设置线条宽度为3
+    axisYPen.setColor(QColor(211, 211, 211));    // 设置线条颜色为黑色
+    axisY->setLinePen(axisYPen);  // 应用线条样式
 
     // 将坐标轴应用到图表
     chart->setAxisX(axisX, series);
@@ -96,6 +120,12 @@ QChartView* MainWindow::createChartView2(const QString &title, QDateTimeAxis *ax
     chartView->setRenderHint(QPainter::Antialiasing);  // 启用抗锯齿
 //    axisX->setLabelsFont(QFont("Arial", 12));  // 设置X轴的字体为Arial，大小为10
 //    axisY->setLabelsFont(QFont("Arial", 12));  // 设置X轴的字体为Arial，大小为10
+    QFont fontX("Arial", 6);QFont fontY("Arial", 6);
+    fontX.setBold(true);  // 设置字体加粗
+    fontY.setBold(true);  // 设置字体加粗
+    axisX->setLabelsFont(fontX);  // 应用加粗字体
+    axisY->setLabelsFont(fontY);  // 应用加粗字体
+
     startDataInsertion2(axisX, series, chart, chartView);  // 传入chartView，确保更新
     return chartView;
 }

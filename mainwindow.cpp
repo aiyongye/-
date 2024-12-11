@@ -1341,6 +1341,23 @@ void MainWindow::createChartView123(QChartView *chartView, const QList<QList<QSt
     chart->addAxis(axisY, Qt::AlignLeft);
     series->attachAxis(axisY);
 
+    axisY->setTickCount(10);         // 设置Y轴刻度数量
+    axisY->setLabelFormat("%.0f");  // 设置Y轴标签格式，显示整数
+    // 设置坐标轴X的线条样式
+    QPen axisXPen;
+    axisXPen.setWidth(3);  // 设置线条宽度为3
+    axisXPen.setColor(QColor(211, 211, 211));   // 设置线条颜色为黑色
+    axisX->setLinePen(axisXPen);  // 应用线条样式
+    QPen axisYPen;
+    axisYPen.setWidth(3);  // 设置线条宽度为3
+    axisYPen.setColor(QColor(211, 211, 211));    // 设置线条颜色为黑色
+    axisY->setLinePen(axisYPen);  // 应用线条样式
+    QFont fontX("Arial", 6);QFont fontY("Arial", 6);
+    fontX.setBold(true);  // 设置字体加粗
+    fontY.setBold(true);  // 设置字体加粗
+    axisX->setLabelsFont(fontX);  // 应用加粗字体
+    axisY->setLabelsFont(fontY);  // 应用加粗字体
+
     // 设置图表标题
     chart->setTitle(curveName);
 
