@@ -18,6 +18,16 @@ UserCreate::UserCreate(QWidget *parent) :
     // 还可以设置选择模式为单选
     ui->tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
 
+    ui->lineEdit_4->setDisabled(true);
+    ui->lineEdit_4->setStyleSheet(
+        "QLineEdit {"
+        "  user-select: none;"            // 禁止文本选择
+        "  cursor: not-allowed;"          // 禁用光标
+        "  background-color: #f0f0f0;"    // 背景色（可选，设置为灰色）
+        "  border: 1px solid #d3d3d3;"    // 边框（可选）
+        "  color: #888888;"               // 字体颜色（可选）
+        "}");
+
     // 用于创建操作者表
     connect(ui->liJiCreateBtn, QPushButton::clicked, this, [=]{
         qDebug() << "操作者" << endl;

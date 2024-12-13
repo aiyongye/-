@@ -45,6 +45,9 @@
 #include "qdebugloginfo.h"
 #include <QMessageBox>
 #include <QSettings>
+/***************bash20241213*************/
+#include <QtCharts/QValueAxis>
+/***************bash20241213*************/
 QT_CHARTS_USE_NAMESPACE // 如果使用Qt Charts模块
 namespace Ui {
 class MainWindow;
@@ -215,6 +218,16 @@ void onReceiveDataFromBWidget(const int &data);
 public slots:
 void onReceiveDataFromBWidget2(const int &data);
 /***********************bash-20241210*******************/
+
+public:
+    /***************bash20241213*************/
+#if 1
+
+void configureChart(QChartView* chartView, QChart* chart, QLineSeries* series, QDateTimeAxis* axisX, QValueAxis* axisY, const QString& chartTitle);
+// 状态栏
+QStatusBar *statusBar;
+#endif
+    /***************bash20241213*************/
 };
 
 #endif // MAINWINDOW_H

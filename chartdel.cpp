@@ -50,9 +50,20 @@ QChartView* MainWindow::createChartView(const QString &title, QDateTimeAxis *axi
     // 创建并返回QChartView
     QChartView *chartView = new QChartView(chart);
     chartView->setRenderHint(QPainter::Antialiasing);  // 启用抗锯齿
-//    axisX->setLabelsFont(QFont("Arial", 10));  // 设置X轴的字体为Arial，大小为10
-//    axisY->setLabelsFont(QFont("Arial", 12));  // 设置X轴的字体为Arial，大小为10
-
+        /***************bash20241213*************/
+    chartView->chart()->setBackgroundBrush(QBrush(QColor(236, 233, 216))); // 浅黄色
+    chartView->chart()->setBackgroundPen(Qt::NoPen); // 移除边框
+        /***************bash20241213*************/
+        /***************bash20241213*************/
+    // 设置标题字体和颜色
+    QFont titleFont;
+    titleFont.setPointSize(8); // 固定标题字体大小为 8
+    chart->setTitleFont(titleFont);
+    chart->setTitleBrush(QBrush(Qt::blue)); // 字体颜色设置为蓝色
+    chart->setTitle(title); // 设置标题
+    axisX->setLabelsVisible(true);
+    axisY->setLabelsVisible(true);
+        /***************bash20241213*************/
     startDataInsertion(axisX, series, chart, chartView);  // 传入chartView，确保更新
     return chartView;
 }
@@ -78,7 +89,8 @@ void MainWindow::startDataInsertion(QDateTimeAxis *axisX, QLineSeries *series, Q
 QChartView* MainWindow::createChartView2(const QString &title, QDateTimeAxis *axisX, QValueAxis *axisY) {
     QChart *chart = new QChart();
     chart->setTitle(title);
-
+    axisX->setLabelsVisible(true);
+    axisY->setLabelsVisible(true);
     // 创建曲线数据系列
     QLineSeries *series = new QLineSeries();
     qint64 currentTime = QDateTime::currentDateTime().toMSecsSinceEpoch();
@@ -118,6 +130,10 @@ QChartView* MainWindow::createChartView2(const QString &title, QDateTimeAxis *ax
     // 创建并返回QChartView
     QChartView *chartView = new QChartView(chart);
     chartView->setRenderHint(QPainter::Antialiasing);  // 启用抗锯齿
+    /***************bash20241213*************/
+chartView->chart()->setBackgroundBrush(QBrush(QColor(236, 233, 216))); // 浅黄色
+chartView->chart()->setBackgroundPen(Qt::NoPen); // 移除边框
+    /***************bash20241213*************/
 //    axisX->setLabelsFont(QFont("Arial", 12));  // 设置X轴的字体为Arial，大小为10
 //    axisY->setLabelsFont(QFont("Arial", 12));  // 设置X轴的字体为Arial，大小为10
     QFont fontX("Arial", 6);QFont fontY("Arial", 6);
@@ -125,7 +141,16 @@ QChartView* MainWindow::createChartView2(const QString &title, QDateTimeAxis *ax
     fontY.setBold(true);  // 设置字体加粗
     axisX->setLabelsFont(fontX);  // 应用加粗字体
     axisY->setLabelsFont(fontY);  // 应用加粗字体
-
+    /***************bash20241213*************/
+// 设置标题字体和颜色
+QFont titleFont;
+titleFont.setPointSize(8); // 固定标题字体大小为 8
+chart->setTitleFont(titleFont);
+chart->setTitleBrush(QBrush(Qt::blue)); // 字体颜色设置为蓝色
+chart->setTitle(title); // 设置标题
+axisX->setLabelsVisible(true);
+axisY->setLabelsVisible(true);
+    /***************bash20241213*************/
     startDataInsertion2(axisX, series, chart, chartView);  // 传入chartView，确保更新
     return chartView;
 }

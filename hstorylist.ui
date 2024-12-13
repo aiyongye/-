@@ -186,7 +186,7 @@
          <widget class="QDateEdit" name="startDateEdit">
           <property name="minimumSize">
            <size>
-            <width>120</width>
+            <width>115</width>
             <height>37</height>
            </size>
           </property>
@@ -196,7 +196,7 @@
          <widget class="QTimeEdit" name="startTimeEdit">
           <property name="minimumSize">
            <size>
-            <width>120</width>
+            <width>115</width>
             <height>37</height>
            </size>
           </property>
@@ -216,7 +216,7 @@
          <widget class="QDateEdit" name="endDateEdit">
           <property name="minimumSize">
            <size>
-            <width>120</width>
+            <width>115</width>
             <height>37</height>
            </size>
           </property>
@@ -226,7 +226,7 @@
          <widget class="QTimeEdit" name="endTimeEdit">
           <property name="minimumSize">
            <size>
-            <width>120</width>
+            <width>115</width>
             <height>37</height>
            </size>
           </property>
@@ -239,7 +239,7 @@
           </property>
           <property name="sizeHint" stdset="0">
            <size>
-            <width>40</width>
+            <width>30</width>
             <height>20</height>
            </size>
           </property>
@@ -265,7 +265,7 @@
          <widget class="QComboBox" name="xuanNameBox">
           <property name="minimumSize">
            <size>
-            <width>240</width>
+            <width>220</width>
             <height>37</height>
            </size>
           </property>
@@ -297,7 +297,7 @@
          <widget class="QLineEdit" name="lineEdit">
           <property name="minimumSize">
            <size>
-            <width>240</width>
+            <width>220</width>
             <height>37</height>
            </size>
           </property>

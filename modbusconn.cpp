@@ -45,6 +45,8 @@ void MainWindow::startRefun1() {
         // 捕获状态变化
         connect(modbusDevice, &QModbusDevice::stateChanged, this, [=](QModbusDevice::State state) {
             qDebug() << "State changed to:" << state << endl;
+            QString buf = (state == 1) ? "未连接!" : (state == 2) ? "已连接!" : "未知状态!";
+            MainWindow::statusBar->showMessage(QString("modbus连接状态: %1").arg(buf));
             // 输出读取的值（用于调试）
             qDebug() << "Modbus Host:" << modbusHost << "->"
                      << "Modbus Port:" << modbusPort << "->"

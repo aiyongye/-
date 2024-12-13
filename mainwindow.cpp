@@ -31,7 +31,6 @@ MainWindow::MainWindow(QWidget *parent) :
             MainWindow::dataBaseConn = SqliteAction::getDatabaseConnection("./D1.db");
             MainWindow::initializeControls();
             MainWindow::initBuJu();
-
 // 设置日期显示格式为 "yyyy-MM-dd"
 yaZhuangData->setDisplayFormat("yyyy-MM-dd");
 // 设置日期为当前日期
@@ -137,6 +136,12 @@ tuBianSet->setText("80");
     connect(xuanGuaName, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [=](int index) {
         MainWindow::clearChart(chartView1);
         MainWindow::clearChart(chartView2);
+        /***************bash20241213*************/
+#if 1
+        MainWindow::configureChart(chartView1, chart,series1, axisX1, axisY1, "压力曲线1");
+        MainWindow::configureChart(chartView2, chart02,series2, axisX2, axisY2, "压力曲线2");
+#endif
+        /***************bash20241213*************/
         yaZhuang1->setText("");
         yaZhuangSaultLine1->setText("");
         yaZhuang2->setText("");
@@ -626,7 +631,7 @@ connect(shuJuBox, &QCheckBox::toggled, this, &MainWindow::onCheckBoxToggled);
 
 
 // 状态栏
-QStatusBar *statusBar = new QStatusBar(this);
+statusBar = new QStatusBar(this);
 setStatusBar(statusBar);
 
 // 设置状态栏样式
@@ -723,10 +728,10 @@ void MainWindow::initializeControls()
 
     caoZuoName = new QComboBox(this);
     yaZhuangData = new QDateEdit(this);
-    axisX1 = new QDateTimeAxis();
-    axisY1 = new QValueAxis();
-    axisX2 = new QDateTimeAxis();
-    axisY2 = new QValueAxis();
+    axisX1 = new QDateTimeAxis(this);
+    axisY1 = new QValueAxis(this);
+    axisX2 = new QDateTimeAxis(this);
+    axisY2 = new QValueAxis(this);
     chart02 = new QChart();
     chart = new QChart();
 
@@ -803,7 +808,7 @@ void MainWindow::initBuJu(){
     // 创建菜单栏
     menuBar = new QMenuBar(this);
     setMenuBar(menuBar);
-    menuBar->addMenu("`");
+    menuBar->addMenu(" ");
 //    menuBar->addMenu("设置(&Y)");
 //    menuBar->addMenu("维护(&P)");
 //    menuBar->addMenu("工具(&T)");
@@ -958,6 +963,15 @@ void MainWindow::initBuJu(){
     // Add widgets to the grid layout (Row 1: Charts)
     chartLayout->addWidget(chartView1, 1, 0, 1, 3);  // Chart 1: Spans 2 columns (Column 0-1)
     chartLayout->addWidget(chartView2, 1, 3, 1, 3);  // Chart 2: Spans 3 columns (Column 2-4)
+    /***************bash20241213*************/
+#if 1
+        MainWindow::configureChart(chartView1, chart,series1, axisX1, axisY1, "压力曲线1");
+        MainWindow::configureChart(chartView2, chart02,series2, axisX2, axisY2, "压力曲线2");
+#endif
+    /***************bash20241213*************/
+
+
+
 
     // Set stretch factors for better layout control
     chartLayout->setColumnStretch(0, 1);             // Column 0: Normal stretch
@@ -1247,8 +1261,6 @@ void MainWindow::saveChartToImage(QChartView* chartView, const QString& filePath
 }
 
 
-
-
 void MainWindow::processChartsData(const QList<QVariant> &chartsData) {
     // 使用 QMap 来存储时间（包含时分秒）和多个压力值的键值对
     leftData.clear();
@@ -1290,8 +1302,11 @@ void MainWindow::createChartView123(QChartView *chartView, const QList<QList<QSt
     if (!chart->series().contains(series)) {
         chart->addSeries(series);
     }
-
+    // 隐藏数据系列并设置样式
+    series->setVisible(true); // 隐藏数据系列
     series->clear();  // 清空已有数据点
+    axisX->setLabelsVisible(true);
+    axisY->setLabelsVisible(true);
 
     // 添加数据点到 series
     for (int i = 0; i < data.size(); ++i) {
@@ -1513,3 +1528,85 @@ void MainWindow::onCheckBoxToggled(bool checked)
     chart02->update();
 }
 
+
+// 初始化图表
+
+    /***************bash20241213*************/
+#if 1
+void MainWindow::configureChart(QChartView* chartView, QChart* chart, QLineSeries* series, QDateTimeAxis* axisX, QValueAxis* axisY, const QString& chartTitle) {
+    if (!chartView || !chart || !series || !axisX || !axisY) {
+        qWarning() << "Invalid arguments passed to configureChart.";
+        return;
+    }
+
+    // 设置 Chart 的背景
+    chart->setBackgroundBrush(QBrush(QColor(236, 233, 216))); // 浅黄色
+    chart->setBackgroundPen(Qt::NoPen); // 移除边框
+    // 设置标题下方的图表区域边框线
+    QPen plotBorderPen(Qt::black); // 设置边框颜色为黑色
+    plotBorderPen.setWidth(3);     // 设置边框线宽度为 3
+    chart->setPlotAreaBackgroundPen(plotBorderPen); // 设置图表区域的边框样式
+    chart->setPlotAreaBackgroundVisible(true); // 确保图表区域的边框可见
+
+    // 设置坐标轴范围和刻度
+    QDateTime now = QDateTime::currentDateTime();
+    axisX->setRange(now.addSecs(-1), now.addSecs(1)); // X 轴范围：-1 秒到 1 秒
+    axisX->setFormat("ss"); // 显示秒数差值
+    axisY->setRange(-1, 1);  // Y 轴范围：-1 到 1
+
+    // 隐藏坐标轴刻度和标签
+    axisX->setLabelsVisible(false);
+    axisY->setLabelsVisible(false);
+    axisX->setTickCount(3); // 仅显示中心点
+    axisY->setTickCount(3);
+
+    // 设置标题字体和颜色
+    QFont titleFont;
+    titleFont.setPointSize(8); // 固定标题字体大小为 8
+    chart->setTitleFont(titleFont);
+    chart->setTitleBrush(QBrush(Qt::blue)); // 字体颜色设置为蓝色
+    chart->setTitle(chartTitle); // 设置标题
+
+
+
+    // 设置网格线样式
+    QPen gridLinePen(QColor(200, 200, 200)); // 设置网格线颜色为灰色
+    gridLinePen.setWidth(2); // 设置网格线宽度为 2
+    gridLinePen.setStyle(Qt::DashLine); // 设置网格线样式为虚线
+    axisX->setGridLinePen(gridLinePen); // 设置 X 轴网格线样式
+    axisY->setGridLinePen(gridLinePen); // 设置 Y 轴网格线样式
+    axisX->setGridLineVisible(true); // 启用 X 轴网格线
+    axisY->setGridLineVisible(true); // 启用 Y 轴网格线
+
+    // 设置坐标轴标题
+    axisX->setTitleText("0");
+    axisY->setTitleText("0");
+
+    // 隐藏数据系列并设置样式
+    series->setVisible(false); // 隐藏数据系列
+
+    QPen pen1(Qt::blue); // 设置曲线颜色为蓝色
+//    pen1.setWidth(10);   // 设置曲线宽度为 10
+    series->setPen(pen1); // 应用到数据系列
+
+
+    // 清理 Chart 中已有的内容，避免重复添加
+    chart->removeAllSeries();
+    chart->removeAxis(axisX);
+    chart->removeAxis(axisY);
+
+    // 添加数据系列和坐标轴到 Chart
+    chart->addSeries(series);
+    chart->addAxis(axisX, Qt::AlignBottom); // 添加 X 轴到底部
+    chart->addAxis(axisY, Qt::AlignLeft);   // 添加 Y 轴到左侧
+
+    // 将数据系列与坐标轴绑定
+    series->attachAxis(axisX);
+    series->attachAxis(axisY);
+
+    // 设置 Chart 到 ChartView
+    chartView->setChart(chart);
+}
+
+#endif
+    /***************bash20241213*************/

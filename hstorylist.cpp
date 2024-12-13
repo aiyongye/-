@@ -69,7 +69,7 @@ HstoryList::HstoryList(QWidget *parent) :
 
     QMenuBar *menuBar = new QMenuBar(this);
     setMenuBar(menuBar);
-    menuBar->addMenu("'");
+    menuBar->addMenu(" ");
 
     // 设置菜单栏样式
     menuBar->setStyleSheet("QMenuBar { background-color: #2c3e50; color: white; font-size: 16px; }"
