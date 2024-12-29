@@ -14,6 +14,7 @@
 #include <QDateTime>
 #include "form3fix.h"
 #include "qdebugloginfo.h"
+#include <QMessageBox>
 namespace Ui {
 class LoginSet;
 }

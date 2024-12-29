@@ -14,6 +14,7 @@
 #include <QDateTime>
 #include "form2_1fix.h"
 #include "qdebugloginfo.h"
+#include <QMessageBox>
 namespace Ui {
 class UserCreate;
 }

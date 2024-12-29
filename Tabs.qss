@@ -18,9 +18,9 @@ QTabWidget QTabBar::tab{
     padding: 0 10px;
     width:85;
     height: 40px;
-    box-sizing: border-box;
+
     line-height: 40px;
-    display: inline-block;
+
     list-style: none;
     font-size: 14px;
     font-weight: 100;
@@ -37,7 +37,7 @@ QTabWidget QTabBar::tab:selected{
 /*定义Tab鼠标悬停时的样式*/
 QTabWidget QTabBar::tab:hover{
     color: #409eff;
-    cursor: pointer;
+
 }
 
 /*定义Tab在非选中时的样式e*/
@@ -57,9 +57,9 @@ QTabWidget[type="card"] QTabBar::tab{
     padding: 0 10px;
     width:85;
     height: 40px;
-    box-sizing: border-box;
+
     line-height: 40px;
-    display: inline-block;
+
     list-style: none;
     font-size: 14px;
     font-weight: 100;
@@ -79,7 +79,7 @@ QTabWidget[type="card"] QTabBar::tab:selected{
 /*定义Tab鼠标悬停时的样式*/
 QTabWidget[type="card"] QTabBar::tab:hover{
     color: #409eff;
-    cursor: pointer;
+
 }
 
 

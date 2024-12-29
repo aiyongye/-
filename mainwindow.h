@@ -47,6 +47,9 @@
 #include <QSettings>
 /***************bash20241213*************/
 #include <QtCharts/QValueAxis>
+#include <QSvgRenderer>
+#include <QtSvg>
+
 /***************bash20241213*************/
 QT_CHARTS_USE_NAMESPACE // 如果使用Qt Charts模块
 namespace Ui {
@@ -152,7 +155,7 @@ QChart *chart02;
 //QChar *chart11;
 QChart *chart;
 
-private slots:
+public:
 #if 1
     void startRefun1();
     void initializeControls();
@@ -168,8 +171,9 @@ public:
 public:
     int a;
     int b;
-    HstoryList w1;//历史界面
-    ConfigSet w2; //工艺标准界面
+    int c;  // 初始值设为 0
+    HstoryList *w1;//历史界面
+    ConfigSet *w2; //工艺标准界面
     QList<QList<QVariant>> dataList; //存储operator数据库中的值
     QList<QList<QVariant>> dataList1; //存储检查者数据库中的值
     QList<QList<QVariant>> dataList2; //存储悬挂名称和标准数据库中的值
@@ -192,6 +196,8 @@ public:
                                        QLineSeries *series, QChart *chart, QDateTimeAxis *axisX, QValueAxis *axisY);
                        QList<QList<QString>> selectedData;
                        QList<QList<QString>> selectedData2;
+
+                       void initStart1();
 private:
      QString m_html;  // 用于存储生成的 HTML 内容
      QPdfWriter *m_pdfWriter;
@@ -227,7 +233,17 @@ void configureChart(QChartView* chartView, QChart* chart, QLineSeries* series, Q
 // 状态栏
 QStatusBar *statusBar;
 #endif
+QString generateSimpleSvgChart();
+void saveSvgChartAsImage();
+void saveSvgChartAsImage2();
     /***************bash20241213*************/
+
+public:
+/***********************bash20241218***********************/
+void createDirectory(const QString& path);
+void backupChartFile();
+/***********************bash20241218***********************/
+
 };
 
 #endif // MAINWINDOW_H

@@ -11,9 +11,15 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
-//    MainWindow::b =-1;
 
+#if 1
     ui->setupUi(this);
+    /*-------------------20241228---------------------*/
+//    setFixedSize(1280,1024);
+    /*-------------------20241228---------------------*/
+
+    w1 = nullptr;//历史界面
+    w2 = nullptr; //工艺标准界面
      setAttribute(Qt::WA_QuitOnClose, true);  // 主窗口关闭时退出应用程序
      setWindowIcon(QIcon(":/img/QmodBusImg.svg"));
      qInstallMessageHandler(qDebugLogInfo::customMessageHandler); //打印日志
@@ -31,6 +37,7 @@ MainWindow::MainWindow(QWidget *parent) :
             MainWindow::dataBaseConn = SqliteAction::getDatabaseConnection("./D1.db");
             MainWindow::initializeControls();
             MainWindow::initBuJu();
+#endif
 // 设置日期显示格式为 "yyyy-MM-dd"
 yaZhuangData->setDisplayFormat("yyyy-MM-dd");
 // 设置日期为当前日期
@@ -241,10 +248,13 @@ tuBianSet->setText("80");
     connect(recordQueryButton, &QPushButton::clicked, this, [=] {
         qDebug() << "即将跳转历史页面......";
         // 在新窗体中显示查询结果
-        w1.setWindowModality(Qt::ApplicationModal);
-        MainWindow::w1.show();
+        w1 = new HstoryList(this);
+        w1->show();
+        w1->setWindowModality(Qt::ApplicationModal);
+//        MainWindow::w1.show();
+
 #if 1 // 处理历史界面点击table行时 重写主界面数据
-        connect(&w1, &HstoryList::dataUpdated, this, [=](QList<QVariant> mainData, QList<QVariant> chartsData){
+        connect(w1, &HstoryList::dataUpdated, this, [=](QList<QVariant> mainData, QList<QVariant> chartsData){
 //            for (const QVariant& data : mainData) {
 //                qDebug() << "main data：" <<data.toString();
 //            }
@@ -348,8 +358,8 @@ tuBianSet->setText("80");
                 for (const auto &pair : selectedData) {
                     qDebug() << "Time: " << pair[0] << " Pressure: " << pair[1];
                 }
-                createChartView123(chartView1, selectedData, "压力曲线1", series1, chart, axisX1, axisY1);
 
+                createChartView123(chartView1, selectedData, "压力曲线1", series1, chart, axisX1, axisY1);
 #if 1
                 // 右边数据处理
                 selectedData.clear();
@@ -387,9 +397,128 @@ tuBianSet->setText("80");
 
 #endif
         });
-
-
 #endif
+
+#if 0 // 处理历史界面点击table行时 重写主界面数据 优化版
+    connect(w1, &HstoryList::dataUpdated, this, [=](QList<QVariant> mainData, QList<QVariant> chartsData){
+        // 处理从另一个界面拿到的数据ui到当前界面
+
+        // 1)悬挂名称
+        QString targetValue = mainData[0].toString();  // 获取要比较的值
+        for (int i = 0; i < xuanGuaName->count(); ++i) {
+            if (xuanGuaName->itemText(i) == targetValue) {
+                xuanGuaName->setCurrentIndex(i);  // 设置当前选中项
+                break;  // 找到匹配项后退出循环
+            }
+        }
+
+        // 2)压装时期
+        QString dateTime = mainData[1].toString();  // 获取原始字符串 "2024-12-04 14:59:04"
+        QStringList parts = dateTime.split(" ");  // 以空格分割日期和时间
+        QString datePart = parts.at(0);  // 获取分割后的日期部分 "2024-12-04"
+        QDate date = QDate::fromString(datePart, "yyyy-MM-dd");
+        yaZhuangData->setDate(date);  // 设置日期
+
+        // 3)操作者
+        QString targetValue2 = mainData[2].toString();  // 获取要比较的值
+        for (int i = 0; i < caoZuoName->count(); ++i) {
+            if (caoZuoName->itemText(i) == targetValue2) {
+                caoZuoName->setCurrentIndex(i);  // 设置当前选中项
+                break;  // 找到匹配项后退出循环
+            }
+        }
+
+        // 4)检查者
+        QString targetValue3 = mainData[3].toString();  // 获取要比较的值
+        for (int i = 0; i < jianChaName->count(); ++i) {
+            if (jianChaName->itemText(i) == targetValue3) {
+                jianChaName->setCurrentIndex(i);  // 设置当前选中项
+                break;  // 找到匹配项后退出循环
+            }
+        }
+
+        // 5)节点序列号1
+        jieDianSignLine1->setText(mainData[4].toString());
+
+        // 6)压装力值1
+        yaZhuang1->setText(mainData[5].toString());
+
+        // 7)压装结果1
+        yaZhuangSaultLine1->setText(mainData[6].toString());
+
+        // 9)节点序列号2
+        jieDianSignLine2->setText(mainData[8].toString());
+
+        // 10)压装力值2
+        yaZhuang2->setText(mainData[9].toString());
+
+        // 11)压装结果2
+        yaZhuangSaultLine2->setText(mainData[10].toString());
+
+        // 上面是主记录处理，下面是曲线处理
+        // chartsData 是QList<QVariant>类型
+        // 数据拆分成 左表数据 和右表数据
+        MainWindow::processChartsData(chartsData);  // 处理曲线数据
+
+        // 处理左边数据
+        selectedData.clear();
+        for (auto it = leftData.begin(); it != leftData.end(); ++it) {
+            QList<QString> pressureValues = it.value();
+            QString dataValues = it.key();
+
+            if (pressureValues.size() <= 4) {
+                // 如果小于等于4，直接添加
+                for (int i = 0; i < pressureValues.size(); ++i) {
+                    QList<QString> dataPair = { dataValues, pressureValues[i] };
+                    selectedData.append(dataPair);
+                }
+            } else {
+                // 如果大于4，只取最近4个数据
+                for (int i = pressureValues.size() - 4; i >= 0; --i) {
+                    for (int j = i; j < i + 4; ++j) {
+                        QList<QString> dataPair = { dataValues, pressureValues[j] };
+                        selectedData.append(dataPair);
+                    }
+                }
+            }
+        }
+        // 调试输出，可以根据需要取消注释
+        // for (const auto& pair : selectedData) {
+        //     qDebug() << "Time: " << pair[0] << " Pressure: " << pair[1];
+        // }
+        createChartView123(chartView1, selectedData, "压力曲线1", series1, chart, axisX1, axisY1);
+
+        // 处理右边数据
+        selectedData.clear();  // 清空左侧处理的选中数据
+        for (auto it = rightData.begin(); it != rightData.end(); ++it) {
+            QList<QString> pressureValues = it.value();
+            QString dataValues = it.key();
+
+            if (pressureValues.size() <= 4) {
+                // 如果小于等于4，直接添加
+                for (int i = 0; i < pressureValues.size(); ++i) {
+                    QList<QString> dataPair = { dataValues, pressureValues[i] };
+                    selectedData.append(dataPair);
+                }
+            } else {
+                // 如果大于4，只取最近4个数据
+                for (int i = pressureValues.size() - 4; i >= 0; --i) {
+                    for (int j = i; j < i + 4; ++j) {
+                        QList<QString> dataPair = { dataValues, pressureValues[j] };
+                        selectedData.append(dataPair);
+                    }
+                }
+            }
+        }
+        // 调试输出，可以根据需要取消注释
+        // for (const auto& pair : selectedData) {
+        //     qDebug() << "Time: " << pair[0] << " Pressure: " << pair[1];
+        // }
+        createChartView123(chartView2, selectedData, "压力曲线2", series2, chart02, axisX2, axisY2);
+    });
+#endif
+
+
     });
 #endif
 
@@ -399,15 +528,16 @@ tuBianSet->setText("80");
      */
     connect(standardButton, QPushButton::clicked,this,[=]{
        qDebug() << "即将跳转工艺标准界面" << endl;
-       w2.setWindowModality(Qt::ApplicationModal);
+       w2 = new ConfigSet(this);
+       w2->setWindowModality(Qt::ApplicationModal);
        /***********************bash-20241210*******************/
-       connect(&w2, &ConfigSet::sendDataBToCWidget, this, &MainWindow::onReceiveDataFromBWidget);
+       connect(w2, &ConfigSet::sendDataBToCWidget, this, &MainWindow::onReceiveDataFromBWidget);
        /***********************bash-20241210*******************/
 
        /***********************bash-20241212*******************/
-       connect(&w2, &ConfigSet::sendDataBToCWidget2, this, &MainWindow::onReceiveDataFromBWidget2);
+       connect(w2, &ConfigSet::sendDataBToCWidget2, this, &MainWindow::onReceiveDataFromBWidget2);
        /***********************bash-20241212*******************/
-       MainWindow::w2.show();
+       MainWindow::w2->show();
     });
 #endif
 
@@ -419,6 +549,7 @@ tuBianSet->setText("80");
      * @brief 绘制图表1
      */
 connect(startReBtn1, &QPushButton::clicked, this, [=]() {
+        c = 0;
         if(jieDianSignLine1->text() == ""){
             QMessageBox::warning(this, "开始失败", "节点序列号1不能为空！");
             return;
@@ -466,10 +597,14 @@ connect(jieShu1, &QPushButton::clicked, this, [=]() {
     QStringList rangeParts = rangeText.split("~"); // 使用 ~ 分割成两个部分
 
     if (rangeParts.size() == 2) {
+        /*-----------------20241228--------------------*/
         // 将 min 和 max 转换为整数
-        int minRange = rangeParts[0].toInt();
-        int maxRange = rangeParts[1].toInt();
+//        int minRange = rangeParts[0].toInt();
+//        int maxRange = rangeParts[1].toInt();
+          float minRange = rangeParts[0].toFloat();
+          float maxRange = rangeParts[1].toFloat();
 
+        /*-----------------20241228--------------------*/
         // 遍历 chart1Container 容器中的每个值
         int lastValidValue = -1;  // 用于存储最后一个符合范围的值
 
@@ -535,9 +670,13 @@ connect(jieShu2, &QPushButton::clicked,this,[=]{
 
             if (rangeParts.size() == 2) {
                 // 将 min 和 max 转换为整数
-                int minRange = rangeParts[0].toInt();
-                int maxRange = rangeParts[1].toInt();
+//                int minRange = rangeParts[0].toInt();
+//                int maxRange = rangeParts[1].toInt();
+              /*-----------------20241228--------------------*/
+                float minRange = rangeParts[0].toFloat();
+                float maxRange = rangeParts[1].toFloat();
 
+              /*-----------------20241228--------------------*/
                 // 遍历 chart2Container 容器中的每个值
                 int lastValidValue = -1;  // 用于存储最后一个符合范围的值
 
@@ -583,10 +722,13 @@ connect(daYinChartBtn1, QPushButton::clicked,this, [=]{
 //    QSize newSize2(450, 400);  // 新的图像大小
     MainWindow::saveChartToImage(chartView1, "./chart1.png");
     MainWindow::saveChartToImage(chartView2, "./chart2.png");
-
-
-
+        /***************bash20241213*************/
     MainWindow::exportPdf();
+        /***************bash20241213*************/
+
+        /***************bash20241227*************/
+    MainWindow::backupChartFile();
+        /***************bash20241227*************/
 });
 #endif
 
@@ -709,8 +851,10 @@ MainWindow::~MainWindow()
            dataBaseConn.close();
            qDebug() << "Database connection closed!!!.";
        }
+       if(w1) delete w1;
+       if(w2) delete w2;
     delete ui;
-    MainWindow::w1.close();
+//    MainWindow::w1.close();
 }
 
 
@@ -1126,7 +1270,7 @@ void MainWindow::applyStyles(QWidget *widget,QString stylesheet)
 /**
  * @brief 导出pdf
  */
-#if 0
+#if 1
 void MainWindow::exportPdf()
 {
     // 获取数据
@@ -1164,8 +1308,8 @@ void MainWindow::exportPdf()
     // 读取配置项
     int chartsW = configIni.value("Charts/W", 720).toInt();  // 默认为 "192.168.1.1"
     int chartsH = configIni.value("Charts/H", 640).toInt();  // 默认为 502
-    int tableW2 = configIni.value("Charts/W2", 165).toInt();  // 默认为 3000
-
+    int tableW2 = configIni.value("Charts/W3", 165).toInt();  // 默认为 3000
+    int tableH2 = configIni.value("Charts/H3", 180).toInt();  // 默认为 3000
 
     // 创建 QTextDocument 来保存 HTML 内容
     QTextDocument textDocument;
@@ -1175,21 +1319,29 @@ void MainWindow::exportPdf()
     m_html.append("<h1 style='text-align:center;'>转向架悬挂件节点压装力曲线</h1><br />");
 
     // 添加 T1
-    m_html.append("<table border='2' cellspacing='0' cellpadding='3' width='100%'>");
-    m_html.append("<tr><td width='14%' valign='center'>悬挂名称</td><td width='14%' valign='center'>" + _xuanGuaName + "</td><td width='14%' valign='center'>" + _yaZhuangData + "</td><td width='14%' valign='center'>操作者</td><td width='14%' valign='center'>" + _caoZuoName + "</td><td width='14%' valign='center'>检查者</td><td width='14%' valign='center'>" + _jianChaName + "</td></tr>");
+    m_html.append("<table border='5' cellspacing='0' cellpadding='3' width='100%'>");
+    m_html.append("<tr>");
+    m_html.append("<td width='14%' style='font-size: " + QString::number(tableH2) + "px' valign='center'>悬挂名称</td>");
+    m_html.append("<td width='14%' style='font-size: " + QString::number(tableH2) + "px' valign='center'>" + _xuanGuaName + "</td>");
+    m_html.append("<td width='14%' style='font-size: " + QString::number(tableH2) + "px' valign='center'>" + _yaZhuangData + "</td>");
+    m_html.append("<td width='14%' style='font-size: " + QString::number(tableH2) + "px' valign='center'>操作者</td>");
+    m_html.append("<td width='14%' style='font-size: " + QString::number(tableH2) + "px' valign='center'>" + _caoZuoName + "</td>");
+    m_html.append("<td width='14%' style='font-size: " + QString::number(tableH2) + "px' valign='center'>检查者</td>");
+    m_html.append("<td width='14%' style='font-size: " + QString::number(tableH2) + "px' valign='center'>" + _jianChaName + "</td>");
+    m_html.append("</tr>");
+
     m_html.append("</table><br /><br />");
 
     // 横向排布图片1和图片2 在 T2 和 T3 之前
     m_html.append("<table border='0' cellspacing='0' cellpadding='0' style='width: 100%;'>");
     m_html.append("<tr>");
-
+#if 1
     // 图片1 动态设置宽度和固定高度
       m_html.append("<td style='width: 48%;'><img src='./chart1.png' width='" + QString::number(chartsW) + "' height='" + QString::number(chartsH) + "'></td>");
-
       // 图片2 动态设置宽度和固定高度
       m_html.append("<td style='width: 4%;'></td>");  // 空隙列，调整宽度控制图片间距
       m_html.append("<td style='width: 48%;'><img src='./chart2.png' width='" + QString::number(chartsW) + "' height='" + QString::number(chartsH) + "'></td>");
-
+#endif
       m_html.append("</tr>");
     m_html.append("</table><br />");
 
@@ -1199,9 +1351,9 @@ void MainWindow::exportPdf()
 
     // T2 表格
     m_html.append("<td style='width: 48%; padding-left: 15%; padding-right: 50%'>");
-    m_html.append("<table border='2' cellspacing='0' cellpadding='3' width='100%'>");
-    m_html.append("<tr><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>节点序列号</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>" + _jieDianSignLine1 + "</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>压装力值</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>" + _yaZhuang1 + "</td></tr>");
-    m_html.append("<tr><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>压装结果</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>" + _yaZhuangSaultLine1 + "</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>压装力标准</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>" + _yaZhuangStdLine1 + "</td></tr>");
+    m_html.append("<table border='5' cellspacing='0' cellpadding='3' width='100%'>");
+    m_html.append("<tr><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>节点序列号</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>" + _jieDianSignLine1 + "</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>压装力值</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>" + _yaZhuang1 + "</td></tr>");
+    m_html.append("<tr><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>压装结果</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>" + _yaZhuangSaultLine1 + "</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>压装力标准</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>" + _yaZhuangStdLine1 + "</td></tr>");
     m_html.append("</table>");
     m_html.append("</td>");
 
@@ -1210,9 +1362,9 @@ void MainWindow::exportPdf()
 
     // T3 表格
     m_html.append("<td style='width: 48%;'>");
-    m_html.append("<table border='2' cellspacing='0' cellpadding='3' width='100%'>");
-    m_html.append("<tr><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>节点序列号</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>" + _jieDianSignLine2 + "</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>压装力值</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>" + _yaZhuang2 + "</td></tr>");
-    m_html.append("<tr><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>压装结果</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>" + _yaZhuangSaultLine2 + "</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>压装力标准</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%;' valign='center'>" + _yaZhuangStdLine2 + "</td></tr>");
+    m_html.append("<table border='5' cellspacing='0' cellpadding='3' width='100%'>");
+    m_html.append("<tr><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>节点序列号</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>" + _jieDianSignLine2 + "</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>压装力值</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>" + _yaZhuang2 + "</td></tr>");
+    m_html.append("<tr><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>压装结果</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>" + _yaZhuangSaultLine2 + "</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>压装力标准</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>" + _yaZhuangStdLine2 + "</td></tr>");
     m_html.append("</table>");
     m_html.append("</td>");
 
@@ -1233,6 +1385,7 @@ void MainWindow::exportPdf()
 /**
  * @brief 保存图表1、2
  */
+#if 1 // old
 void MainWindow::saveChartToImage(QChartView* chartView, const QString& filePath)
 {
     // 获取图表的当前尺寸
@@ -1259,7 +1412,72 @@ void MainWindow::saveChartToImage(QChartView* chartView, const QString& filePath
         qDebug() << "图像保存失败：" << filePath;
     }
 }
+#endif
 
+#if 0 //new 20241234
+void MainWindow::saveChartToImage(QChartView* chartView, const QString& filePath)
+{
+    // 获取设备像素比 (高分辨率显示)
+    qreal devicePixelRatio = chartView->devicePixelRatio();
+
+    // 获取当前图表的尺寸
+    QSize chartSize = chartView->size();
+
+    // 增大渲染尺寸以提高分辨率
+    int renderWidth = chartSize.width() * 5;   // 比原始图表宽度大3倍
+    int renderHeight = chartSize.height() * 5;  // 比原始图表高度大3倍
+
+    // 创建一个更高分辨率的 QPixmap
+    QPixmap pixmap(renderWidth, renderHeight);
+
+    // 使用 QPainter 在 QPixmap 上绘制图表
+    QPainter painter(&pixmap);
+    pixmap.fill(Qt::white);  // 填充背景为白色
+    painter.setRenderHint(QPainter::Antialiasing);  // 高质量渲染
+    painter.setRenderHint(QPainter::SmoothPixmapTransform);  // 高质量图像平滑处理
+
+    // 使用设备像素比对图表进行缩放
+    painter.scale(devicePixelRatio, devicePixelRatio);
+    chartView->render(&painter);
+
+    // 获取渲染图像的尺寸
+    int originalWidth = pixmap.width();
+    int originalHeight = pixmap.height();
+
+    // A4页面的宽度和高度
+    int a4Width = 595;
+    int a4Height = 842;
+
+    // 设置图表的宽度为A4页面宽度的48%
+    int newWidth = static_cast<int>(a4Width * 0.48);
+
+    // 计算新的高度，保持原始宽高比
+    float aspectRatio = static_cast<float>(originalHeight) / originalWidth;
+    int newHeight = static_cast<int>(newWidth * aspectRatio);
+
+    // 确保新的高度不会超过A4页面的高度
+    if (newHeight > a4Height) {
+        newHeight = a4Height;
+        newWidth = static_cast<int>(newHeight / aspectRatio);
+    }
+
+    // 缩放图片，使用平滑缩放方式提高质量
+    QPixmap resizedPixmap = pixmap.scaled(newWidth, newHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+
+    // 保存图像
+    QImage image = resizedPixmap.toImage();
+
+    // 保存图像文件
+    if (image.save(filePath)) {
+        qDebug() << "图像保存成功：" << filePath;
+    } else {
+        qDebug() << "图像保存失败：" << filePath;
+    }
+}
+
+
+
+#endif
 
 void MainWindow::processChartsData(const QList<QVariant> &chartsData) {
     // 使用 QMap 来存储时间（包含时分秒）和多个压力值的键值对
@@ -1295,7 +1513,7 @@ void MainWindow::processChartsData(const QList<QVariant> &chartsData) {
 //    }
 }
 
-
+#if 0
 void MainWindow::createChartView123(QChartView *chartView, const QList<QList<QString>> &data, const QString &curveName,
                                     QLineSeries *series, QChart *chart, QDateTimeAxis *axisX, QValueAxis *axisY)
 {
@@ -1381,121 +1599,101 @@ void MainWindow::createChartView123(QChartView *chartView, const QList<QList<QSt
     chartView->setChart(chart);
     chartView->setRenderHint(QPainter::Antialiasing);
 }
-
-
-#if 1
-void MainWindow::exportPdf()
-{
-    // 获取数据
-    QString _xuanGuaName = xuanGuaName->currentText(); // 悬挂名称
-    QString _yaZhuangData = yaZhuangData->text();      // 压装时期
-    QString _caoZuoName = caoZuoName->currentText();   // 操作者名称
-    QString _jianChaName = jianChaName->currentText(); // 检查者名称
-
-    QString _jieDianSignLine1 = jieDianSignLine1->text(); // 节点序列号
-    QString _yaZhuang1 = yaZhuang1->text();               // 压装力值
-    QString _yaZhuangSaultLine1 = yaZhuangSaultLine1->text(); // 压装结果
-    QString _yaZhuangStdLine1 = yaZhuangStdLine1->text(); // 压装力标准
-
-    QString _jieDianSignLine2 = jieDianSignLine2->text(); // 节点序列号
-    QString _yaZhuang2 = yaZhuang2->text();               // 压装力值
-    QString _yaZhuangSaultLine2 = yaZhuangSaultLine2->text(); // 压装结果
-    QString _yaZhuangStdLine2 = yaZhuangStdLine2->text(); // 压装力标准
-
-    // 设置默认保存路径
-    QString defaultPath = QCoreApplication::applicationDirPath() + "/Chart12.pdf";  // 默认保存路径为应用程序目录下
-
-    // 如果文件没有后缀，则添加 .pdf 后缀
-    if (QFileInfo(defaultPath).suffix().isEmpty()) {
-        defaultPath.append(".pdf");
-        qDebug() << defaultPath.append(".pdf") << endl;
-    }
-
-    // 创建 QPdfWriter 对象并设置 PDF 输出路径
-    QPdfWriter pdfWriter(defaultPath);
-    pdfWriter.setPageSize(QPagedPaintDevice::A4);
-    pdfWriter.setPageSizeMM(QSizeF(297, 210));
-
-    // 打开modbus.ini文件并指定为ini格式
-    QSettings configIni("./chartsSize.ini", QSettings::IniFormat);
-    // 读取配置项
-    int chartsW = configIni.value("Charts/W", 720).toInt();  // 默认为 "192.168.1.1"
-    int chartsH = configIni.value("Charts/H", 640).toInt();  // 默认为 502
-    int tableW2 = configIni.value("Charts/W2", 165).toInt();  // 默认为 3000
-    int tableH2 = configIni.value("Charts/H2", 180).toInt();  // 默认为 3000
-
-    // 创建 QTextDocument 来保存 HTML 内容
-    QTextDocument textDocument;
-
-    // 清空 HTML 内容，准备添加新内容
-    QString m_html;
-    m_html.append("<h1 style='text-align:center;'>转向架悬挂件节点压装力曲线</h1><br />");
-
-    // 添加 T1
-    m_html.append("<table border='2' cellspacing='0' cellpadding='3' width='100%'>");
-    m_html.append("<tr>");
-    m_html.append("<td width='14%' style='font-size: " + QString::number(tableH2) + "px' valign='center'>悬挂名称</td>");
-    m_html.append("<td width='14%' style='font-size: " + QString::number(tableH2) + "px' valign='center'>" + _xuanGuaName + "</td>");
-    m_html.append("<td width='14%' style='font-size: " + QString::number(tableH2) + "px' valign='center'>" + _yaZhuangData + "</td>");
-    m_html.append("<td width='14%' style='font-size: " + QString::number(tableH2) + "px' valign='center'>操作者</td>");
-    m_html.append("<td width='14%' style='font-size: " + QString::number(tableH2) + "px' valign='center'>" + _caoZuoName + "</td>");
-    m_html.append("<td width='14%' style='font-size: " + QString::number(tableH2) + "px' valign='center'>检查者</td>");
-    m_html.append("<td width='14%' style='font-size: " + QString::number(tableH2) + "px' valign='center'>" + _jianChaName + "</td>");
-    m_html.append("</tr>");
-
-    m_html.append("</table><br /><br />");
-
-    // 横向排布图片1和图片2 在 T2 和 T3 之前
-    m_html.append("<table border='0' cellspacing='0' cellpadding='0' style='width: 100%;'>");
-    m_html.append("<tr>");
-
-    // 图片1 动态设置宽度和固定高度
-      m_html.append("<td style='width: 48%;'><img src='./chart1.png' width='" + QString::number(chartsW) + "' height='" + QString::number(chartsH) + "'></td>");
-      // 图片2 动态设置宽度和固定高度
-      m_html.append("<td style='width: 4%;'></td>");  // 空隙列，调整宽度控制图片间距
-      m_html.append("<td style='width: 48%;'><img src='./chart2.png' width='" + QString::number(chartsW) + "' height='" + QString::number(chartsH) + "'></td>");
-
-      m_html.append("</tr>");
-    m_html.append("</table><br />");
-
-    // 使用父表格来排列 T2 和 T3 横向显示
-    m_html.append("<table border='0' cellspacing='0' cellpadding='0' style='width: 100%;'>");
-    m_html.append("<tr>");
-
-    // T2 表格
-    m_html.append("<td style='width: 48%; padding-left: 15%; padding-right: 50%'>");
-    m_html.append("<table border='2' cellspacing='0' cellpadding='3' width='100%'>");
-    m_html.append("<tr><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>节点序列号</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>" + _jieDianSignLine1 + "</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>压装力值</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>" + _yaZhuang1 + "</td></tr>");
-    m_html.append("<tr><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>压装结果</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>" + _yaZhuangSaultLine1 + "</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>压装力标准</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>" + _yaZhuangStdLine1 + "</td></tr>");
-    m_html.append("</table>");
-    m_html.append("</td>");
-
-    // 空隙列（增大宽度来加大间距）
-    m_html.append("<td style='width: 4%;'></td>");  // 增加间距，控制T2与T3之间的距离
-
-    // T3 表格
-    m_html.append("<td style='width: 48%;'>");
-    m_html.append("<table border='2' cellspacing='0' cellpadding='3' width='100%'>");
-    m_html.append("<tr><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>节点序列号</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>" + _jieDianSignLine2 + "</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>压装力值</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>" + _yaZhuang2 + "</td></tr>");
-    m_html.append("<tr><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>压装结果</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>" + _yaZhuangSaultLine2 + "</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>压装力标准</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>" + _yaZhuangStdLine2 + "</td></tr>");
-    m_html.append("</table>");
-    m_html.append("</td>");
-
-    m_html.append("</tr>");
-    m_html.append("</table>");
-
-    // 将 HTML 内容设置到 QTextDocument
-    textDocument.setHtml(m_html);
-
-    // 使用 QPdfWriter 打印 PDF
-    textDocument.print(&pdfWriter);
-
-    // 关闭文件
-    pdfWriter.newPage();  // 如果需要新页面，使用 newPage
-}
 #endif
 
+#if 0           /***********************bash20241218***********************/
+void MainWindow::createChartView123(QChartView *chartView, const QList<QList<QString>> &data, const QString &curveName,
+                                    QLineSeries *series, QChart *chart, QDateTimeAxis *axisX, QValueAxis *axisY)
+{
+    if (!chart->series().contains(series)) {
+        chart->addSeries(series);
+    }
 
+    // 隐藏数据系列并设置样式
+    series->setVisible(true);
+    series->clear();
+    axisX->setLabelsVisible(true);
+    axisY->setLabelsVisible(true);
+
+    // 添加数据点
+    for (const auto &dataPair : data) {
+        if (dataPair.size() == 2) {
+            const QString &timeString = dataPair[0];
+            const double pressureValue = dataPair[1].toDouble();
+            QDateTime dateTime = QDateTime::fromString(timeString, "yyyy-MM-dd HH:mm:ss");
+
+            if (dateTime.isValid()) {
+                series->append(dateTime.toMSecsSinceEpoch(), pressureValue);
+            } else {
+                qDebug() << "Invalid time: " << timeString;
+            }
+        } else {
+            qDebug() << "Invalid data pair: " << dataPair;
+        }
+    }
+    /*
+
+[Charts]
+W= 747
+H= 472
+W2= 165
+H2= 174
+*/
+
+    // 设置 X 轴格式
+    axisX->setTitleText("时间");
+    axisX->setFormat("yyyy-MM-dd HH:mm:ss");
+
+    // 设置 X 轴范围
+    if (!series->points().isEmpty()) {
+        QDateTime minTime = QDateTime::fromMSecsSinceEpoch(series->points().first().x());
+        QDateTime maxTime = QDateTime::fromMSecsSinceEpoch(series->points().last().x());
+        axisX->setRange(minTime, maxTime);
+        // axisX->setTickCount(data.size());
+        axisX->setTickCount(data.size());
+    }
+
+    // 设置 Y 轴范围
+    axisY->setRange(0, 450);
+    axisY->setTitleText("压力值");
+    axisY->setTickCount(10);
+    axisY->setLabelFormat("%.0f");
+
+    // 设置 X、Y 轴线条样式
+    QPen axisPen;
+    axisPen.setWidth(3);
+    axisPen.setColor(QColor(211, 211, 211));  // 浅灰色
+    axisX->setLinePen(axisPen);
+    axisY->setLinePen(axisPen);
+
+    // 设置字体样式
+    QFont fontX("Arial", 6);
+    QFont fontY("Arial", 6);
+    fontX.setBold(true);
+    fontY.setBold(true);
+    axisX->setLabelsFont(fontX);
+    axisY->setLabelsFont(fontY);
+
+    // 检查是否已添加轴，避免重复
+    if (!chart->axes(Qt::Horizontal).contains(axisX)) {
+        chart->addAxis(axisX, Qt::AlignBottom);
+        series->attachAxis(axisX);
+    }
+    if (!chart->axes(Qt::Vertical).contains(axisY)) {
+        chart->addAxis(axisY, Qt::AlignLeft);
+        series->attachAxis(axisY);
+    }
+
+    // 设置图表标题
+    chart->setTitle(curveName);
+
+    // 更新图表并显示
+    chart->update();
+    chartView->setChart(chart);
+    chartView->setRenderHint(QPainter::Antialiasing);
+}
+
+#endif          /***********************bash20241218***********************/
 // 数据点处理函数
 void MainWindow::onCheckBoxToggled(bool checked)
 {
@@ -1532,7 +1730,7 @@ void MainWindow::onCheckBoxToggled(bool checked)
 // 初始化图表
 
     /***************bash20241213*************/
-#if 1
+#if 0
 void MainWindow::configureChart(QChartView* chartView, QChart* chart, QLineSeries* series, QDateTimeAxis* axisX, QValueAxis* axisY, const QString& chartTitle) {
     if (!chartView || !chart || !series || !axisX || !axisY) {
         qWarning() << "Invalid arguments passed to configureChart.";
@@ -1540,13 +1738,13 @@ void MainWindow::configureChart(QChartView* chartView, QChart* chart, QLineSerie
     }
 
     // 设置 Chart 的背景
-    chart->setBackgroundBrush(QBrush(QColor(236, 233, 216))); // 浅黄色
+//    chart->setBackgroundBrush(QBrush(QColor(236, 233, 216))); // 浅黄色
     chart->setBackgroundPen(Qt::NoPen); // 移除边框
     // 设置标题下方的图表区域边框线
-    QPen plotBorderPen(Qt::black); // 设置边框颜色为黑色
-    plotBorderPen.setWidth(3);     // 设置边框线宽度为 3
-    chart->setPlotAreaBackgroundPen(plotBorderPen); // 设置图表区域的边框样式
-    chart->setPlotAreaBackgroundVisible(true); // 确保图表区域的边框可见
+//    QPen plotBorderPen(Qt::black); // 设置边框颜色为黑色
+//    plotBorderPen.setWidth(3);     // 设置边框线宽度为 3
+//    chart->setPlotAreaBackgroundPen(plotBorderPen); // 设置图表区域的边框样式
+//    chart->setPlotAreaBackgroundVisible(true); // 确保图表区域的边框可见
 
     // 设置坐标轴范围和刻度
     QDateTime now = QDateTime::currentDateTime();
@@ -1609,4 +1807,359 @@ void MainWindow::configureChart(QChartView* chartView, QChart* chart, QLineSerie
 }
 
 #endif
+
+#if 1           /***********************bash20241226***********************/
+void MainWindow::createChartView123(QChartView *chartView, const QList<QList<QString>> &data, const QString &curveName,
+                                    QLineSeries *series, QChart *chart, QDateTimeAxis *axisX, QValueAxis *axisY)
+{
+    if (!chart->series().contains(series)) {
+        chart->addSeries(series);
+    }
+
+    // 设置系列可见，清空数据
+    series->setVisible(true);
+    series->clear();
+    axisX->setLabelsVisible(true);
+    axisY->setLabelsVisible(true);
+
+    // 计算数据点的数量
+    int dataSize = data.size();
+    int startIndex = (dataSize > 4) ? dataSize - 4 : 0;  // 如果数据大于4，只显示最后4个数据点
+
+    // 添加数据点（所有数据点或最后四个数据点）
+    for (int i = startIndex; i < dataSize; ++i) {
+        const auto &dataPair = data[i];
+        if (dataPair.size() == 2) {
+            const QString &timeString = dataPair[0];
+            const double pressureValue = dataPair[1].toDouble();
+            QDateTime dateTime = QDateTime::fromString(timeString, "yyyy-MM-dd HH:mm:ss");
+
+            if (dateTime.isValid()) {
+                series->append(dateTime.toMSecsSinceEpoch(), pressureValue);
+            } else {
+                qDebug() << "Invalid time: " << timeString;
+            }
+        } else {
+            qDebug() << "Invalid data pair: " << dataPair;
+        }
+    }
+
+    // 设置曲线的笔（线条颜色和宽度）
+    QPen pen1(Qt::blue);  // 设置曲线颜色为蓝色
+    pen1.setWidth(3);     // 设置线条宽度为3px
+    series->setPen(pen1); // 应用到数据系列
+
+    // 设置X轴格式
+    axisX->setTitleText("时间");
+    axisX->setFormat("yyyy-MM-dd HH:mm:ss");
+
+    // 设置X轴范围
+    if (!series->points().isEmpty()) {
+        QDateTime minTime = QDateTime::fromMSecsSinceEpoch(series->points().first().x());
+        QDateTime maxTime = QDateTime::fromMSecsSinceEpoch(series->points().last().x());
+        axisX->setRange(minTime, maxTime);
+
+        // 设置X轴的刻度数量：直接根据数据点的数量来设置
+        axisX->setTickCount(dataSize <= 4 ? dataSize : 4); // 如果数据点小于或等于4，设置为数据点的数量；如果大于4，设置为4个刻度
+    }
+
+    // 设置Y轴范围
+    axisY->setRange(0, 450);
+    axisY->setTitleText("压力值");
+    axisY->setTickCount(10);
+    axisY->setLabelFormat("%.0f");
+
+    // 设置X、Y轴线条样式
+    QPen axisPen;
+    axisPen.setWidth(3);
+    axisPen.setColor(QColor(211, 211, 211));  // 浅灰色
+    axisX->setLinePen(axisPen);
+    axisY->setLinePen(axisPen);
+
+    // 设置字体样式
+    QFont fontX("Arial", 6);
+    QFont fontY("Arial", 6);
+    fontX.setBold(true);
+    fontY.setBold(true);
+    axisX->setLabelsFont(fontX);
+    axisY->setLabelsFont(fontY);
+
+    // 确保轴添加一次
+    if (!chart->axes(Qt::Horizontal).contains(axisX)) {
+        chart->addAxis(axisX, Qt::AlignBottom);
+        series->attachAxis(axisX);
+    }
+    if (!chart->axes(Qt::Vertical).contains(axisY)) {
+        chart->addAxis(axisY, Qt::AlignLeft);
+        series->attachAxis(axisY);
+    }
+/*----------------------20241228----------------------------*/
+    // 设置标题字体和颜色
+    QFont titleFont;
+    titleFont.setPointSize(8); // 固定标题字体大小为 8
+    chart->setTitleFont(titleFont);
+    chart->setTitleBrush(QBrush(Qt::blue)); // 字体颜色设置为蓝色
+    chart->setTitle(curveName); // 设置标题
+/*----------------------20241228----------------------------*/
+    // 更新图表并显示
+    chart->update();
+    chartView->setChart(chart);
+    chartView->setRenderHint(QPainter::Antialiasing);
+}
+
+#endif          /***********************bash20241226***********************/
+
+#if 1 // 优化
+void MainWindow::configureChart(QChartView* chartView, QChart* chart, QLineSeries* series,
+                                QDateTimeAxis* axisX, QValueAxis* axisY, const QString& chartTitle) {
+    // 确保传入的参数有效
+    if (!chartView || !chart || !series || !axisX || !axisY) {
+        qWarning() << "Invalid arguments passed to configureChart.";
+        return;
+    }
+
+    // 设置 Chart 的背景
+    chart->setBackgroundPen(Qt::NoPen);  // 移除边框
+
+    // 设置坐标轴范围和刻度
+    QDateTime now = QDateTime::currentDateTime();
+    axisX->setRange(now.addSecs(-1), now.addSecs(1));  // 设置 X 轴范围：-1 秒到 1 秒
+    axisX->setFormat("ss");  // 显示秒数差值
+    axisY->setRange(-1, 1);  // 设置 Y 轴范围：-1 到 1
+
+    // 隐藏坐标轴刻度和标签
+    axisX->setLabelsVisible(false);
+    axisY->setLabelsVisible(false);
+    axisX->setTickCount(3);  // 仅显示中心点
+    axisY->setTickCount(3);
+
+    // 设置标题字体和颜色
+    QFont titleFont;
+    titleFont.setPointSize(8); // 固定标题字体大小为 8
+    chart->setTitleFont(titleFont);
+    chart->setTitleBrush(QBrush(Qt::blue)); // 字体颜色设置为蓝色
+    chart->setTitle(chartTitle); // 设置标题
+
+    // 设置网格线样式
+    QPen gridLinePen(QColor(200, 200, 200));  // 设置网格线颜色为灰色
+    gridLinePen.setWidth(2);  // 设置网格线宽度为 2
+    gridLinePen.setStyle(Qt::DashLine);  // 设置网格线样式为虚线
+    axisX->setGridLinePen(gridLinePen);  // 设置 X 轴网格线样式
+    axisY->setGridLinePen(gridLinePen);  // 设置 Y 轴网格线样式
+    axisX->setGridLineVisible(true);  // 启用 X 轴网格线
+    axisY->setGridLineVisible(true);  // 启用 Y 轴网格线
+
+    // 设置坐标轴标题
+    axisX->setTitleText("0");
+    axisY->setTitleText("0");
+
+    // 隐藏数据系列并设置样式
+    series->setVisible(false);  // 隐藏数据系列
+
+
+    // 如果 X 轴还没有添加到图表，则添加
+    if (!chart->axes(Qt::Horizontal).contains(axisX)) {
+        chart->addAxis(axisX, Qt::AlignBottom);  // 添加 X 轴到底部
+    }
+
+    // 如果 Y 轴还没有添加到图表，则添加
+    if (!chart->axes(Qt::Vertical).contains(axisY)) {
+        chart->addAxis(axisY, Qt::AlignLeft);  // 添加 Y 轴到左侧
+    }
+
+    // 确保系列只被添加一次
+    if (!chart->series().contains(series)) {
+        chart->addSeries(series);
+    }
+
+    // 确保系列和坐标轴的绑定只发生一次
+    if (!series->attachedAxes().contains(axisX)) {
+        series->attachAxis(axisX);  // 只在未附加的情况下绑定 X 轴
+    }
+
+    if (!series->attachedAxes().contains(axisY)) {
+        series->attachAxis(axisY);  // 只在未附加的情况下绑定 Y 轴
+    }
+
+    // 设置 Chart 到 ChartView
+    chartView->setChart(chart);
+    chartView->setRenderHint(QPainter::Antialiasing);  // 启用抗锯齿
+}
+
+#endif
     /***************bash20241213*************/
+
+
+
+        /***************bash20241213*************/
+
+QString MainWindow::generateSimpleSvgChart() {
+    QString svg = "<svg width='600' height='400' xmlns='http://www.w3.org/2000/svg' style='background: #f5f5f5;'>";
+
+    // 绘制 X 和 Y 轴
+    svg += "<line x1='50' y1='10' x2='50' y2='350' stroke='black'/>"; // Y轴
+    svg += "<line x1='50' y1='350' x2='550' y2='350' stroke='black'/>"; // X轴
+
+//    // 添加 Y 轴的标签 (压力值)
+//    svg += "<text x='20' y='20' font-size='14' fill='black'>压力 (单位: N)</text>"; // Y轴标签
+
+//    // 添加 X 轴的标签 (时间)
+//    svg += "<text x='300' y='380' font-size='14' fill='black' text-anchor='middle'>时间 (年/月/日 时:分:秒)</text>"; // X轴标签
+
+    // Y轴刻度：绘制10个大刻度及其延伸线
+    for (int i = 0; i <= 10; ++i) {
+        int yPos = 350 - (i * 50); // Y轴刻度的 Y 位置
+
+        // 绘制 Y 轴大刻度线
+        svg += "<line x1='45' y1='" + QString::number(yPos) + "' x2='50' y2='" + QString::number(yPos) + "' stroke='black'/>"; // 大刻度线
+        svg += "<text x='20' y='" + QString::number(yPos + 5) + "' font-size='12'>" + QString::number(i * 45) + "</text>"; // 压力值
+
+        // 添加水平延伸线
+        svg += "<line x1='50' y1='" + QString::number(yPos) + "' x2='550' y2='" + QString::number(yPos) + "' stroke='lightgray' stroke-dasharray='4,2'/>"; // 延伸线
+
+        // 添加小刻度线 (每个区间 3 个小刻度)
+        if (i < 10) { // 小刻度只在大刻度之间
+            for (int j = 1; j <= 3; ++j) {
+                int smallYPos = yPos - j * (50 / 4); // 小刻度位置 (每大刻度区间分为 4 等分)
+                svg += "<line x1='48' y1='" + QString::number(smallYPos) + "' x2='50' y2='" + QString::number(smallYPos) + "' stroke='black'/>"; // 小刻度线
+            }
+        }
+    }
+
+    // X轴刻度：模拟时间
+    QStringList timeLabels = {"2024-12-13 10:00:00", "2024-12-13 10:01:00", "2024-12-13 10:02:00",
+                              "2024-12-13 10:03:00", "2024-12-13 10:04:00"};  // 示例时间刻度
+    int xStep = 500 / (timeLabels.size() - 1); // 根据数据点数量计算 X 轴步长
+
+    for (int i = 0; i < timeLabels.size(); ++i) {
+        int xPos = 50 + i * xStep;
+
+        // 绘制 X 轴刻度线
+        svg += "<line x1='" + QString::number(xPos) + "' y1='350' x2='" + QString::number(xPos) + "' y2='355' stroke='black'/>"; // 刻度线
+        svg += "<text x='" + QString::number(xPos) + "' y='370' font-size='10' text-anchor='middle'>" + timeLabels[i] + "</text>"; // 时间刻度
+
+        // 添加垂直延伸线
+        svg += "<line x1='" + QString::number(xPos) + "' y1='10' x2='" + QString::number(xPos) + "' y2='350' stroke='lightgray' stroke-dasharray='4,2'/>"; // 延伸线
+    }
+
+    // 添加数据点和折线（模拟数据）
+    QString pathData = "M50 350 150 230 250 110 350 170 450 50"; // 模拟折线数据
+    svg += "<path d='" + pathData + "' stroke='blue' fill='none'/>"; // 绘制折线
+
+    svg += "</svg>";
+
+    qDebug() << svg << endl;
+
+    return svg; // 返回纯 SVG 内容
+}
+
+        /***************bash20241213*************/
+
+        /***************bash20241213*************/
+void MainWindow::saveSvgChartAsImage() {
+    // 生成 SVG 数据
+    QString svgData = MainWindow::generateSimpleSvgChart();
+
+    // 设置保存路径
+    QString savePath = "chart11.svg"; // 保存为 SVG 文件
+
+    // 保存 SVG 文件
+    QFile file(savePath);
+    if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QTextStream out(&file);
+        out.setCodec("UTF-8"); // 设置编码为 UTF-8
+        out << svgData; // 将 SVG 数据写入文件
+        file.close();
+        qDebug() << "SVG chart saved successfully as:" << savePath;
+    } else {
+        qDebug() << "Failed to save SVG chart as file.";
+    }
+}
+        /***************bash20241213*************/
+
+/***************bash20241213*************/
+    void MainWindow::saveSvgChartAsImage2() {
+        // 生成 SVG 数据
+        QString svgData = MainWindow::generateSimpleSvgChart();
+
+        // 设置保存路径
+        QString savePath = "chart22.svg"; // 保存为 SVG 文件
+
+        // 保存 SVG 文件
+        QFile file(savePath);
+        if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+            QTextStream out(&file);
+            out.setCodec("UTF-8"); // 设置编码为 UTF-8
+            out << svgData; // 将 SVG 数据写入文件
+            file.close();
+            qDebug() << "SVG chart saved successfully as:" << savePath;
+        } else {
+            qDebug() << "Failed to save SVG chart as file.";
+        }
+    }
+/***************bash20241213*************/
+
+void MainWindow::initStart1(){
+#if 1
+
+//            MainWindow::dataBaseConn = SqliteAction::getDatabaseConnection("./D1.db");
+
+#endif
+}
+
+/***********************bash20241218***********************/
+//创建目录
+void MainWindow::createDirectory(const QString& path) {
+    QDir dir;
+
+    // mkpath() 会自动创建多级目录
+    if (dir.mkpath(path)) {
+        qDebug() << "Directory created successfully:" << path;
+    } else {
+        qDebug() << "Failed to create directory:" << path;
+    }
+}
+/***********************bash20241218***********************/
+
+/*
+首先点击打印
+如果本地存在Chart12.pdf, 将Chart12.pdf备份到./data/chart/(默认创建)2024-12-26(目录)
+*/
+/***********************bash20241226***********************/
+//实现cp备份命令
+void MainWindow::backupChartFile() {
+    // 获取当前日期，格式化为 yyyyMMdd
+    QString currentDate = QDate::currentDate().toString("yyyyMMdd");
+
+    // 设置标志位（可以根据需要自定义，例：可以是 "v1", "backup", etc.）
+    QString flag = "backup";  // 你可以根据需求改变这个标志位
+
+    // 构建新的文件名
+
+    QString sourceFile = "C:/Users/WINQ31/Desktop/item4/build-qtModBus-Desktop_Qt_5_8_0_MinGW_32bit-Release/release/Chart12.pdf";  // 当前目录下的原文件
+    QString targetDir = QDir::currentPath() + "/data/chart/"+currentDate;  // 目标目录（当前工作目录下的 data 文件夹）
+    qDebug() << "path:" << targetDir << endl;
+    QString targetFile = targetDir + currentDate + "_" + flag + ".pdf";  // 新的备份文件名
+    qDebug() << "newName:" << targetFile << endl;
+    // 确保目标目录存在
+    QDir dir(targetDir);
+    if (!dir.exists()) {
+        dir.mkpath(targetDir);  // 如果 data 目录不存在，则创建它
+    }
+
+    // 复制文件
+    if (QFile::exists(sourceFile)) {
+        if (QFile::copy(sourceFile, targetFile)) {
+            qDebug() << "File backed up successfully to:" << targetFile;
+        } else {
+            qDebug() << "Failed to back up the file.";
+        }
+    } else {
+        qDebug() << "Source file does not exist.";
+    }
+}
+
+/***********************bash20241226***********************/
+
+
+

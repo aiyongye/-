@@ -330,7 +330,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton_4">
+         <widget class="QPushButton" name="fixButton">
           <property name="minimumSize">
            <size>
             <width>0</width>
@@ -338,12 +338,12 @@
            </size>
           </property>
           <property name="text">
-           <string>提取</string>
+           <string>修改</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton_5">
+         <widget class="QPushButton" name="delButton">
           <property name="minimumSize">
            <size>
             <width>0</width>

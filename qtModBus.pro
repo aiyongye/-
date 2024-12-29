@@ -11,6 +11,11 @@ QT += charts
 QT += sql
 QT += printsupport
 
+QT += svg
+QT += concurrent
+
+
+
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = qtModBus
@@ -48,12 +53,12 @@ SOURCES += main.cpp\
     login.cpp \
     usercreate.cpp \
     loginset.cpp \
-    styletools.cpp \
     wpdfwriter.cpp \
     form3fix.cpp \
     form1fix.cpp \
     form2_1fix.cpp \
-    qdebugloginfo.cpp
+    qdebugloginfo.cpp \
+    historyform1.cpp
 
 HEADERS  += mainwindow.h \
     sqliteaction.h \
@@ -69,7 +74,8 @@ HEADERS  += mainwindow.h \
     form3fix.h \
     form1fix.h \
     form2_1fix.h \
-    qdebugloginfo.h
+    qdebugloginfo.h \
+    historyform1.h
 
 FORMS    += mainwindow.ui \
     hstorylist.ui \
@@ -80,7 +86,8 @@ FORMS    += mainwindow.ui \
     loginset.ui \
     form3fix.ui \
     form1fix.ui \
-    form2_1fix.ui
+    form2_1fix.ui \
+    historyform1.ui
 
 RESOURCES += \
     res.qrc

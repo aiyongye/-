@@ -11,6 +11,10 @@
 #include "QGraphicsLineItem"
 #include "QPaintEvent"
 #include "qdebugloginfo.h"
+#include "pressstd.h"
+#include "usercreate.h"
+#include "loginset.h"
+
             /***********************bash-20241210*******************/
 #include "pressstd.h"
             /***********************bash-20241210*******************/
@@ -33,9 +37,7 @@ public:
 private slots:
     void on_tabWidget_tabBarClicked(int index);
     void loadTabWidget1(int index);
-    void loadTabWidget2(int index);
 
-    void on_tabWidget_2_tabBarClicked(int index);
 private:
     Ui::ConfigSet *ui;
     void applyStyles(QWidget *widget,QString stylesheet);
@@ -67,6 +69,18 @@ void onReceiveDataFromAWidget2(const int &data);
 signals:
 void sendDataBToCWidget2(const int &data);
      /***********************bash-20241210*******************/
+
+public:
+// 控件加载状态标记
+bool pressStdLoaded;
+bool userCreateLoaded;
+bool loginSetLoaded;
+
+// 控件指针
+PressStd *pressStd;
+UserCreate *userCreate;
+LoginSet *loginSet;
+void onTabChanged(int index);
 };
 
 #endif // CONFIGSET_H

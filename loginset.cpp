@@ -22,8 +22,6 @@ LoginSet::LoginSet(QWidget *parent) :
     ui->findUserName->setDisabled(true);
     ui->findUserName->setStyleSheet(
         "QLineEdit {"
-        "  user-select: none;"            // 禁止文本选择
-        "  cursor: not-allowed;"          // 禁用光标
         "  background-color: #f0f0f0;"    // 背景色（可选，设置为灰色）
         "  border: 1px solid #d3d3d3;"    // 边框（可选）
         "  color: #888888;"               // 字体颜色（可选）
@@ -50,8 +48,12 @@ LoginSet::LoginSet(QWidget *parent) :
         qDebug() << "查询开始" << endl;
         // 假设 dataList 是你的查询结果
         bool flags = LoginSet::queryAllDataFromTable(database, "userPass", dataList);
-        if (flags)
+        if (flags){
             qDebug() << "查询成功" << endl;
+            QMessageBox::information(this, "成功","查询成功!");
+        }else{
+            QMessageBox::information(this, "失败","查询失败!");
+        }
 
         // 清空之前的数据
         ui->tableWidget->clearContents();  // 清空表格内容
@@ -89,6 +91,7 @@ LoginSet::LoginSet(QWidget *parent) :
         QList<QTableWidgetItem*> selectedItems = ui->tableWidget->selectedItems();
         if (selectedItems.isEmpty()) {
             qDebug() << "No row selected";
+//            QMessageBox::information(this, "失败","请选择行!");
             return;
         }
 
@@ -160,6 +163,7 @@ LoginSet::LoginSet(QWidget *parent) :
         QList<QTableWidgetItem*> selectedItems = ui->tableWidget->selectedItems();
         if (selectedItems.isEmpty()) {
             qDebug() << "No row selected. Deletion aborted.";
+            QMessageBox::information(this, "失败","请选择行!");
             return;
         }
 
@@ -186,8 +190,10 @@ LoginSet::LoginSet(QWidget *parent) :
         bool success = deleteDataFromDatabase(database, "userPass", rowData);
         if (success) {
             qDebug() << "删除行成功!!!";
+            QMessageBox::information(this, "成功","删除成功!");
         } else {
             qDebug() << "删除失败";
+            QMessageBox::information(this, "失败","删除失败!");
         }
 
         // 刷新表格，移除选中行
@@ -204,6 +210,7 @@ LoginSet::LoginSet(QWidget *parent) :
         int selectedRow = ui->tableWidget->currentRow();  // Get the index of the selected row
         if (selectedRow == -1) {
             qDebug() << "没有选中任何行!";
+            QMessageBox::information(this, "失败","请选择行!");
             return;  // If no row is selected, do nothing
         }
         // Get the data of the selected row
@@ -245,8 +252,12 @@ LoginSet::LoginSet(QWidget *parent) :
             QString _userName = newStreetData;
             QString _userPass = newPressDate;
             bool flags = LoginSet::updateDataInTable(database, "userPass", index, _userName, _userPass);
-            if(flags)
+            if(flags){
                 qDebug()  << "更新成功" << endl;
+                QMessageBox::information(this, "成功","修改成功!");
+            }else{
+                QMessageBox::information(this, "失败","修改失败!");
+            }
         });
         // Show Form3Fix to modify the selected row data
         w1.setWindowModality(Qt::ApplicationModal);
@@ -262,6 +273,9 @@ LoginSet::LoginSet(QWidget *parent) :
 
 LoginSet::~LoginSet()
 {
+    if (database.isOpen()) {
+        database.close();
+    }
     delete ui;
 }
 

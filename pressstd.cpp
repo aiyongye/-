@@ -9,7 +9,7 @@ PressStd::PressStd(QWidget *parent) :
 {
     ui->setupUi(this);
 //     qInstallMessageHandler(qDebugLogInfo::customMessageHandler); //打印日志
-    QFile file(":/elementForm.qss");
+    QFile file(":/mainForm.qss");
     file.open(QFile::ReadOnly);
     QString qss=file.readAll();
     file.close();
@@ -27,8 +27,6 @@ PressStd::PressStd(QWidget *parent) :
     ui->lineEdit_4->setDisabled(true);
     ui->lineEdit_4->setStyleSheet(
         "QLineEdit {"
-        "  user-select: none;"            // 禁止文本选择
-        "  cursor: not-allowed;"          // 禁用光标
         "  background-color: #f0f0f0;"    // 背景色（可选，设置为灰色）
         "  border: 1px solid #d3d3d3;"    // 边框（可选）
         "  color: #888888;"               // 字体颜色（可选）
@@ -59,13 +57,20 @@ PressStd::PressStd(QWidget *parent) :
        bool flags = PressStd::ensureTableInDatabase(database, "./D1.db", "proStds");
        if(flags)
            qDebug() << "proStds表创建成功" << endl;
-       flags = PressStd::insertDataIntoTable(database, "proStds", guaName, crePressSE, credataTime);
-       if(flags){
-            qDebug() << "创建成功"<< guaName << "->" << crePressSE << "->" << credataTime << endl;
-            /***********************bash-20241210*******************/
-            // 当按钮点击时，发送信号给 BWidget
-                    emit sendDataToBWidget(123);
-            /***********************bash-20241210*******************/
+       if (!ui->xuanGuaName->text().isEmpty() &&
+           !ui->startStd->text().isEmpty() &&
+           !ui->endStd->text().isEmpty()) {
+            flags = PressStd::insertDataIntoTable(database, "proStds", guaName, crePressSE, credataTime);
+               if(flags){
+                    qDebug() << "创建成功"<< guaName << "->" << crePressSE << "->" << credataTime << endl;
+                    /***********************bash-20241210*******************/
+                    // 当按钮点击时，发送信号给 BWidget
+                            emit sendDataToBWidget(123);
+                    /***********************bash-20241210*******************/
+                    QMessageBox::information(this, "成功","创建成功!");
+               }
+       }else{
+           QMessageBox::information(this, "失败","字段不能为空!");
        }
     });
 #endif
@@ -77,8 +82,12 @@ PressStd::PressStd(QWidget *parent) :
 
         // 假设 dataList 是你的查询结果
         bool flags = PressStd::queryAllDataFromTable(database, "proStds", dataList);
-        if (flags)
+        if (flags){
             qDebug() << "查询成功" << endl;
+            QMessageBox::information(this, "成功","查询成功!");
+        }else{
+            QMessageBox::information(this, "失败","查询失败!");
+        }
 
         // 清空之前的数据
         ui->tableWidget->clearContents();  // 清空表格内容
@@ -152,6 +161,7 @@ PressStd::PressStd(QWidget *parent) :
         QList<QTableWidgetItem*> selectedItems = ui->tableWidget->selectedItems();
         if (selectedItems.isEmpty()) {
             qDebug() << "No row selected. Deletion aborted.";
+            QMessageBox::information(this, "失败","请选择行!");
             return;
         }
 
@@ -182,8 +192,10 @@ PressStd::PressStd(QWidget *parent) :
             // 当按钮点击时，发送信号给 BWidget
                     emit sendDataToBWidget(123);
             /***********************bash-20241210*******************/
+            QMessageBox::information(this, "成功","删除成功!");
         } else {
             qDebug() << "删除失败";
+            QMessageBox::information(this, "失败","删除失败!");
         }
 
         // 刷新表格，移除选中行
@@ -198,7 +210,9 @@ PressStd::PressStd(QWidget *parent) :
         // 获取当前行的索引
         int selectedRow = ui->tableWidget->currentRow();
         if(selectedRow == -1){
+            QMessageBox::information(this, "失败","请选择行!");
             qDebug() << "没有选中任何行";
+
             return;
         }
         QList<QVariant> rowData; // 元素1存的是设备名称 元素2存的是压力区间
@@ -234,6 +248,9 @@ PressStd::PressStd(QWidget *parent) :
                 // 当按钮点击时，发送信号给 BWidget
                         emit sendDataToBWidget(123);
                 /***********************bash-20241210*******************/
+                QMessageBox::information(this, "成功","修改成功!");
+            }else{
+                QMessageBox::information(this, "失败","修改失败!");
             }
         });
         w1.setWindowModality(Qt::ApplicationModal);
@@ -246,6 +263,9 @@ PressStd::PressStd(QWidget *parent) :
 
 PressStd::~PressStd()
 {
+    if (database.isOpen()) {
+        database.close();
+    }
     delete ui;
 }
 void PressStd::applyStyles(QWidget *widget,QString stylesheet)

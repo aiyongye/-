@@ -22,6 +22,8 @@
 #include <QTextDocument>
 #include <QTextBlock>
 #include <QSettings>
+#include <historyform1.h>
+#include <QMessageBox>
 
 #define HSTORYLIST_H
 
@@ -71,8 +73,6 @@ private slots:
 
           void onOption2();
 
-          void onOption3() ;
-          void onOption4() ;
           void printOnOption1();
           void printonOption2() ;
           void loadTable2(QTableWidget *tableWidget);
@@ -92,6 +92,16 @@ public:
 signals:
           void dataUpdated(QList<QVariant> mainData, QList<QVariant> chartsData);
 
+public:
+          /***********************bash20241218***********************/
+          void createDirectory(const QString& path);
+          /***********************bash20241218***********************/
+
+          /***********************bash20241227***********************/
+          historyForm1 w1;
+          bool updateDataInTable(QSqlDatabase &db, const QString &tableName, int rowId, const QString &newUserName, const QString &newPassword);
+          bool deleteDataByIdAndReference(QSqlDatabase &db, const QString &tableName, const QString &refTableName, int rowId);
+          /***********************bash20241227***********************/
 };
 
 #endif // HSTORYLIST_H

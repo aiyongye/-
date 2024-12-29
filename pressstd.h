@@ -13,6 +13,7 @@
 #include <QListView>
 #include "form1fix.h"
 #include "qdebugloginfo.h"
+#include <QMessageBox>
 namespace Ui {
 class PressStd;
 }

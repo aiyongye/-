@@ -21,8 +21,6 @@ UserCreate::UserCreate(QWidget *parent) :
     ui->lineEdit_4->setDisabled(true);
     ui->lineEdit_4->setStyleSheet(
         "QLineEdit {"
-        "  user-select: none;"            // 禁止文本选择
-        "  cursor: not-allowed;"          // 禁用光标
         "  background-color: #f0f0f0;"    // 背景色（可选，设置为灰色）
         "  border: 1px solid #d3d3d3;"    // 边框（可选）
         "  color: #888888;"               // 字体颜色（可选）
@@ -56,13 +54,19 @@ UserCreate::UserCreate(QWidget *parent) :
         // 格式化为 "yyyy-MM-dd HH:mm:ss" 形式（包括秒）
         QString creDataTime = currentDateTime.toString("yyyy-MM-dd HH:mm:ss");
         bool flags = UserCreate::ensureTableInDatabase(database, "./D1.db", "inspectorTb");
-        if(flags)
+        if(flags){
             qDebug() << "inspectorTb 创建成功" << endl;
-        flags = UserCreate::insertDataIntoTable(database, "inspectorTb", jianChaLine, creDataTime);
-        /***********************bash-20241212*******************/
-        // 当按钮点击时，发送信号给 BWidget
-                emit sendDataToBWidget(123);
-        /***********************bash-20241212*******************/
+            if(!ui->jianChaLine->text().isEmpty()){
+                flags = UserCreate::insertDataIntoTable(database, "inspectorTb", jianChaLine, creDataTime);
+                /***********************bash-20241212*******************/
+                // 当按钮点击时，发送信号给 BWidget
+                        emit sendDataToBWidget(123);
+                /***********************bash-20241212*******************/
+                QMessageBox::information(this, "成功","创建成功!");
+            }else{
+                QMessageBox::information(this, "失败","字段不能为空!");
+            }
+        }
     });
     // 查询按钮里面包含菜单，菜单里包含检查者、创建者
 #if 1
@@ -124,7 +128,7 @@ UserCreate::UserCreate(QWidget *parent) :
 
 #endif
 #if 1 // 删除数据按钮
-            connect(ui->delBtn, QPushButton::clicked, this, [=]{
+     connect(ui->delBtn, QPushButton::clicked, this, [=]{
                 qDebug() << "删除数据" << endl;
                 // 首先区分查询的时候是那个被触发
                 if(flagsBtn == 0){
@@ -165,12 +169,15 @@ UserCreate::UserCreate(QWidget *parent) :
                                 emit sendDataToBWidget(123);
                         /***********************bash-20241212*******************/
                         qDebug() << "删除行成功!!!";
+                        // 刷新表格，移除选中行
+                        ui->tableWidget->removeRow(selectedRow);
+                        QMessageBox::information(this, "成功","删除成功!");
                     } else {
                         qDebug() << "删除失败";
+                        QMessageBox::information(this, "失败","删除失败!");
                     }
 
-                    // 刷新表格，移除选中行
-                    ui->tableWidget->removeRow(selectedRow);
+
                     return;
 
                 }else if(flagsBtn == 1){
@@ -210,29 +217,40 @@ UserCreate::UserCreate(QWidget *parent) :
                                 emit sendDataToBWidget(123);
                         /***********************bash-20241212*******************/
                         qDebug() << "删除行成功!!!";
+                        // 刷新表格，移除选中行
+                        ui->tableWidget->removeRow(selectedRow);
+                        QMessageBox::information(this, "成功","删除成功!");
                     } else {
                         qDebug() << "删除失败";
+                        QMessageBox::information(this, "失败","删除失败!");
                     }
 
-                    // 刷新表格，移除选中行
-                    ui->tableWidget->removeRow(selectedRow);
+
                     return;
                 }else {
                     qDebug() << "请选择查询" << endl;
+                    QMessageBox::information(this, "查询","请先查询!");
                     return;
                 }
-            });
+     });
 
 #endif
 #if 1 // 修改数据按钮
-            connect(ui->fixBtn, QPushButton::clicked, this, [=]{
+     connect(ui->fixBtn, QPushButton::clicked, this, [=]{
 
                 qDebug() << "修改数据" << endl;
+                int selectedRow = ui->tableWidget->currentRow();
+                if (selectedRow == -1) {
+                    qDebug() << "没有选中任何行!";
+                    QMessageBox::information(this, "失败","没有选中行!");
+                    return;  // If no row is selected, do nothing
+                }
                 if(flagsBtn == 0){
                     qDebug() << "操作者" << endl;
                     int selectedRow = ui->tableWidget->currentRow();
                     if (selectedRow == -1) {
                         qDebug() << "没有选中任何行!";
+                        QMessageBox::information(this, "失败","没有选中行!");
                         return;  // If no row is selected, do nothing
                     }
                     rowData.append(ui->tableWidget->item(selectedRow, 0)->text());
@@ -263,6 +281,9 @@ UserCreate::UserCreate(QWidget *parent) :
                             // 当按钮点击时，发送信号给 BWidget
                                     emit sendDataToBWidget(123);
                             /***********************bash-20241212*******************/
+                            QMessageBox::information(this, "成功","修改成功!");
+                        }else{
+                            QMessageBox::information(this, "失败","修改失败!");
                         }
                     });
                 }else if(flagsBtn == 1){
@@ -270,6 +291,7 @@ UserCreate::UserCreate(QWidget *parent) :
                     int selectedRow = ui->tableWidget->currentRow();
                     if (selectedRow == -1) {
                         qDebug() << "没有选中任何行!";
+                        QMessageBox::information(this, "失败","没有选中行!");
                         return;  // If no row is selected, do nothing
                     }
                     rowData.append(ui->tableWidget->item(selectedRow, 0)->text());
@@ -285,8 +307,10 @@ UserCreate::UserCreate(QWidget *parent) :
                     }
                     if (index3 != -1) {
                         qDebug() << "Found matching row. Index: " << index3;
+//                        QMessageBox::information(this, "失败","数据不存在!");
                     } else {
                         qDebug() << "No matching row found.";
+                        QMessageBox::information(this, "","请选择修改的行!");
                     }
                     w1.setRowData(selectedRow, rowData, flagsBtn);
                     connect(&w1, &Form2_1Fix::dataUpdated2, this, [=](int updatedRow, const QString &newStreetData) {
@@ -300,21 +324,28 @@ UserCreate::UserCreate(QWidget *parent) :
                                     emit sendDataToBWidget(123);
                             /***********************bash-20241212*******************/
                             qDebug()  << "更新成功" << endl;
+                            QMessageBox::information(this, "成功","修改成功!");
+                        }else{
+                            QMessageBox::information(this, "失败","修改失败!");
                         }
                     });
 
                 }else{
                     qDebug() << "请先查询" << endl;
+                    QMessageBox::information(this, "查询","请先查询!");
                 }
                 w1.setWindowModality(Qt::ApplicationModal);
                 w1.show();
-            });
+     });
 
 #endif
 }
 
 UserCreate::~UserCreate()
 {
+    if (database.isOpen()) {
+        database.close();
+    }
     delete ui;
 }
 
@@ -492,8 +523,12 @@ void UserCreate::onOption1(){
     qDebug() << "操作者" << endl;
     // 假设 dataList 是你的查询结果
     bool flags = UserCreate::queryAllDataFromTable(database, "operatorTb", dataList);
-    if (flags)
+    if (flags){
         qDebug() << "查询成功" << endl;
+        QMessageBox::information(this, "成功","查询成功!");
+    }else{
+        QMessageBox::information(this, "失败","查询失败!");
+    }
 
     // 清空之前的数据
     ui->tableWidget->clearContents();  // 清空表格内容
@@ -532,8 +567,12 @@ void UserCreate::onOption2(){
     qDebug() << "检查者" << endl;
     // 假设 dataList 是你的查询结果
     bool flags = UserCreate::queryAllDataFromTable(database, "inspectorTb", dataList);
-    if (flags)
+    if (flags){
         qDebug() << "查询成功" << endl;
+        QMessageBox::information(this, "成功","查询成功!");
+    }else{
+        QMessageBox::information(this, "失败","查询失败!");
+    }
 
     // 清空之前的数据
     ui->tableWidget->clearContents();  // 清空表格内容

@@ -7,15 +7,28 @@ Login::Login(QWidget *parent) :
     ui(new Ui::Login)
 {
     ui->setupUi(this);
+    // 只允许英文字母和数字
+    QRegExp rx("[A-Za-z0-9]*");
+    QRegExpValidator *validator = new QRegExpValidator(rx, this);
+    ui->passLine->setValidator(validator);
+
+    //设置窗体背景色为黑色
+//    setStyleSheet("QWidget{background:black}");
+//    setWindowOpacity(0.8);//设置窗口的透明度
+
+    //-------------bash20241215--------------
+    // 这里启动后台资源加载，即使用户还没登录
+//     QtConcurrent::run(this, &Login::loadW1ResourcesInBackground);
+     w1 = nullptr;  // 初始化为 nullptr
+    //-------------bash20241215--------------
     setWindowIcon(QIcon(":/img/LoginImg.svg"));
     setWindowTitle("登录");
     database = Login::getDatabaseConnection("./D1.db");
     Login::findTableToConBox();
+    Login::showLoginPage();
 
     connect(ui->loginBtn, QPushButton::clicked, this, [=]{
         qDebug() << "登录界面即将跳转主界面" << endl;
-//        Login::findTableToConBox();
-
         QString enteredUserName = ui->userComBox->currentText();
         QString enteredPassword = ui->passLine->text();
         // 检查用户名和密码是否匹配
@@ -34,8 +47,11 @@ Login::Login(QWidget *parent) :
         }
         // 如果匹配成功，跳转到下一个页面
         if (isValidUser) {
-            w1.show();  // 页面跳转
-            this->close();
+//            w1.show();  // 页面跳转
+//            this->close();
+            QMessageBox::information(this, "登录成功", "欢迎进入系统！");
+            Login::onLoginSuccess();
+
         } else {
             // 显示错误信息（可以自定义）
             QMessageBox::warning(this, "登录失败", "用户名或密码错误！");
@@ -52,6 +68,7 @@ Login::Login(QWidget *parent) :
 Login::~Login()
 {
     delete ui;
+    if (w1) delete w1;  // 确保销毁 w1
 }
 /**
  * @brief 获取指定名称的数据库连接
@@ -142,3 +159,46 @@ void Login::findTableToConBox(){
     }
 
 }
+
+
+
+//-------------bash20241215--------------
+void Login::showLoginPage()
+{
+    // 显示Login界面
+    this->show();
+
+    // 延迟加载额外资源
+    QTimer::singleShot(0, this, &Login::startResourceLoading);
+}
+
+void Login::startResourceLoading()
+{
+    // 3. 异步加载资源，确保不阻塞 UI 线程
+    QtConcurrent::run(this, &Login::loadW1ResourcesInBackground);
+}
+
+void Login::loadW1ResourcesInBackground()
+{
+    // 在后台加载 w1 的资源，避免阻塞 UI 线程
+    qDebug() << "后台加载 w1 窗口资源...";
+
+    qDebug() << "w1 窗口资源加载完成！";
+}
+
+void Login::onLoginSuccess()
+{
+    // 仅在登录成功后才创建 w1 窗口
+    if (!w1) {
+        w1 = new MainWindow();  // 动态创建 w1 窗口
+    }
+    // 异步加载 w1 的资源（如果需要的话）
+    QtConcurrent::run(this, &Login::loadW1ResourcesInBackground);
+
+    // 显示 w1 窗口并关闭 Login 窗口
+    w1->show();
+    this->close();
+}
+
+
+//-------------bash20241215--------------

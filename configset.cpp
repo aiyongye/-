@@ -3,6 +3,12 @@
 
 ConfigSet::ConfigSet(QWidget *parent) :
     QMainWindow(parent),
+    pressStdLoaded(false),
+    userCreateLoaded(false),
+    loginSetLoaded(false),
+    pressStd(nullptr),
+    userCreate(nullptr),
+    loginSet(nullptr),
     ui(new Ui::ConfigSet)
 {
     setAttribute(Qt::WA_QuitOnClose, false);  // 其他窗口关闭时不退出应用程序
@@ -10,42 +16,65 @@ ConfigSet::ConfigSet(QWidget *parent) :
     setFixedSize(1200,800);
     setWindowIcon(QIcon(":/img/SetImg.svg"));
     setWindowTitle("配置");
+
+
+
+#if 1 //处理ui刷新
+    // 确保每个标签页都有布局
+       QVBoxLayout *layoutTab9 = new QVBoxLayout();
+       ui->tabWidget->widget(0)->setLayout(layoutTab9); // 给 tab_9 设置布局
+
+       QVBoxLayout *layoutTab10 = new QVBoxLayout();
+       ui->tabWidget->widget(1)->setLayout(layoutTab10); // 给 tab_10 设置布局
+
+       QVBoxLayout *layoutTab11 = new QVBoxLayout();
+       ui->tabWidget->widget(2)->setLayout(layoutTab11); // 给 tab_11 设置布局
+
+       // 连接 tabWidget 的 currentChanged 信号，当标签切换时执行懒加载
+       connect(ui->tabWidget, &QTabWidget::currentChanged, this, &ConfigSet::onTabChanged);
+
+
+#endif
 //    qInstallMessageHandler(qDebugLogInfo::customMessageHandler); //打印日志
     QFile file(":/Tabs.qss");
     file.open(QFile::ReadOnly);
     QString qss=file.readAll();
     file.close();
 
+
     applyStyles(this,qss);
 
     loadTabWidget1(ui->tabWidget->currentIndex());
+    ui->tabWidget->setCurrentIndex(3); // 将当前标签页设置为第 3 个标签页（索引从 0 开始）
+
             /***********************bash-20241210*******************/
     // 当接收到来自 AWidget 的数据时，将其转发给 CWidget
-    PressStd *aWidget = findChild<PressStd *>();
+//    PressStd *aWidget = findChild<PressStd *>();
     // 如果找到了 AWidget，连接信号到槽
-    if (aWidget) {
-        connect(aWidget, &PressStd::sendDataToBWidget, this, &ConfigSet::onReceiveDataFromAWidget);
-    }
+//    if (aWidget) {
+//        connect(pressStd, &PressStd::sendDataToBWidget, this, &ConfigSet::onReceiveDataFromAWidget);
+//    }
         /***********************bash-20241212*******************/
 
         /***********************bash-20241212*******************/
     // 当接收到来自 AWidget 的数据时，将其转发给 CWidget
-    UserCreate *aWidget2 = findChild<UserCreate *>();
+//    UserCreate *aWidget2 = findChild<UserCreate *>();
     // 如果找到了 AWidget，连接信号到槽
-    if (aWidget2) {
-    connect(aWidget2, &UserCreate::sendDataToBWidget, this, &ConfigSet::onReceiveDataFromAWidget2);
-    }
+//    if (aWidget2) {
+//    connect(userCreate, &UserCreate::sendDataToBWidget, this, &ConfigSet::onReceiveDataFromAWidget2);
+//    }
     /***********************bash-20241212*******************/
 }
 
 ConfigSet::~ConfigSet()
 {
+
     delete ui;
 }
             /***********************bash-20241211*******************/
 // ConfigSet.cpp
 void ConfigSet::onReceiveDataFromAWidget(const int &data) {
-//    qDebug() << "Received data in ConfigSet:" << data;
+    qDebug() << "Received data in ConfigSet:" << data;
     emit sendDataBToCWidget(data);
     // 更新界面或执行其他操作
 }
@@ -54,7 +83,7 @@ void ConfigSet::onReceiveDataFromAWidget(const int &data) {
             /***********************bash-20241212*******************/
 // ConfigSet.cpp
 void ConfigSet::onReceiveDataFromAWidget2(const int &data) {
-//    qDebug() << "Received data in ConfigSet:" << data;
+    qDebug() << "Received data in ConfigSet:" << data;
 emit sendDataBToCWidget2(data);
 // 更新界面或执行其他操作
 }
@@ -114,9 +143,6 @@ void ConfigSet::loadTabWidget1(int index){
 
     // 获取QTabWidget的tab栏部件
     QTabBar *tabBar = ui->tabWidget->tabBar();
-    QPoint positionInTabWidget = tabRect.bottomLeft(); // 相对于QTabWidget的位置
-    // 如果需要相对于主窗口的位置
-    QPoint positionInMainWindow = tabBar->mapTo(ui->tabWidget->window(), positionInTabWidget);
 
     y=tabBar->mapTo(ui->tabWidget->window(), tabRect.bottomLeft()).y();
     xStart=tabBar->mapTo(ui->tabWidget->window(), tabRect.bottomLeft()).x();
@@ -129,18 +155,38 @@ void ConfigSet::loadTabWidget1(int index){
      y2=localPos.y()+40;
 }
 
-void ConfigSet::loadTabWidget2(int index){
-
-
-    // 获取QTabWidget的tab栏部件
-
-    // 如果需要相对于主窗口的位置
-
-}
-
-void ConfigSet::on_tabWidget_2_tabBarClicked(int index)
+void ConfigSet::onTabChanged(int index)
 {
-    loadTabWidget2(index);
-    // 更新窗口，触发paintEvent重新绘制
-    update();
+    // 根据当前选中的标签页索引加载相应的控件
+    switch (index) {
+        case 0: // 第一个标签页：工艺标准 (PressStd)
+            if (!pressStdLoaded) {
+                pressStd = new PressStd(this); // 创建 PressStd 控件
+                ui->tabWidget->widget(0)->layout()->addWidget(pressStd); // 将控件添加到该标签页
+                pressStdLoaded = true; // 标记为已加载
+                        connect(pressStd, &PressStd::sendDataToBWidget, this, &ConfigSet::onReceiveDataFromAWidget);
+            }
+            break;
+
+        case 1: // 第二个标签页：角色创建 (UserCreate)
+            if (!userCreateLoaded) {
+                userCreate = new UserCreate(this); // 创建 UserCreate 控件
+                ui->tabWidget->widget(1)->layout()->addWidget(userCreate); // 将控件添加到该标签页
+                userCreateLoaded = true; // 标记为已加载
+                    connect(userCreate, &UserCreate::sendDataToBWidget, this, &ConfigSet::onReceiveDataFromAWidget2);
+            }
+            break;
+
+        case 2: // 第三个标签页：角色管理 (LoginSet)
+            if (!loginSetLoaded) {
+                loginSet = new LoginSet(this); // 创建 LoginSet 控件
+                ui->tabWidget->widget(2)->layout()->addWidget(loginSet); // 将控件添加到该标签页
+                loginSetLoaded = true; // 标记为已加载
+            }
+            break;
+
+        default:
+            break;
+    }
 }
+

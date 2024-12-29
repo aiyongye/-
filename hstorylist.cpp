@@ -5,7 +5,8 @@
 #include <QDateTimeEdit>
 #include <QCalendarWidget>
 #include <QString>
-
+int index4 = -1;
+int index5 = -1;
 HstoryList::HstoryList(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::HstoryList)
@@ -85,20 +86,16 @@ HstoryList::HstoryList(QWidget *parent) :
             // 创建菜单项
             QAction *queryButtonAction1 = new QAction("全部查询", this);
             QAction *queryButtonAction2 = new QAction("按时间范围查询", this);
-            QAction *queryButtonAction3 = new QAction("悬挂名称", this);
-            QAction *queryButtonAction4 = new QAction("节点序列号", this);
 
             // 添加菜单项到菜单
             queryButtonMenu->addAction(queryButtonAction1);
             queryButtonMenu->addAction(queryButtonAction2);
-            queryButtonMenu->addAction(queryButtonAction3);
-            queryButtonMenu->addAction(queryButtonAction4);
+
 
             // 为菜单项连接槽函数
             connect(queryButtonAction1, &QAction::triggered, this, &HstoryList::onOption1);
             connect(queryButtonAction2, &QAction::triggered, this, &HstoryList::onOption2);
-            connect(queryButtonAction3, &QAction::triggered, this, &HstoryList::onOption3);
-            connect(queryButtonAction4, &QAction::triggered, this, &HstoryList::onOption4);
+
 
             // 设置按钮点击时弹出菜单
             connect(ui->queryButton, &QPushButton::clicked, this, [queryButtonMenu, this]() {
@@ -138,8 +135,8 @@ HstoryList::HstoryList(QWidget *parent) :
     this->setFocus();
     ui->queryButton->setStyleSheet(buttonStyle);
     ui->printButton->setStyleSheet(buttonStyle);
-    ui->pushButton_4->setStyleSheet(buttonStyle);
-    ui->pushButton_5->setStyleSheet(buttonStyle);
+    ui->fixButton->setStyleSheet(buttonStyle);
+    ui->delButton->setStyleSheet(buttonStyle);
     ui->exitButton->setStyleSheet(buttonStyle);
     ui->startDateEdit->setFocus();
     // 设置 QDateTimeEdit 的日历弹出功能
@@ -151,14 +148,23 @@ HstoryList::HstoryList(QWidget *parent) :
     ui->startDateEdit->setDisplayFormat("yyyy-MM-dd");
     ui->startDateEdit->setDate(QDate::currentDate());
     ui->startDateEdit->setCalendarWidget(new QCalendarWidget);
-    ui->startTimeEdit->setTime(QTime::currentTime());  // 当前时间，精确到秒
+    //ui->startTimeEdit->setTime(QTime::currentTime());  // 当前时间，精确到秒
+    // Create a QTime object with the time 00:00:00
+    QTime startTime(0, 0, 0);  // Time: 00 hours, 00 minutes, 00 seconds
+    // Set the time to the QTimeEdit
+    ui->startTimeEdit->setTime(startTime);
     qDebug() << QTime::currentTime() << endl;
 
     ui->endDateEdit->setDisplayFormat("yyyy-MM-dd");
     ui->endDateEdit->setDate(QDate::currentDate());
     QCalendarWidget *calendar = new QCalendarWidget;
     ui->endDateEdit->setCalendarWidget(calendar);
-    ui->endTimeEdit->setTime(QTime::currentTime());    // 当前时间，精确到秒
+    //ui->endTimeEdit->setTime(QTime::currentTime());    // 当前时间，精确到秒
+    // Create a QTime object for 23:59:59
+    QTime endTime(23, 59, 59);  // 23 hours, 59 minutes, 59 seconds
+    // Set the time to the QTimeEdit
+    ui->endTimeEdit->setTime(endTime);
+
     calendar->setStyleSheet("background-color: lightblue;");
     // 设置显示格式，精确到秒
     ui->startTimeEdit->setDisplayFormat("hh:mm:ss");
@@ -281,10 +287,131 @@ HstoryList::HstoryList(QWidget *parent) :
 #endif
 
 
+#if  1 //处理修改记录数据中的序列号20241227
+    connect(ui->fixButton, &QPushButton::clicked, this, [=]{
+       qDebug() << "修改触发" << endl;
+       // Get the selected row in the tableWidget
+       int selectedRow = ui->tableWidget2->currentRow();  // Get the index of the selected row
+       if (selectedRow == -1) {
+           qDebug() << "没有选中任何行!";
+           QMessageBox::information(this, "失败","请选择行!");
+           return;  // If no row is selected, do nothing
+       }
+       // Get the data of the selected row
+       QList<QVariant> rowData;  // Create a QList<QVariant> to store the selected row data
+       rowData.append(ui->tableWidget2->item(selectedRow, 4)->text());  // streetData
+       rowData.append(ui->tableWidget2->item(selectedRow, 8)->text());  // pressDate
+       qDebug() << ui->tableWidget2->item(selectedRow, 4)->text() << ui->tableWidget2->item(selectedRow, 8)->text() << endl;
+
+       // 假设 dataList 是 QList<QList<QVariant>> 类型，存储了所有数据
+       for (int i = 0; i < mainJiLuList.size(); ++i) {
+           const QList<QVariant> &row = mainJiLuList[i];
+           // 比较第二个字段和第三个字段与选中的 tableWidget 行数据
+           if (row[1].toString() == ui->tableWidget2->item(selectedRow, 0)->text() &&
+               row[2].toString() == ui->tableWidget2->item(selectedRow, 1)->text()) {
+
+               // 如果匹配，将第一个字段赋给 index
+               index4 = row[0].toInt();
+               break;  // 找到匹配的行后可以退出循环
+           }
+       }
+       if (index4 != -1) {
+           qDebug() << "Found matching row. Index: " << index4;
+       } else {
+           qDebug() << "No matching row found.";
+       }
+
+       w1.setRowData(selectedRow, rowData);  // Pass selected row index and data to Form3Fix
+
+       // Connect the signal to update data back to loginset
+       connect(&w1, &historyForm1::dataUpdated12, this, [=](int updatedRow, const QString &newStreetData, const QString &newPressDate) {
+           // Update the tableWidget with new data from Form3Fix
+           ui->tableWidget2->item(updatedRow, 4)->setText(newStreetData);
+           ui->tableWidget2->item(updatedRow, 8)->setText(newPressDate);
+           QString _userName = newStreetData;
+           QString _userPass = newPressDate;
+           bool flags = HstoryList::updateDataInTable(dataBaseConn, "mainListTb", index4, _userName, _userPass);
+           if(flags){
+               qDebug()  << "更新成功" << endl;
+               QMessageBox::information(this, "成功","更新成功!");
+           }else{
+               QMessageBox::information(this, "失败","更新失败!");
+           }
+       });
+       w1.setWindowModality(Qt::ApplicationModal);
+       w1.show();
+    });
+#endif
+
+#if 1 // 处理删除数据 20241227
+    connect(ui->delButton, &QPushButton::clicked, this, [=]{
+        qDebug() << "删除行" << endl;
+        // Get the selected row in the tableWidget
+        int selectedRow = ui->tableWidget2->currentRow();  // Get the index of the selected row
+        if (selectedRow == -1) {
+            qDebug() << "没有选中任何行!";
+            QMessageBox::information(this, "失败","请选择行!");
+            return;  // If no row is selected, do nothing
+        }
+
+        qDebug() << ui->tableWidget2->item(selectedRow, 4)->text() << ui->tableWidget2->item(selectedRow, 8)->text() << endl;
+
+        // 假设 dataList 是 QList<QList<QVariant>> 类型，存储了所有数据
+        for (int i = 0; i < mainJiLuList.size(); ++i) {
+            const QList<QVariant> &row = mainJiLuList[i];
+            // 比较第二个字段和第三个字段与选中的 tableWidget 行数据
+            if (row[1].toString() == ui->tableWidget2->item(selectedRow, 0)->text() &&
+                row[2].toString() == ui->tableWidget2->item(selectedRow, 1)->text()) {
+
+                // 如果匹配，将第一个字段赋给 index
+                index5 = row[0].toInt();
+                break;  // 找到匹配的行后可以退出循环
+            }
+        }
+        if (index5 != -1) {
+            qDebug() << "Found matching row. Index: " << index5;
+            // 处理删除行数据包括tableWidget上的
+            bool flags =  HstoryList::deleteDataByIdAndReference(dataBaseConn, "mainListTb", "streetDataTb", index5);
+            if(flags){
+                QMessageBox::information(this, "成功","删除成功!");
+                qDebug() << "删除成功" << endl;
+
+                // 删除tableWidget条目
+                // 刷新表格，移除选中行
+                ui->tableWidget2->removeRow(selectedRow);
+                // 删除tableWidget2_2最后一个字段等于index5的所有条数
+                // 假设 index5 是你要匹配的值
+                QString index5_ = QString::number(index5);  // 将 int 转换为 QString  // 你要匹配的值
+
+                // 遍历 tableWidget2_2 中的所有行
+                int rowCount = ui->tableWidget2_2->rowCount();
+                for (int row = rowCount - 1; row >= 0; --row) {
+                    // 获取最后一列的值
+                    QString cellValue = ui->tableWidget2_2->item(row, ui->tableWidget2_2->columnCount() - 1)->text();
+
+                    // 如果最后一列的值等于 index5，删除该行
+                    if (cellValue == index5_) {
+                        ui->tableWidget2_2->removeRow(row);
+                    }
+                }
+            }else{
+                QMessageBox::information(this, "失败","删除失败!");
+            }
+
+        } else {
+            qDebug() << "No matching row found.";
+        }
+    });
+#endif
+
+
 }
 
 HstoryList::~HstoryList()
 {
+    if (dataBaseConn.isOpen()) {
+        dataBaseConn.close();
+    }
     delete ui;
 }
 
@@ -371,9 +498,9 @@ void HstoryList::loadTable(QTableWidget *tableWidget){
  */
 void HstoryList::loadTable2(QTableWidget *tableWidget){
 #if 1
-    tableWidget->setColumnCount(3);
+    tableWidget->setColumnCount(4);
     QStringList heardList;
-    heardList<<"压力值"<<"时期时间"<<"图表类型"<< "视图" << "视图标志";
+    heardList<<"压力值"<<"时期时间"<<"图表类型" << "视图标志";
 
     tableWidget->setHorizontalHeaderLabels(heardList);
 
@@ -819,9 +946,9 @@ void HstoryList::onOption2() {
        dateFind2 = HstoryList::queryTableDate(dataBaseConn, "./D1.db", "streetDataTb",startDateTime,endDateTime);
        ui->tableWidget2_2->clearContents();
       // 处理查询到的数据
-       ui->tableWidget2_2->setColumnCount(3);
+       ui->tableWidget2_2->setColumnCount(4);
        QStringList heardList2;
-       heardList2<<"压装力值"<<"压装日期"<<"图表类型";
+       heardList2<<"压装力值"<<"压装日期"<<"图表类型" << "视图标志";
        ui->tableWidget2_2->setHorizontalHeaderLabels(heardList2);
        // 1.2 设置列的宽度，拉伸使表格充满窗口
        ui->tableWidget2_2->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
@@ -879,18 +1006,7 @@ void HstoryList::onOption2() {
         HstoryList::loadTable2(ui->tableWidget2_2);
     }
 
-    // 悬挂名称
-    void HstoryList::onOption3() {
-        //如果当前QLineEdit中的数据和数据库xuanName字段名称相等将数据库中的数据
-        // 插入的 table中
-        qDebug("选项3被选择");
-    }
-    // 节点序列号
-    void HstoryList::onOption4() {
-        // 如果当前QLiineEdit中的节点序列号和数据库中的Serial_number1相等
-        // 将数据库中的数据插入到Table中
-        qDebug("选项4被选择");
-    }
+
     // 打印主记录列表(Y)
     void HstoryList::printOnOption1() {
         qDebug("打印触发1");
@@ -917,91 +1033,10 @@ void HstoryList::onOption2() {
 
         connect(&preview, &QPrintPreviewDialog::paintRequested, this, &HstoryList::printPreview2);
         preview.exec();
+        // 确保资源释放
+        preview.deleteLater();  // 在预览完成后删除对话框
     #endif
     }
-#if 0
-    void HstoryList::printPreview(QPrinter *printer)
-    {
-#ifdef QT_NO_PRINTER
-    Q_UNUSED(printer);
-#else
-    // Choose PDF file to load
-    QString filePath = QFileDialog::getOpenFileName(this, "选择PDF文件", "", "PDF Files (*.pdf)");
-    if (filePath.isEmpty()) {
-        return;
-    }
-
-    // Load Poppler document
-    Poppler::Document *pdfDocument = Poppler::Document::load(filePath);
-    if (!pdfDocument) {
-        qWarning() << "Failed to load PDF:" << filePath;
-        return;
-    }
-
-    // Check if the PDF page is in landscape or portrait orientation
-    Poppler::Page *page = pdfDocument->page(0);  // Load the first page
-    if (!page) {
-        qWarning() << "Failed to load page";
-        delete pdfDocument;
-        return;
-    }
-
-    QSizeF pageSize = page->pageSize();  // Get the page size
-    bool isLandscape = pageSize.width() > pageSize.height();  // Check if the page is landscape
-
-    // Set the printer orientation based on the PDF orientation
-    if (isLandscape) {
-        printer->setOrientation(QPrinter::Landscape);  // Set printer to Landscape if the PDF is Landscape
-    } else {
-        printer->setOrientation(QPrinter::Portrait);  // Set printer to Portrait if the PDF is Portrait
-    }
-
-    // Set printer resolution and size
-    printer->setPageSize(QPrinter::A4);
-    printer->setResolution(300);
-
-    // Render the PDF to image
-    QImage image = page->renderToImage(600, 600);  // Render page at 600 DPI
-    if (image.isNull()) {
-        qWarning() << "Failed to render page to image";
-        delete pdfDocument;
-        return;
-    }
-
-    // Create QPainter for printing
-    QPainter painter(printer);
-    if (!painter.isActive()) {
-        qWarning() << "Failed to initialize QPainter";
-        delete pdfDocument;
-        return;
-    }
-
-    // Print the image onto the page
-    painter.save();
-
-    // Get the print page size
-    QSize printSize = printer->pageRect().size();
-    QRect targetRect(0, 0, printSize.width(), printSize.height());
-
-    // Compute scaling factors
-    qreal scaleX = targetRect.width() / static_cast<qreal>(image.width());
-    qreal scaleY = targetRect.height() / static_cast<qreal>(image.height());
-    qreal scale = qMax(scaleX, scaleY);
-
-    // Apply scaling
-    painter.scale(scale, scale);
-
-    // Draw the image on the printer
-    painter.drawImage(0, 0, image);
-
-    // Restore the painter state
-    painter.restore();
-
-    // Clean up
-    delete pdfDocument;
-#endif
-    }
-#endif
 
 
     // 打印预览槽函数2
@@ -1013,95 +1048,17 @@ void HstoryList::onOption2() {
         QPrintPreviewDialog preview(&printer, this);
         preview.resize(2400,1600);
 
+        // 确保在对话框关闭后删除
+          connect(&preview, &QPrintPreviewDialog::finished, [&]() {
+              qDebug() << "Preview dialog closed, deleting...";
+              preview.deleteLater();  // 确保对话框关闭后再删除
+          });
         connect(&preview, &QPrintPreviewDialog::paintRequested, this, &HstoryList::printPreview2);
         preview.exec();
+
     #endif
     }
 
- #if 0
-    void HstoryList::printPreview2(QPrinter *printer)
-    {
-    #ifdef QT_NO_PRINTER
-        Q_UNUSED(printer);
-    #else
-        // Choose PDF file to load
-        QString filePath = QFileDialog::getOpenFileName(this, "选择PDF文件", "", "PDF Files (*.pdf)");
-        if (filePath.isEmpty()) {
-            return;
-        }
-
-        // Load Poppler document
-        Poppler::Document *pdfDocument = Poppler::Document::load(filePath);
-        if (!pdfDocument) {
-            qWarning() << "Failed to load PDF:" << filePath;
-            return;
-        }
-
-
-#if 1
-        Poppler::Page *page = pdfDocument->page(0);  // Load the first page
-        if (!page) {
-            qWarning() << "Failed to load page";
-            delete pdfDocument;
-            return;
-        }
-
-        QSizeF pageSize = page->pageSize();  // Get the page size
-#endif
-        bool isLandscape = pageSize.width() > pageSize.height();  // Check if the page is landscape
-        // Set the printer orientation based on the PDF orientation
-        if (isLandscape) {
-            printer->setOrientation(QPrinter::Landscape);  // Set printer to Landscape if the PDF is Landscape
-        } else {
-            printer->setOrientation(QPrinter::Portrait);  // Set printer to Portrait if the PDF is Portrait
-        }
-
-        // Set printer resolution and size
-        printer->setPageSize(QPrinter::A4);
-        printer->setResolution(300);
-
-        // Render the PDF to image
-        QImage image = page->renderToImage(600, 600);  // Render page at 600 DPI
-        if (image.isNull()) {
-            qWarning() << "Failed to render page to image";
-            delete pdfDocument;
-            return;
-        }
-
-        // Create QPainter for printing
-        QPainter painter(printer);
-        if (!painter.isActive()) {
-            qWarning() << "Failed to initialize QPainter";
-            delete pdfDocument;
-            return;
-        }
-
-        // Print the image onto the page
-        painter.save();
-
-        // Get the print page size
-        QSize printSize = printer->pageRect().size();
-        QRect targetRect(0, 0, printSize.width(), printSize.height());
-
-
-        qreal scaleX = targetRect.width() / static_cast<qreal>(image.width());
-        qreal scaleY = targetRect.height() / static_cast<qreal>(image.height());
-        qreal scale = qMax(scaleX, scaleY);  // Scale the image to fit the page, keeping the aspect ratio
-
-        // Apply scaling
-        painter.scale(scale, scale);
-
-        // Draw the image on the printer
-        painter.drawImage(0, 0, image);
-
-        // Restore the painter state
-        painter.restore();
-
-        // Clean up
-        delete pdfDocument;
-    #endif
-    }
-#endif
 
 #if 1
     void HstoryList::printPreview2(QPrinter *printer)
@@ -1154,7 +1111,8 @@ void HstoryList::onOption2() {
             printer->setResolution(300);
 
             // Render the current page to an image
-            QImage image = page->renderToImage(600, 600);  // Render page at 600 DPI
+            QImage image = page->renderToImage(180.0, 180.0);  // Render page at 600 DPI
+            //QImage image = page->renderToImage(72.0, 72.0);  // Render page at 600 DPI
             if (image.isNull()) {
                 qWarning() << "Failed to render page to image";
                 delete page;
@@ -1390,16 +1348,24 @@ void HstoryList::onOption2() {
         int tableH2 = configIni.value("Charts/H2", 180).toInt();  // 默认为 3000
 
         // 表格头部（表头可能需要每页重新显示）
-        QString tableHeader = "<table  border='2' cellspacing='0' cellpadding='3' width:100%>";
+        QString tableHeader = "<table  border='5' cellspacing='0' cellpadding='3' width:100%>";
         tableHeader += "<tr>";
 
+        // 修复样式拼接问题
+        tableHeader += QString("<td colspan='12' style='font-size:%1px; text-align:left; border-top: none; border-left: none; border-right: none; vertical-align: middle;'>")
+                           .arg(tableH2);
 
-        tableHeader += QString("<td colspan='12' style='font-size:%1px;' text-align:left  border-top: none border-left: none border-right:none vertical-align: middle").arg(tableH2);
-        tableHeader += QString("统计时间: %1 => %2 23:59:59</td>")
-                          .arg(ui->startDateEdit->text())
-                          .arg(ui->endDateEdit->text());
+        // 拼接统计时间
+        QString tableHeader1 = QString("统计时间: %1 => %2 23:59:59")
+                                   .arg(ui->startDateEdit->text())
+                                   .arg(ui->endDateEdit->text());
+        qDebug() << "Table Header1: " << tableHeader1;
 
-        tableHeader += "</tr>";
+        tableHeader += tableHeader1; // 直接追加统计时间内容
+
+        // 闭合标签
+        tableHeader += "</td></tr>";
+
         m_html.append(tableHeader);
 
         // 设置每页最大行数
@@ -1428,8 +1394,6 @@ void HstoryList::onOption2() {
         m_html.append(QString("<tr><td style='text-align: center; font-size:%1px'><strong>合计:</strong></td>"
                               "<td style='text-align: center; font-size:%1px'><strong>%2</strong></td>"
                               "<td colspan='10'></td></tr>").arg(tableH2).arg(QString::number(rows)));
-
-
         m_html.append("</table><br /><br />");
     }
 
@@ -1465,8 +1429,6 @@ void HstoryList::onOption2() {
         // 结束 PDF 文件
         textDocument.end();
     }
-
-
 #endif
 
 
@@ -1619,4 +1581,127 @@ void HstoryList::onOption2() {
         return false;  // 如果没有数据匹配，返回 false
     }
 
+
+    /***********************bash20241218***********************/
+    void HstoryList::createDirectory(const QString& path) {
+        QDir dir;
+
+        // mkpath() 会自动创建多级目录
+        if (dir.mkpath(path)) {
+            qDebug() << "Directory created successfully:" << path;
+        } else {
+            qDebug() << "Failed to create directory:" << path;
+        }
+    }
+    /***********************bash20241218***********************/
+
+
+
+    /**
+     * @brief 更新表
+     * @param db 数据库对象
+     * @param dbName 数据库文件名（如 "D1.db"）
+     * @param tableName 表名
+     * @return true 查询存入容器成功
+     * @return false 查询存入容器失败
+     */
+
+    bool HstoryList::updateDataInTable(QSqlDatabase &db, const QString &tableName, int rowId, const QString &newUserName, const QString &newPassword) {
+        // 检查数据库是否打开
+        if (!db.isOpen()) {
+            qDebug() << "Error: Database is not open.";
+            return false;
+        }
+
+        QSqlQuery query(db);
+
+        // 构建更新 SQL 语句，假设我们只更新 u_name 和 p_word 字段
+        QString updateSQL = QString("UPDATE %1 SET serial_number1 = :newUserName, serial_number1 = :newPassword WHERE id = :id;")
+            .arg(tableName);
+
+        // 输出 SQL 查询文本，确认其正确性
+        qDebug() << "Executing SQL: " << updateSQL;
+
+        query.prepare(updateSQL);
+
+        // 绑定新数据到查询
+        query.bindValue(":newUserName", newUserName);  // 假设 newUserName 是要更新的 u_name
+        query.bindValue(":newPassword", newPassword);  // 假设 newPassword 是要更新的 p_word
+        query.bindValue(":id", rowId);  // 根据主键 id 更新数据
+
+        // 调试：输出绑定的参数
+        qDebug() << "Binding values:";
+        qDebug() << "New User Name: " << newUserName;
+        qDebug() << "New Password: " << newPassword;
+        qDebug() << "ID: " << rowId;
+
+        // 执行更新操作
+        if (!query.exec()) {
+            qDebug() << "Error executing update:" << query.lastError();
+            return false;
+        }
+
+        qDebug() << "Data updated successfully in table" << tableName;
+        return true;
+    }
+
+
+    /**
+     * @brief 删除当前表中的指定 ID 数据，并删除另一表中关联的记录
+     * @param db 数据库对象
+     * @param tableName 当前表名
+     * @param refTableName 关联表名（包含当前表 ID 的表）
+     * @param rowId 当前表的 ID（整型）
+     * @return true 删除成功
+     * @return false 删除失败
+     */
+    bool HstoryList::deleteDataByIdAndReference(QSqlDatabase &db, const QString &tableName, const QString &refTableName, int rowId) {
+        // 检查数据库是否打开
+        if (!db.isOpen()) {
+            qDebug() << "Error: Database is not open.";
+            return false;
+        }
+
+        QSqlQuery query(db);
+
+        // 开始事务处理
+        if (!db.transaction()) {
+            qDebug() << "Error starting transaction:" << db.lastError();
+            return false;
+        }
+
+        // 将整型 ID 转换为 QString 类型，确保与关联表中的字段类型匹配
+        QString rowIdStr = QString::number(rowId);  // 将整型 ID 转换为 QString 类型
+
+        // 1. 删除关联表中所有包含当前表 ID 的记录
+        QString deleteRefSQL = QString("DELETE FROM %1 WHERE mainId = :id;").arg(refTableName);
+        query.prepare(deleteRefSQL);
+        query.bindValue(":id", rowIdStr);  // 绑定 QString 类型的 rowId
+
+        if (!query.exec()) {
+            qDebug() << "Error executing delete on reference table:" << query.lastError();
+            db.rollback();  // 回滚事务
+            return false;
+        }
+
+        // 2. 删除当前表中的记录
+        QString deleteSQL = QString("DELETE FROM %1 WHERE id = :id;").arg(tableName);
+        query.prepare(deleteSQL);
+        query.bindValue(":id", rowId);  // 当前表的 ID 使用整型
+
+        if (!query.exec()) {
+            qDebug() << "Error executing delete on current table:" << query.lastError();
+            db.rollback();  // 回滚事务
+            return false;
+        }
+
+        // 提交事务
+        if (!db.commit()) {
+            qDebug() << "Error committing transaction:" << db.lastError();
+            return false;
+        }
+
+        qDebug() << "Data deleted successfully from both tables";
+        return true;
+    }
 
