@@ -26,6 +26,7 @@ void historyForm1::setRowData(int row, const QList<QVariant> &data)
     } else {
         qDebug() << "Error: Missing QLineEdit widgets!";
     }
+
 }
 /*--------------------20241227-------------------------*/
 
@@ -45,8 +46,11 @@ void historyForm1::on_liJiFixBtn_clicked()
         QString newPressDate = lineEdit2->text();
 
         emit dataUpdated12(rowIndex, newStreetData, newPressDate);
+
     } else {
         qDebug() << "Error: Missing QLineEdit widgets!";
     }
 }
+
 /*--------------------20241227-------------------------*/
+

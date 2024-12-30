@@ -73,8 +73,11 @@ private slots:
 
           void onOption2();
 
+          void onOption3();
+
           void printOnOption1();
           void printonOption2() ;
+
           void loadTable2(QTableWidget *tableWidget);
           void exportPdf();
           void writePdf();
@@ -114,6 +117,15 @@ public:
           QList<QList<QVariant>> rightList;
 
           // 20241229
+
+          // 20241230
+          QList<QList<QVariant>> queryTableDate2(QSqlDatabase &db, const QString &dbName, const QString &tableName,
+                                                             const QString &startDateTime, const QString &endDateTime,
+                                                             const QString &xuanName, const QStringList &columns = QStringList("*"));
+          QList<QList<QVariant>> queryTableDate3(QSqlDatabase &db, const QString &dbName, const QString &tableName,
+                                                             const QString &startDateTime, const QString &endDateTime,
+                                                             const QString &xuanName, const QStringList &columns = QStringList("*"));
+          // 20241230
 };
 
 #endif // HSTORYLIST_H

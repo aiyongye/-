@@ -86,15 +86,22 @@ HstoryList::HstoryList(QWidget *parent) :
             // 创建菜单项
             QAction *queryButtonAction1 = new QAction("全部查询", this);
             QAction *queryButtonAction2 = new QAction("按时间范围查询", this);
+            //  20241230
+            QAction *queryButtonAction3 = new QAction("按悬挂件名称查询", this);
+            //  20241230
 
             // 添加菜单项到菜单
             queryButtonMenu->addAction(queryButtonAction1);
             queryButtonMenu->addAction(queryButtonAction2);
+               //  20241230
+            queryButtonMenu->addAction(queryButtonAction3);
+               //  20241230
 
 
             // 为菜单项连接槽函数
             connect(queryButtonAction1, &QAction::triggered, this, &HstoryList::onOption1);
             connect(queryButtonAction2, &QAction::triggered, this, &HstoryList::onOption2);
+            connect(queryButtonAction3, &QAction::triggered, this, &HstoryList::onOption3);
 
 
             // 设置按钮点击时弹出菜单
@@ -340,6 +347,7 @@ HstoryList::HstoryList(QWidget *parent) :
        });
        w1.setWindowModality(Qt::ApplicationModal);
        w1.show();
+
     });
 #endif
 
@@ -886,6 +894,154 @@ QList<QList<QVariant>> HstoryList::queryTableDate(QSqlDatabase &db, const QStrin
 }
 #endif
 
+#if 1 // 在时间区间里面按照悬挂名称查询20241230
+QList<QList<QVariant>> HstoryList::queryTableDate2(QSqlDatabase &db, const QString &dbName, const QString &tableName,
+                                                   const QString &startDateTime, const QString &endDateTime,
+                                                   const QString &xuanName, const QStringList &columns) {  // 添加 xuanName 参数
+    QList<QList<QVariant>> results;
+
+    // 检查数据库连接是否有效
+    if (!db.isOpen() || db.databaseName() != dbName) {
+        qDebug() << "数据库连接无效!";
+        return results;
+    }
+    QSqlQuery query(db);
+
+    // 构造 SQL 查询语句
+    QString columnStr = columns.join(", ");
+    QString selectSQL = QString("SELECT %1 FROM %2").arg(columnStr).arg(tableName);
+
+    // 生成时间范围的条件 (假设时间字段名为 "press_date")
+    QString condition;
+    if (!startDateTime.isEmpty() && !endDateTime.isEmpty()) {
+        condition = QString("WHERE press_date >= '%1' AND press_date <= '%2'").arg(startDateTime).arg(endDateTime);
+    } else if (!startDateTime.isEmpty()) {
+        condition = QString("WHERE press_date >= '%1'").arg(startDateTime);
+    } else if (!endDateTime.isEmpty()) {
+        condition = QString("WHERE press_date <= '%1'").arg(endDateTime);
+    }
+
+    // 如果有 xuanName 条件，添加到查询条件中
+    if (!xuanName.isEmpty()) {
+        if (!condition.isEmpty()) {
+            condition += " AND xuanName = '" + xuanName + "'";  // 假设字段名为 u_name
+        } else {
+            condition = "WHERE xuanName = '" + xuanName + "'";
+        }
+    }
+
+    if (!condition.isEmpty()) {
+        selectSQL += " " + condition;
+    }
+
+    // 执行查询
+    if (!query.exec(selectSQL)) {
+        qDebug() << "查询失败:" << query.lastError();
+        return results;
+    }
+
+    // 遍历查询结果并存储到 results 中
+    while (query.next()) {
+        QList<QVariant> row;
+        for (int i = 0; i < query.record().count(); ++i) {
+            row.append(query.value(i));  // 添加每列的数据
+        }
+        results.append(row);  // 添加每行数据
+    }
+
+    return results;
+}
+
+#endif
+
+#if 1 // 在时间区间里面按照悬挂名称查询相关联的数据点
+QList<QList<QVariant>> HstoryList::queryTableDate3(QSqlDatabase &db, const QString &dbName, const QString &tableName,
+                                                   const QString &startDateTime, const QString &endDateTime,
+                                                   const QString &xuanName, const QStringList &columns) {  // 添加 xuanName 参数
+    QList<QList<QVariant>> results;
+    QList<QList<QVariant>> streetDataList;  // 声明存储 streetDataTb 数据的容器
+
+    // 检查数据库连接是否有效
+    if (!db.isOpen() || db.databaseName() != dbName) {
+        qDebug() << "数据库连接无效!";
+        return results;
+    }
+    QSqlQuery query(db);
+
+    // 构造 SQL 查询语句
+    QString columnStr = columns.join(", ");
+    QString selectSQL = QString("SELECT %1 FROM %2").arg(columnStr).arg(tableName);
+
+    // 生成时间范围的条件 (假设时间字段名为 "press_date")
+    QString condition;
+    if (!startDateTime.isEmpty() && !endDateTime.isEmpty()) {
+        condition = QString("WHERE press_date >= '%1' AND press_date <= '%2'").arg(startDateTime).arg(endDateTime);
+    } else if (!startDateTime.isEmpty()) {
+        condition = QString("WHERE press_date >= '%1'").arg(startDateTime);
+    } else if (!endDateTime.isEmpty()) {
+        condition = QString("WHERE press_date <= '%1'").arg(endDateTime);
+    }
+
+    // 如果有 xuanName 条件，添加到查询条件中
+    if (!xuanName.isEmpty()) {
+        if (!condition.isEmpty()) {
+            condition += " AND xuanName = '" + xuanName + "'";  // 假设字段名为 u_name
+        } else {
+            condition = "WHERE xuanName = '" + xuanName + "'";
+        }
+    }
+
+    if (!condition.isEmpty()) {
+        selectSQL += " " + condition;
+    }
+
+    // 执行查询
+    if (!query.exec(selectSQL)) {
+        qDebug() << "查询失败:" << query.lastError();
+        return results;
+    }
+
+    // 遍历查询结果并存储到 results 中
+    while (query.next()) {
+        QList<QVariant> row;
+        for (int i = 0; i < query.record().count(); ++i) {
+            row.append(query.value(i));  // 添加每列的数据
+        }
+        results.append(row);  // 添加每行数据
+    }
+
+    // 假设 `id` 是第一列，获取所有的 `id` 值
+    for (const QList<QVariant> &resultRow : results) {
+        QVariant id = resultRow[0];  // 假设第一列是 id
+        qDebug() << id.toString() << endl;
+        // 在 streetDataTb 表中查找匹配的 mainId
+        QString streetQueryStr = QString("SELECT * FROM streetDataTb WHERE mainId = '%1'").arg(id.toString());
+        qDebug() << streetQueryStr << endl;
+        QSqlQuery streetQuery(db);
+
+        if (!streetQuery.exec(streetQueryStr)) {
+            qDebug() << "查询 streetDataTb 表失败:" << streetQuery.lastError();
+            continue;
+        }
+
+        // 如果找到了匹配的 streetDataTb 数据，则存储到容器中
+        while (streetQuery.next()) {
+            QList<QVariant> streetRow;
+            for (int i = 0; i < streetQuery.record().count(); ++i) {
+                streetRow.append(streetQuery.value(i));  // 添加每列的数据
+            }
+
+            // 将结果添加到容器中
+            streetDataList.append(streetRow);
+        }
+    }
+
+    return streetDataList;
+}
+
+
+#endif
+
 /**
  * @brief 按时间查询槽函数
  */
@@ -994,6 +1150,134 @@ void HstoryList::onOption2() {
 
     qDebug() << startDateTime << "--" << endDateTime << endl;
 }
+
+   //  20241230
+// 按照悬挂件名称
+void HstoryList::onOption3(){
+    qDebug() << "按照悬挂名称查询" << endl;
+    ui->tableWidget2->setColumnCount(12);
+    QStringList heardList;
+    heardList<<"悬挂件名称"<<"压装日期"<<"操作者"<<"检查者"<<"节点序列号1"<<"压装力值1"<<"压装结果1"<<"压装力标准1"
+            <<"节点序列号2"<<"压装力值2"<<"压装结果2"<<"压装力标准2";
+    ui->tableWidget2->setHorizontalHeaderLabels(heardList);
+
+    // 获取时间范围
+    QString startDateTime = ui->startDateEdit->text() + " " + ui->startTimeEdit->text();
+    QString endDateTime = ui->endDateEdit->text() + " " + ui->endTimeEdit->text();
+//    数据插入容器成功
+    dateFind = HstoryList::queryTableDate2(dataBaseConn, "./D1.db", "mainListTb",startDateTime,endDateTime,  ui->xuanNameBox->currentText());
+
+    ui->tableWidget2->clearContents();
+#if 1
+    // 1.2 设置列的宽度，拉伸使表格充满窗口
+    ui->tableWidget2->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    // 1.3 获取表格的行数和列数
+    int rowCount = dateFind.size();
+    int columnCount = (rowCount > 0) ? dateFind[0].size() : 0;
+    // 1.4 设置表格的行数和列数
+    ui->tableWidget2->setRowCount(rowCount);
+    ui->tableWidget2->setColumnCount(columnCount - 1);  // 排除 id 列，减去 1
+    // 1.5 填充表格数据，跳过 'id' 列（假设 'id' 是第一列）
+    for (int i = 0; i < rowCount; ++i) {
+        const QList<QVariant> &row = dateFind[i];
+        for (int j = 1; j < columnCount; ++j) {  // 从第2列开始填充，跳过 'id' 列
+            ui->tableWidget2->setItem(i, j - 1, new QTableWidgetItem(row[j].toString()));
+        }
+    }
+    // 时间查询时将容器存入主容器中因为打印pdf处调用的是主容器
+    mainJiLuList.clear();
+    mainJiLuList.append(dateFind);
+    // 假设 tableWidget 已经被初始化并设置好行列数
+
+    // 居中行
+    for (int row = 0; row < ui->tableWidget2->rowCount(); ++row) {
+        for (int col = 0; col < ui->tableWidget2->columnCount(); ++col) {
+            QTableWidgetItem *item = ui->tableWidget2->item(row, col);
+            if (!item) {
+                // 如果当前单元格没有内容，创建一个新的 QTableWidgetItem
+                item = new QTableWidgetItem();
+                ui->tableWidget2->setItem(row, col, item);
+            }
+            item->setTextAlignment(Qt::AlignCenter);  // 设置居中对齐
+        }
+    }
+
+#endif
+
+#if 1 // 按时间查询曲线数据
+    // 查询数据
+    dateFind = HstoryList::queryTableDate3(dataBaseConn, "./D1.db", "mainListTb", startDateTime, endDateTime, ui->xuanNameBox->currentText());
+
+    // 打印查询到的数据（调试）
+    for (int i = 0; i < dateFind.size(); ++i) {
+        const QList<QVariant>& row = dateFind[i];
+        for (int j = 0; j < row.size(); ++j) {
+            QVariant cell = row[j];
+            qDebug() << "Row:" << i << "Column:" << j << "Value:" << cell.toString();
+        }
+    }
+
+    // 清除表格内容
+    ui->tableWidget2_2->clearContents();
+
+    // 设置表格列数和表头
+    ui->tableWidget2_2->setColumnCount(4);
+    QStringList headerList2;
+    headerList2 << "压装力值" << "压装日期" << "图表类型" << "视图标志";
+    ui->tableWidget2_2->setHorizontalHeaderLabels(headerList2);
+
+    // 设置列宽度拉伸
+    ui->tableWidget2_2->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+
+    // 获取查询结果的行数和列数
+    int rowCount2 = dateFind.size();  // 使用 dateFind 而不是 dateFind2
+    int columnCount2 = (rowCount2 > 0) ? dateFind[0].size() : 0;
+
+    // 设置表格的行数和列数
+    ui->tableWidget2_2->setRowCount(rowCount2);  // 设置正确的行数
+    ui->tableWidget2_2->setColumnCount(4);  // 你设置了 4 列
+
+    // 填充表格数据，跳过 'id' 列（假设 'id' 是第一列）
+    for (int i = 0; i < rowCount2; ++i) {
+        const QList<QVariant>& row = dateFind[i];  // 使用 dateFind 代替 dateFind2
+        for (int j = 1; j < columnCount2; ++j) {  // 从第2列开始填充，跳过 'id' 列
+            ui->tableWidget2_2->setItem(i, j - 1, new QTableWidgetItem(row[j].toString()));
+        }
+    }
+#endif
+
+       //去除选中虚线框
+       ui->tableWidget2->setFocusPolicy(Qt::NoFocus);
+       ui->tableWidget2->setEditTriggers(QAbstractItemView::NoEditTriggers);//只读 不允许编辑 (整表)
+       ui->tableWidget2_2->setFocusPolicy(Qt::NoFocus);
+       ui->tableWidget2_2->setEditTriggers(QAbstractItemView::NoEditTriggers);//只读 不允许编辑 (整表)
+       // 设置选中行的行为
+       ui->tableWidget2->setSelectionBehavior(QAbstractItemView::SelectRows);
+       ui->tableWidget2_2->setSelectionBehavior(QAbstractItemView::SelectRows);
+       // 还可以设置选择模式为单选
+       ui->tableWidget2->setSelectionMode(QAbstractItemView::SingleSelection);
+       ui->tableWidget2_2->setSelectionMode(QAbstractItemView::SingleSelection);
+       ui->tableWidget2_2->setStyleSheet("QTableWidget::item { text-align: center; }");
+
+       // 假设 tableWidget 已经被初始化并设置好行列数
+
+       // 居中
+       for (int row = 0; row < ui->tableWidget2_2->rowCount(); ++row) {
+           for (int col = 0; col < ui->tableWidget2_2->columnCount(); ++col) {
+               QTableWidgetItem *item = ui->tableWidget2_2->item(row, col);
+               if (!item) {
+                   // 如果当前单元格没有内容，创建一个新的 QTableWidgetItem
+                   item = new QTableWidgetItem();
+                   ui->tableWidget2_2->setItem(row, col, item);
+               }
+               item->setTextAlignment(Qt::AlignCenter);  // 设置居中对齐
+           }
+       }
+
+    qDebug() << startDateTime << "--" << endDateTime << endl;
+
+}
+   //  20241230
 
 
 // 菜单项对应的槽函数
