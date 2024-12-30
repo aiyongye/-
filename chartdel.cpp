@@ -30,11 +30,11 @@ QChartView* MainWindow::createChartView(const QString &title, QDateTimeAxis *axi
     axisY->setLabelFormat("%.0f");  // 设置Y轴标签格式，显示整数
     // 设置坐标轴X的线条样式
     QPen axisXPen;
-    axisXPen.setWidth(3);  // 设置线条宽度为3
+    axisXPen.setWidth(2);  // 设置线条宽度为3
     axisXPen.setColor(QColor(211, 211, 211));   // 设置线条颜色为黑色
     axisX->setLinePen(axisXPen);  // 应用线条样式
     QPen axisYPen;
-    axisYPen.setWidth(3);  // 设置线条宽度为3
+    axisYPen.setWidth(2);  // 设置线条宽度为3
     axisYPen.setColor(QColor(211, 211, 211));    // 设置线条颜色为黑色
     axisY->setLinePen(axisYPen);  // 应用线条样式
     QFont fontX("Arial", 6);QFont fontY("Arial", 6);
@@ -63,12 +63,18 @@ QChartView* MainWindow::createChartView(const QString &title, QDateTimeAxis *axi
     chart->setTitleBrush(QBrush(Qt::blue)); // 字体颜色设置为蓝色
     chart->setTitle(title); // 设置标题
     QPen pen1(Qt::blue);  // 设置曲线颜色为蓝色
-    pen1.setWidth(3);
+    pen1.setWidth(2);
     series->setPen(pen1);  // 应用到数据系列
 
     axisX->setLabelsVisible(true);
     axisY->setLabelsVisible(true);
         /***************bash20241213*************/
+#if 1 // 20241229
+    chart->setMargins(QMargins(0, 0, 0, 0));
+    chart->layout()->setContentsMargins(0, 0, 0, 0); // 设置图表布局内边距为 0
+    chartView->setContentsMargins(0, 0, 0, 0);
+    chartView->setStyleSheet("padding: 0px; margin: 0px;");
+#endif
     startDataInsertion(axisX, series, chart, chartView);  // 传入chartView，确保更新
     return chartView;
 }
@@ -189,11 +195,11 @@ QChartView* MainWindow::createChartView2(const QString &title, QDateTimeAxis *ax
     axisX->setTickCount(2);  // 设置 X 轴刻度数量（显示两个刻度，即当前时间和下一秒）
     // 设置坐标轴X的线条样式
     QPen axisXPen;
-    axisXPen.setWidth(3);  // 设置线条宽度为3
+    axisXPen.setWidth(2);  // 设置线条宽度为3
     axisXPen.setColor(QColor(211, 211, 211));   // 设置线条颜色为黑色
     axisX->setLinePen(axisXPen);  // 应用线条样式
     QPen pen1(Qt::blue);  // 设置曲线颜色为蓝色
-    pen1.setWidth(3);
+    pen1.setWidth(2);
     series->setPen(pen1);  // 应用到数据系列
 
     // 设置初始X轴范围，确保显示当前时间及之前5秒的数据
@@ -206,7 +212,7 @@ QChartView* MainWindow::createChartView2(const QString &title, QDateTimeAxis *ax
     axisY->setTickCount(10);         // 设置Y轴刻度数量
     axisY->setLabelFormat("%.0f");  // 设置Y轴标签格式，显示整数
     QPen axisYPen;
-    axisYPen.setWidth(3);  // 设置线条宽度为3
+    axisYPen.setWidth(2);  // 设置线条宽度为3
     axisYPen.setColor(QColor(211, 211, 211));    // 设置线条颜色为黑色
     axisY->setLinePen(axisYPen);  // 应用线条样式
 
@@ -238,6 +244,12 @@ chartView->chart()->setBackgroundPen(Qt::NoPen); // 移除边框
 
     axisX->setLabelsVisible(true);
     axisY->setLabelsVisible(true);
+#if 1 // 20241229
+    chart->setMargins(QMargins(0, 0, 0, 0));
+    chart->layout()->setContentsMargins(0, 0, 0, 0); // 设置图表布局内边距为 0
+    chartView->setContentsMargins(0, 0, 0, 0);
+    chartView->setStyleSheet("padding: 0px; margin: 0px;");
+#endif
     /***************bash20241213*************/
     startDataInsertion2(axisX, series, chart, chartView);  // 传入chartView，确保更新
     return chartView;

@@ -403,8 +403,6 @@ HstoryList::HstoryList(QWidget *parent) :
         }
     });
 #endif
-
-
 }
 
 HstoryList::~HstoryList()
@@ -1011,17 +1009,25 @@ void HstoryList::onOption2() {
     void HstoryList::printOnOption1() {
         qDebug("打印触发1");
          HstoryList::exportPdf(); // 主记录存成pdf
-         HstoryList::filePrintPreview2();
+         HstoryList::filePrintPreviewMain();
     }
     //打印曲线数据列表(Z)
     void HstoryList::printonOption2() {
         qDebug("打印触发2");
-        HstoryList::filePrintPreview();
+        int selectedRow = ui->tableWidget2->currentRow();
+        if (selectedRow == -1) {
+            qDebug() << "没有选中任何行!";
+            QMessageBox::information(this, "失败","请选择行!");
+            return;  // If no row is selected, do nothing
+        }
+
+        HstoryList::exportPdfChar();
+        HstoryList::filePrintPreviewChart();
     }
 
 
-    // 打印预览槽函数
-    void HstoryList::filePrintPreview()
+    // 打印预览槽函数预览图表记录
+    void HstoryList::filePrintPreviewChart()
     {
 
 
@@ -1031,7 +1037,7 @@ void HstoryList::onOption2() {
         QPrintPreviewDialog preview(&printer, this);
         preview.resize(2400,1600);
 
-        connect(&preview, &QPrintPreviewDialog::paintRequested, this, &HstoryList::printPreview2);
+        connect(&preview, &QPrintPreviewDialog::paintRequested, this, &HstoryList::printPreviewChart);
         preview.exec();
         // 确保资源释放
         preview.deleteLater();  // 在预览完成后删除对话框
@@ -1039,8 +1045,8 @@ void HstoryList::onOption2() {
     }
 
 
-    // 打印预览槽函数2
-    void HstoryList::filePrintPreview2()
+    // 打印预览槽函数预览主记录
+    void HstoryList::filePrintPreviewMain()
     {
         // 53%
     #if !defined(QT_NO_PRINTER) && !defined(QT_NO_PRINTDIALOG)
@@ -1053,7 +1059,7 @@ void HstoryList::onOption2() {
               qDebug() << "Preview dialog closed, deleting...";
               preview.deleteLater();  // 确保对话框关闭后再删除
           });
-        connect(&preview, &QPrintPreviewDialog::paintRequested, this, &HstoryList::printPreview2);
+        connect(&preview, &QPrintPreviewDialog::paintRequested, this, &HstoryList::printPreviewMain);
         preview.exec();
 
     #endif
@@ -1061,13 +1067,108 @@ void HstoryList::onOption2() {
 
 
 #if 1
-    void HstoryList::printPreview2(QPrinter *printer)
+    void HstoryList::printPreviewMain(QPrinter *printer)
     {
     #ifdef QT_NO_PRINTER
         Q_UNUSED(printer);
     #else
         // Choose PDF file to load
-        QString filePath = QFileDialog::getOpenFileName(this, "选择PDF文件", "", "PDF Files (*.pdf)");
+        QString filePath = QCoreApplication::applicationDirPath() + "/mainJiLu.pdf"; // 当前目录下的 mainJiLu.pdf
+        qDebug() << "PDF will be saved at:" << filePath;
+        if (filePath.isEmpty()) {
+            return;
+        }
+
+        // Load Poppler document
+        Poppler::Document *pdfDocument = Poppler::Document::load(filePath);
+        if (!pdfDocument) {
+            qWarning() << "Failed to load PDF:" << filePath;
+            return;
+        }
+
+        int numPages = pdfDocument->numPages();  // Get the number of pages in the PDF document
+
+        // Create QPainter for printing
+        QPainter painter(printer);
+        if (!painter.isActive()) {
+            qWarning() << "Failed to initialize QPainter";
+            delete pdfDocument;
+            return;
+        }
+
+        // Iterate through all pages
+        for (int pageIndex = 0; pageIndex < numPages; ++pageIndex) {
+            Poppler::Page *page = pdfDocument->page(pageIndex);  // Load the current page
+            if (!page) {
+                qWarning() << "Failed to load page:" << pageIndex;
+                continue;
+            }
+
+            QSizeF pageSize = page->pageSize();  // Get the page size
+            bool isLandscape = pageSize.width() > pageSize.height();  // Check if the page is landscape
+            // Set the printer orientation based on the PDF page orientation
+            if (isLandscape) {
+                printer->setOrientation(QPrinter::Landscape);
+            } else {
+                printer->setOrientation(QPrinter::Portrait);
+            }
+
+            // Set printer resolution and size (A4 size)
+            printer->setPageSize(QPrinter::A4);
+            printer->setResolution(300);
+
+            // Render the current page to an image
+            QImage image = page->renderToImage(180.0, 180.0);  // Render page at 600 DPI
+            //QImage image = page->renderToImage(72.0, 72.0);  // Render page at 600 DPI
+            if (image.isNull()) {
+                qWarning() << "Failed to render page to image";
+                delete page;
+                continue;
+            }
+
+            // Start new page in the printer for each PDF page
+            if (pageIndex > 0) {
+                printer->newPage();  // Begin a new page in the printer if it's not the first page
+            }
+
+            // Print the image onto the page
+            painter.save();
+
+            // Get the print page size
+            QSize printSize = printer->pageRect().size();
+            QRect targetRect(0, 0, printSize.width(), printSize.height());
+
+            qreal scaleX = targetRect.width() / static_cast<qreal>(image.width());
+            qreal scaleY = targetRect.height() / static_cast<qreal>(image.height());
+            qreal scale = qMax(scaleX, scaleY);  // Scale the image to fit the page, keeping the aspect ratio
+
+            // Apply scaling
+            painter.scale(scale, scale);
+
+            // Draw the image on the printer
+            painter.drawImage(0, 0, image);
+
+            // Restore the painter state
+            painter.restore();
+
+            // Clean up the current page
+            delete page;
+        }
+
+        // Clean up the PDF document
+        delete pdfDocument;
+
+    #endif
+    }
+
+    void HstoryList::printPreviewChart(QPrinter *printer)
+    {
+    #ifdef QT_NO_PRINTER
+        Q_UNUSED(printer);
+    #else
+        // Choose PDF file to load
+        QString filePath = QCoreApplication::applicationDirPath() + "/Chart12.pdf"; // 当前目录下的 mainJiLu.pdf
+        qDebug() << "PDF will be saved at:" << filePath;
         if (filePath.isEmpty()) {
             return;
         }
@@ -1204,91 +1305,6 @@ void HstoryList::onOption2() {
         return true;
     }
 
-
-    /**
-     * @brief 判导出主记录表
-     */
-#if 0
-    void HstoryList::exportPdf()
-    {
-        // 设置默认保存路径
-        QString defaultPath = QCoreApplication::applicationDirPath() + "/mainJiLu.pdf";  // 默认保存路径为应用程序目录下
-
-        // 如果文件没有后缀，则添加 .pdf 后缀
-        if (QFileInfo(defaultPath).suffix().isEmpty()) {
-            defaultPath.append(".pdf");
-            qDebug() << defaultPath << endl;
-        }
-
-        // 创建 QPdfWriter 对象并设置 PDF 输出路径
-        QPdfWriter pdfWriter(defaultPath);
-        pdfWriter.setPageSize(QPagedPaintDevice::A4);
-        pdfWriter.setResolution(QPrinter::ScreenResolution);
-
-        // 创建 QTextDocument 来保存 HTML 内容
-        QTextDocument textDocument;
-
-        // 清空 HTML 内容，准备添加新内容
-        QString m_html;
-        m_html.append("<html><head><style>"
-                      "th, td { border: 6px solid black; padding: 8px; text-align: center; }"
-                      "</style></head><body>");
-
-        // 标题
-        m_html.append("<h2 style='text-align: center;'>主记录列表</h2><br/>");
-        // 添加表格内容
-        m_html.append("<h3 style='text-align: left;'>统计时间:    "
-                      + ui->startDateEdit->text() + " => "
-                      + ui->endDateEdit->text() + " 23:59:59</h3>");
-        m_html.append("<table border='0.5' cellspacing='0' cellpadding='3' width='100%'>");
-        // 添加第一行的表头
-        m_html.append("<tr>"
-                      "<th style='width: 120px;'>悬挂名称</th>"
-                      "<th style='width: 120px;'>压装日期</th>"
-                      "<th style='width: 120px;'>操作者</th>"
-                      "<th style='width: 120px;'>检查者</th>"
-                      "<th style='width: 360px;'>节点序列号1</th>"
-                      "<th style='width: 120px;'>压装值力1</th>"
-                      "<th style='width: 120px;'>压装结果1</th>"
-                      "<th style='width: 120px;'>压装力标准1</th>"
-                      "<th style='width: 360px;'>节点序列号2</th>"
-                      "<th style='width: 120px;'>压装值力2</th>"
-                      "<th style='width: 120px;'>压装结果2</th>"
-                      "<th style='width: 120px;'>压装力标准2</th>"
-                      "</tr>");
-
-        // 逐行添加记录到表格
-        for (const auto& recordList : mainJiLuList) {
-            m_html.append("<tr>");
-
-            // 跳过第一个元素
-            for (int i = 1; i < recordList.size(); ++i) {
-                m_html.append("<td>" + recordList[i].toString() + "</td>");
-            }
-
-            m_html.append("</tr>");
-        }
-        // 在最后添加“数据条数”行
-        m_html.append("<tr><td colspan='11' style='text-align: right;'><strong>数据条数: " + QString::number(mainJiLuList.size()) + "</strong></td></tr>");
-        qDebug() << "mainJiLuList size: " << mainJiLuList.size();
-
-        // 结束表格
-        m_html.append("</table><br />");
-
-        // 结束 HTML
-        m_html.append("</body></html>");
-
-        // 将 HTML 内容设置到 QTextDocument
-        textDocument.setHtml(m_html);
-
-        // 使用 QPdfWriter 打印 PDF
-        textDocument.print(&pdfWriter);
-
-        // 关闭文件并开始新的一页
-        pdfWriter.newPage();  // 如果需要新页面，使用 newPage
-    }
-#endif
-
 #if 1
     void HstoryList::writePdf()
     {
@@ -1393,7 +1409,7 @@ void HstoryList::onOption2() {
         // 在最后一行加一行统计行 合计|数据条数 数据条数和后面的列合并
         m_html.append(QString("<tr><td style='text-align: center; font-size:%1px'><strong>合计:</strong></td>"
                               "<td style='text-align: center; font-size:%1px'><strong>%2</strong></td>"
-                              "<td colspan='10'></td></tr>").arg(tableH2).arg(QString::number(rows)));
+                              "<td colspan='10'></td></tr>").arg(tableH2).arg(QString::number(rows-1)));
         m_html.append("</table><br /><br />");
     }
 
@@ -1705,3 +1721,341 @@ void HstoryList::onOption2() {
         return true;
     }
 
+    // 20241229
+    #if 1
+
+    void HstoryList::exportPdfChar()
+    {
+
+        // 获取数据到对应变量
+        QString _xuanGuaName = rowData[0].toString();          // 悬挂名称
+        QString _yaZhuangData = rowData[1].toString();         // 压装时期
+        QString _caoZuoName = rowData[2].toString();           // 操作者名称
+        QString _jianChaName = rowData[3].toString();          // 检查者名称
+
+        QString _jieDianSignLine1 = rowData[4].toString();     // 节点序列号
+        QString _yaZhuang1 = rowData[5].toString();            // 压装力值
+        QString _yaZhuangSaultLine1 = rowData[6].toString();   // 压装结果
+        QString _yaZhuangStdLine1 = rowData[7].toString();     // 压装力标准
+
+        QString _jieDianSignLine2 = rowData[8].toString();     // 节点序列号
+        QString _yaZhuang2 = rowData[9].toString();            // 压装力值
+        QString _yaZhuangSaultLine2 = rowData[10].toString();  // 压装结果
+        QString _yaZhuangStdLine2 = rowData[11].toString();    // 压装力标准
+
+
+
+
+        // 设置默认保存路径
+        QString defaultPath = QCoreApplication::applicationDirPath() + "/Chart12.pdf";  // 默认保存路径为应用程序目录下
+
+        // 如果文件没有后缀，则添加 .pdf 后缀
+        if (QFileInfo(defaultPath).suffix().isEmpty()) {
+            defaultPath.append(".pdf");
+            qDebug() << defaultPath.append(".pdf") << endl;
+        }
+
+        // 创建 QPdfWriter 对象并设置 PDF 输出路径
+        QPdfWriter pdfWriter(defaultPath);
+        pdfWriter.setPageSize(QPagedPaintDevice::A4);
+        pdfWriter.setPageSizeMM(QSizeF(297, 210));
+
+        // 打开modbus.ini文件并指定为ini格式
+        QSettings configIni("./chartsSize.ini", QSettings::IniFormat);
+        // 读取配置项
+        int chartsW = configIni.value("Charts/W", 720).toInt();  // 默认为 "192.168.1.1"
+        int chartsH = configIni.value("Charts/H", 640).toInt();  // 默认为 502
+        int tableW2 = configIni.value("Charts/W3", 165).toInt();  // 默认为 3000
+        int tableH2 = configIni.value("Charts/H3", 180).toInt();  // 默认为 3000
+
+        // 创建 QTextDocument 来保存 HTML 内容
+        QTextDocument textDocument;
+
+        // 清空 HTML 内容，准备添加新内容
+        QString m_html;
+        m_html.append("<h1 style='text-align:center;'>转向架悬挂件节点压装力曲线</h1><br />");
+
+        // 添加 T1
+        m_html.append("<table border='5' cellspacing='0' cellpadding='3' width='100%'>");
+        m_html.append("<tr>");
+        m_html.append("<td width='14%' style='font-size: " + QString::number(tableH2) + "px' valign='center'>悬挂名称</td>");
+        m_html.append("<td width='14%' style='font-size: " + QString::number(tableH2) + "px' valign='center'>" + _xuanGuaName + "</td>");
+        m_html.append("<td width='14%' style='font-size: " + QString::number(tableH2) + "px' valign='center'>" + _yaZhuangData + "</td>");
+        m_html.append("<td width='14%' style='font-size: " + QString::number(tableH2) + "px' valign='center'>操作者</td>");
+        m_html.append("<td width='14%' style='font-size: " + QString::number(tableH2) + "px' valign='center'>" + _caoZuoName + "</td>");
+        m_html.append("<td width='14%' style='font-size: " + QString::number(tableH2) + "px' valign='center'>检查者</td>");
+        m_html.append("<td width='14%' style='font-size: " + QString::number(tableH2) + "px' valign='center'>" + _jianChaName + "</td>");
+        m_html.append("</tr>");
+
+        m_html.append("</table><br /><br />");
+
+        // 横向排布图片1和图片2 在 T2 和 T3 之前
+        m_html.append("<table border='0' cellspacing='0' cellpadding='0' style='width: 100%;'>");
+        m_html.append("<tr>");
+    #if 1
+         HstoryList::saveSvgChartAsImage();
+         HstoryList::saveSvgChartAsImage2();
+        // 图片1 动态设置宽度和固定高度
+          m_html.append("<td style='width: 48%;'><img src='./chart11.svg' width='" + QString::number(chartsW) + "' height='" + QString::number(chartsH) + "'></td>");
+          // 图片2 动态设置宽度和固定高度
+          m_html.append("<td style='width: 4%;'></td>");  // 空隙列，调整宽度控制图片间距
+          m_html.append("<td style='width: 48%;'><img src='./chart22.svg' width='" + QString::number(chartsW) + "' height='" + QString::number(chartsH) + "'></td>");
+    #endif
+          m_html.append("</tr>");
+        m_html.append("</table><br />");
+
+        // 使用父表格来排列 T2 和 T3 横向显示
+        m_html.append("<table border='0' cellspacing='0' cellpadding='0' style='width: 100%;'>");
+        m_html.append("<tr>");
+
+        // T2 表格
+        m_html.append("<td style='width: 48%; padding-left: 15%; padding-right: 50%'>");
+        m_html.append("<table border='5' cellspacing='0' cellpadding='3' width='100%'>");
+        m_html.append("<tr><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>节点序列号</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>" + _jieDianSignLine1 + "</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>压装力值</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>" + _yaZhuang1 + "</td></tr>");
+        m_html.append("<tr><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>压装结果</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>" + _yaZhuangSaultLine1 + "</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>压装力标准</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>" + _yaZhuangStdLine1 + "</td></tr>");
+        m_html.append("</table>");
+        m_html.append("</td>");
+
+        // 空隙列（增大宽度来加大间距）
+        m_html.append("<td style='width: 4%;'></td>");  // 增加间距，控制T2与T3之间的距离
+
+        // T3 表格
+        m_html.append("<td style='width: 48%;'>");
+        m_html.append("<table border='5' cellspacing='0' cellpadding='3' width='100%'>");
+        m_html.append("<tr><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>节点序列号</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>" + _jieDianSignLine2 + "</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>压装力值</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>" + _yaZhuang2 + "</td></tr>");
+        m_html.append("<tr><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>压装结果</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>" + _yaZhuangSaultLine2 + "</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>压装力标准</td><td width='" + QString::number(tableW2) + "' style='width: 12.5%; font-size: " + QString::number(tableH2) + "px;' valign='center'>" + _yaZhuangStdLine2 + "</td></tr>");
+        m_html.append("</table>");
+        m_html.append("</td>");
+
+        m_html.append("</tr>");
+        m_html.append("</table>");
+
+        // 将 HTML 内容设置到 QTextDocument
+        textDocument.setHtml(m_html);
+
+        // 使用 QPdfWriter 打印 PDF
+        textDocument.print(&pdfWriter);
+
+        // 关闭文件
+        pdfWriter.newPage();  // 如果需要新页面，使用 newPage
+    }
+
+    QString HstoryList::generateSimpleSvgChart() {
+        // 定义左容器和右容器
+        QList<QList<QVariant>> leftList;
+        QList<QList<QVariant>> rightList;
+
+        // 遍历数据并分组
+        for (int i = 0; i < chartsData.size(); i += 3) {
+            if (i + 2 >= chartsData.size()) {
+                // 如果数据不足三个元素，跳过
+                break;
+            }
+
+            // 将三个元素作为一组
+            QList<QVariant> group = {chartsData[i], chartsData[i + 1], chartsData[i + 2]};
+
+            // 根据第三个元素的值存储到对应的容器
+            if (group[2].toString() == "leftData") {
+                leftList.append(group);
+            } else if (group[2].toString() == "rightData") {
+                rightList.append(group);
+            }
+        }
+
+        // 如果数据超过5个，只显示最后5个数据
+        if (leftList.size() > 5) {
+            leftList = leftList.mid(leftList.size() - 5); // 只取最后5个数据
+        }
+
+        // 生成SVG内容
+        QString svg = "<svg width='485' height='370' xmlns='http://www.w3.org/2000/svg' style='background: #f5f5f5;'>";
+
+        // 绘制 X 和 Y 轴
+        svg += "<line x1='50' y1='10' x2='50' y2='350' stroke='black' stroke-width='2'/>"; // Y轴
+        svg += "<line x1='50' y1='350' x2='550' y2='350' stroke='black' stroke-width='2'/>"; // X轴
+
+        // Y轴刻度：绘制大刻度及其延伸线
+        int largeTickSpacing = 50; // 大刻度之间的间距对应的实际数值
+        int pixelSpacing = 30;     // 大刻度之间的像素距离
+        for (int i = 0; i <= 10; ++i) {
+            int yPos = 350 - (i * pixelSpacing);
+            svg += "<line x1='45' y1='" + QString::number(yPos) + "' x2='50' y2='" + QString::number(yPos) + "' stroke='black' stroke-width='1'/>";
+
+            // Add small ticks for Y-axis (3 small ticks between each major tick)
+            int smallTickSpacing = pixelSpacing / 4; // 4 parts to make 3 small ticks
+            for (int j = 1; j < 4; ++j) {
+                int smallYPos = yPos - j * smallTickSpacing;
+                svg += "<line x1='45' y1='" + QString::number(smallYPos) + "' x2='50' y2='" + QString::number(smallYPos) + "' stroke='black' stroke-width='1'/>";  // Small ticks
+            }
+
+            svg += "<text x='20' y='" + QString::number(yPos + 5) + "' font-size='12' font-weight='bold' fill='black'>" + QString::number(i * largeTickSpacing) + "</text>";
+            svg += "<line x1='50' y1='" + QString::number(yPos) + "' x2='550' y2='" + QString::number(yPos) + "' stroke='black' stroke-width='1'/>"; // Major ticks
+        }
+
+        // 计算X轴大刻度和小刻度间隔
+        int numTicks = leftList.size();
+        int xStep = 122;  // 将 X 轴大刻度间隔设为 122
+
+        // X轴大刻度绘制
+        for (int i = 0; i < numTicks; ++i) {
+            QString timeLabel = leftList[i][1].toString();  // 获取时间戳（第二个元素）
+            int xPos = 50 + i * xStep; // 计算X坐标
+            svg += "<line x1='" + QString::number(xPos) + "' y1='350' x2='" + QString::number(xPos) + "' y2='355' stroke='black' stroke-width='1'/>"; // Major ticks
+            svg += "<text x='" + QString::number(xPos) + "' y='370' font-size='10' font-weight='bold' fill='black' text-anchor='middle'>" + timeLabel + "</text>";
+            svg += "<line x1='" + QString::number(xPos) + "' y1='10' x2='" + QString::number(xPos) + "' y2='350' stroke='black' stroke-width='1'/>"; // Y轴线
+        }
+
+        // 添加数据点和折线（从 leftList 数据生成）
+        QString pathData = "M";
+        for (int i = 0; i < leftList.size(); ++i) {
+            // 使用时间作为 X 轴坐标
+            int xPos = 50 + i * xStep; // 根据数据点动态计算 X 位置
+            // 使用压力值作为 Y 轴坐标
+            int yPos = 350 - leftList[i][0].toInt() * pixelSpacing / largeTickSpacing; // 根据压力值计算 Y 位置
+            pathData += QString::number(xPos) + " " + QString::number(yPos) + " ";
+
+            // Add circular data points (circle markers)
+            //svg += "<circle cx='" + QString::number(xPos) + "' cy='" + QString::number(yPos) + "' r='4' fill='red' stroke='black' stroke-width='1'/>";  // Add circle for data points
+        }
+        svg += "<path d='" + pathData.trimmed() + "' stroke='blue' stroke-width='2' fill='none'/>";
+
+        svg += "</svg>";
+
+        return svg; // 返回纯 SVG 内容
+    }
+
+    QString HstoryList::generateSimpleSvgChart2() {
+        // 定义左容器和右容器
+        QList<QList<QVariant>> leftList;
+        QList<QList<QVariant>> rightList;
+
+        // 遍历数据并分组
+        for (int i = 0; i < chartsData.size(); i += 3) {
+            if (i + 2 >= chartsData.size()) {
+                // 如果数据不足三个元素，跳过
+                break;
+            }
+
+            // 将三个元素作为一组
+            QList<QVariant> group = {chartsData[i], chartsData[i + 1], chartsData[i + 2]};
+
+            // 根据第三个元素的值存储到对应的容器
+            if (group[2].toString() == "leftData") {
+                leftList.append(group);
+            } else if (group[2].toString() == "rightData") {
+                rightList.append(group);
+            }
+        }
+
+        // 如果数据超过5个，只显示最后5个数据
+        if (rightList.size() > 5) {
+            rightList = rightList.mid(rightList.size() - 5); // 只取最后5个数据
+        }
+
+        // 生成SVG内容
+        QString svg = "<svg width='485' height='370' xmlns='http://www.w3.org/2000/svg' style='background: #f5f5f5;'>";
+
+        // 绘制 X 和 Y 轴
+        svg += "<line x1='50' y1='10' x2='50' y2='350' stroke='black' stroke-width='2'/>"; // Y轴
+        svg += "<line x1='50' y1='350' x2='550' y2='350' stroke='black' stroke-width='2'/>"; // X轴
+
+        // Y轴刻度：绘制大刻度及其延伸线
+        int largeTickSpacing = 50; // 大刻度之间的间距对应的实际数值
+        int pixelSpacing = 30;     // 大刻度之间的像素距离
+        for (int i = 0; i <= 10; ++i) {
+            int yPos = 350 - (i * pixelSpacing);
+            svg += "<line x1='45' y1='" + QString::number(yPos) + "' x2='50' y2='" + QString::number(yPos) + "' stroke='black' stroke-width='1'/>";
+
+            // Add small ticks for Y-axis (3 small ticks between each major tick)
+            int smallTickSpacing = pixelSpacing / 4; // 4 parts to make 3 small ticks
+            for (int j = 1; j < 4; ++j) {
+                int smallYPos = yPos - j * smallTickSpacing;
+                svg += "<line x1='45' y1='" + QString::number(smallYPos) + "' x2='50' y2='" + QString::number(smallYPos) + "' stroke='black' stroke-width='1'/>";  // Small ticks
+            }
+
+            svg += "<text x='20' y='" + QString::number(yPos + 5) + "' font-size='12' font-weight='bold' fill='black'>" + QString::number(i * largeTickSpacing) + "</text>";
+            svg += "<line x1='50' y1='" + QString::number(yPos) + "' x2='550' y2='" + QString::number(yPos) + "' stroke='black' stroke-width='1'/>"; // Major ticks
+        }
+
+        // 计算X轴大刻度和小刻度间隔
+        int numTicks = rightList.size();
+        int xStep = 122;  // 将 X 轴大刻度间隔设为 122
+
+        // X轴大刻度绘制
+        for (int i = 0; i < numTicks; ++i) {
+            QString timeLabel = rightList[i][1].toString();  // 获取时间戳（第二个元素）
+            int xPos = 50 + i * xStep; // 计算X坐标
+            svg += "<line x1='" + QString::number(xPos) + "' y1='350' x2='" + QString::number(xPos) + "' y2='355' stroke='black' stroke-width='1'/>"; // Major ticks
+            svg += "<text x='" + QString::number(xPos) + "' y='370' font-size='10' font-weight='bold' fill='black' text-anchor='middle'>" + timeLabel + "</text>";
+            svg += "<line x1='" + QString::number(xPos) + "' y1='10' x2='" + QString::number(xPos) + "' y2='350' stroke='black' stroke-width='1'/>"; // Y轴线
+        }
+
+        // 添加数据点和折线（从 leftList 数据生成）
+        QString pathData = "M";
+        for (int i = 0; i < rightList.size(); ++i) {
+            // 使用时间作为 X 轴坐标
+            int xPos = 50 + i * xStep; // 根据数据点动态计算 X 位置
+            // 使用压力值作为 Y 轴坐标
+            int yPos = 350 - rightList[i][0].toInt() * pixelSpacing / largeTickSpacing; // 根据压力值计算 Y 位置
+            pathData += QString::number(xPos) + " " + QString::number(yPos) + " ";
+
+            // Add circular data points (circle markers)
+            //svg += "<circle cx='" + QString::number(xPos) + "' cy='" + QString::number(yPos) + "' r='4' fill='red' stroke='black' stroke-width='1'/>";  // Add circle for data points
+        }
+        svg += "<path d='" + pathData.trimmed() + "' stroke='blue' stroke-width='2' fill='none'/>";
+
+        svg += "</svg>";
+
+        return svg; // 返回纯 SVG 内容
+    }
+
+
+
+    // 生成曲线1svg
+    void HstoryList::saveSvgChartAsImage() {
+
+        // 生成 SVG 数据
+        QString svgData = HstoryList::generateSimpleSvgChart();
+
+        // 设置保存路径
+        QString savePath = "chart11.svg"; // 保存为 SVG 文件
+
+        // 保存 SVG 文件
+        QFile file(savePath);
+        if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+            QTextStream out(&file);
+            out.setCodec("UTF-8"); // 设置编码为 UTF-8
+            out << svgData; // 将 SVG 数据写入文件
+            file.close();
+//            qDebug() << "SVG chart saved successfully as:" << savePath;
+        } else {
+            qDebug() << "Failed to save SVG chart as file.";
+        }
+    }
+            /***************bash20241213*************/
+
+    // 生产曲线2svg
+    /***************bash20241213*************/
+        void HstoryList::saveSvgChartAsImage2() {
+            // 生成 SVG 数据
+            QString svgData = HstoryList::generateSimpleSvgChart2();
+
+            // 设置保存路径
+            QString savePath = "chart22.svg"; // 保存为 SVG 文件
+
+            // 保存 SVG 文件
+            QFile file(savePath);
+            if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+                QTextStream out(&file);
+                out.setCodec("UTF-8"); // 设置编码为 UTF-8
+                out << svgData; // 将 SVG 数据写入文件
+                file.close();
+//                qDebug() << "SVG chart saved successfully as:" << savePath;
+            } else {
+                qDebug() << "Failed to save SVG chart as file.";
+            }
+        }
+    /***************bash20241213*************/
+    #endif
+    // 20241229

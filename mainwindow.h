@@ -169,7 +169,7 @@ public:
     int Timer2;
     int Timer1; //处理图表1
 public:
-    int a;
+    int a; // 处理接收压力值
     int b;
     int c;  // 初始值设为 0
     HstoryList *w1;//历史界面
@@ -242,6 +242,7 @@ public:
 /***********************bash20241218***********************/
 void createDirectory(const QString& path);
 void backupChartFile();
+QPushButton *wanCheng;
 /***********************bash20241218***********************/
 
 };

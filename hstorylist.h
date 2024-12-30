@@ -56,10 +56,10 @@ public:
                                                     const QString &condition = QString());
       QList<QList<QVariant>> queryTableDate(QSqlDatabase &db, const QString &dbName, const QString &tableName,
                                                      const QString &startDateTime, const QString &endDateTime,const QStringList &columns = QStringList("*")) ;
-    void printPreview(QPrinter *printer);
-    void filePrintPreview();
-    void printPreview2(QPrinter *printer);
-    void filePrintPreview2();
+    void printPreviewChart(QPrinter *printer);
+    void filePrintPreviewChart();
+    void printPreviewMain(QPrinter *printer);
+    void filePrintPreviewMain();
 
         bool queryAllDataFromTableXuan(QSqlDatabase &db, const QString &tableName, QList<QList<QVariant>> &dataList) ;
         QString getLastRecordId(QSqlDatabase &db, const QString &tableName, const QList<QVariant> &rowData, const QStringList &columnNames);
@@ -102,6 +102,18 @@ public:
           bool updateDataInTable(QSqlDatabase &db, const QString &tableName, int rowId, const QString &newUserName, const QString &newPassword);
           bool deleteDataByIdAndReference(QSqlDatabase &db, const QString &tableName, const QString &refTableName, int rowId);
           /***********************bash20241227***********************/
+
+          // 20241229
+          void exportPdfChar();
+          QString generateSimpleSvgChart();
+          QString generateSimpleSvgChart2();
+          void saveSvgChartAsImage();
+          void saveSvgChartAsImage2();
+
+          QList<QList<QVariant>> leftList;
+          QList<QList<QVariant>> rightList;
+
+          // 20241229
 };
 
 #endif // HSTORYLIST_H
